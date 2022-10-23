@@ -1,2 +1,7 @@
 Release/
-Debug/
+.vs/
+OpenGL1/Debug/
+OpenGL1/Release/
+x64/
+packages/
+OpenGL1/x64/
