@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\shader">
+      <UniqueIdentifier>{d45294e6-3d5a-4ba6-8650-8d3ee04e4db2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\base">
+      <UniqueIdentifier>{149b9462-0afc-4623-96fa-89f0dd2f0f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\component">
+      <UniqueIdentifier>{d36fb53e-8748-4414-94a3-926bb037bd28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\component\light">
+      <UniqueIdentifier>{e7f2ef61-2d9f-4037-a9ea-b9f06ad301f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\postprocess">
+      <UniqueIdentifier>{ea0c9ee3-e126-469e-96dd-8383fd7b79e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\raytracing">
+      <UniqueIdentifier>{24d96ead-43dc-4502-9ccc-1a0d5dca1a4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\shapes">
+      <UniqueIdentifier>{e9b16a06-0006-40e7-a6e0-f555ec609693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\rendering">
+      <UniqueIdentifier>{5111e0e5-6e88-40b5-a0e4-2563250daf56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\math">
+      <UniqueIdentifier>{cead9f0a-62e5-49fd-aae9-23dc87c45a99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\component\other">
+      <UniqueIdentifier>{df8dbda0-6ce5-4d85-9d39-dd8712dbe669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\gc">
+      <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\ltc">
+      <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\brdf">
+      <UniqueIdentifier>{ff73a5e4-313a-4d6d-b9b5-23f625b4a4bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\managers">
+      <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\glad.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cPostProcess.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClCompile>
+    <ClCompile Include="BVH.cpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>头文件\shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="object.cpp">
+      <Filter>头文件\shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="gc.cpp">
+      <Filter>头文件\gc</Filter>
+    </ClCompile>
+    <ClCompile Include="brdf_ddx.hpp">
+      <Filter>头文件\brdf</Filter>
+    </ClCompile>
+    <ClCompile Include="brdf.cpp">
+      <Filter>头文件\brdf</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="light.hpp">
+      <Filter>头文件\component\light</Filter>
+    </ClInclude>
+    <ClInclude Include="point_light.hpp">
+      <Filter>头文件\component\light</Filter>
+    </ClInclude>
+    <ClInclude Include="direct_light.hpp">
+      <Filter>头文件\component\light</Filter>
+    </ClInclude>
+    <ClInclude Include="assimp.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="glm.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="opengl.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="stb.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="component.hpp">
+      <Filter>头文件\component</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.hpp">
+      <Filter>头文件\component</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.hpp">
+      <Filter>头文件\component</Filter>
+    </ClInclude>
+    <ClInclude Include="test.hpp">
+      <Filter>头文件\component\other</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraController.hpp">
+      <Filter>头文件\component\other</Filter>
+    </ClInclude>
+    <ClInclude Include="reflect_probe.hpp">
+      <Filter>头文件\component</Filter>
+    </ClInclude>
+    <ClInclude Include="commons.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ssao.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="blit.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="ssdo.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="bidirection_filter.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="ssgi.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="debugtool.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sssss.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="BVH.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="intersection.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="bound.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="photon.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="photon_mapping.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.hpp">
+      <Filter>头文件\shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="object.hpp">
+      <Filter>头文件\shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="shape.hpp">
+      <Filter>头文件\shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="render.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="frame_buffer.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="map_filter.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="spot_light.hpp">
+      <Filter>头文件\component\light</Filter>
+    </ClInclude>
+    <ClInclude Include="sh.hpp">
+      <Filter>头文件\math</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc_type.hpp">
+      <Filter>头文件\gc</Filter>
+    </ClInclude>
+    <ClInclude Include="gc.hpp">
+      <Filter>头文件\gc</Filter>
+    </ClInclude>
+    <ClInclude Include="light_flicker.hpp">
+      <Filter>头文件\component\other</Filter>
+    </ClInclude>
+    <ClInclude Include="taa.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="ltc.hpp">
+      <Filter>头文件\ltc</Filter>
+    </ClInclude>
+    <ClInclude Include="brdf.hpp">
+      <Filter>头文件\brdf</Filter>
+    </ClInclude>
+    <ClInclude Include="nelder_mead.hpp">
+      <Filter>头文件\math</Filter>
+    </ClInclude>
+    <ClInclude Include="fitLTC.hpp">
+      <Filter>头文件\ltc</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere_light.hpp">
+      <Filter>头文件\component\light</Filter>
+    </ClInclude>
+    <ClInclude Include="kd_tree.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="AccelStructure.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="bloom.hpp">
+      <Filter>头文件\postprocess</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.hpp">
+      <Filter>头文件\managers</Filter>
+    </ClInclude>
+    <ClInclude Include="input.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="SDF.hpp">
+      <Filter>头文件\raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="draw_adapter.hpp">
+      <Filter>头文件\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjManager.hpp">
+      <Filter>头文件\base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OpenGL1.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
