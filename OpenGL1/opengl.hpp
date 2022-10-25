@@ -28,6 +28,6 @@
 
 #define RENDER_MAIN_LOOP(w) while (!glfwWindowShouldClose(w))
 
-
+#define CLEAR_TEXTURE2D_BIND glBindTexture(GL_TEXTURE_2D, 0)
 
 #endif // OPENGL_H

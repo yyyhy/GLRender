@@ -14,7 +14,7 @@
 
 
 enum ReflectProbeType {
-	Static=0,Dynamic=1
+	Static = 0, Dynamic = 1
 };
 
 class ReflectProbe :public Component {
@@ -24,7 +24,7 @@ private:
 	unsigned rbo;
 	unsigned w, h;
 	ReflectProbeType type;
-	void GenFrameBuffer(){
+	void GenFrameBuffer() {
 		glGenFramebuffers(1, &frameBuffer);
 		glGenTextures(1, &cubeMapBuffer);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapBuffer);
@@ -42,7 +42,7 @@ private:
 
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubeMapBuffer,0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubeMapBuffer, 0);
 
 		glGenRenderbuffers(1, &rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -53,9 +53,9 @@ private:
 			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-		
+
 public:
-	explicit ReflectProbe(int w=CUBE_MAP_W, int h=CUBE_MAP_H):w(w),h(h),type(Static) {
+	explicit ReflectProbe(int w = CUBE_MAP_W, int h = CUBE_MAP_H) :w(w), h(h), type(Static) {
 		name = "refProbe";
 		GenFrameBuffer();
 	}
@@ -69,9 +69,9 @@ public:
 
 	void SetHeight(int h) { this->h = h; }
 
-	void SetCubeMap(unsigned t) { glDeleteTextures(1,&cubeMapBuffer); cubeMapBuffer = t; }
+	void SetCubeMap(unsigned t) { glDeleteTextures(1, &cubeMapBuffer); cubeMapBuffer = t; }
 
-	unsigned GetCubeMap() const {  return cubeMapBuffer; }
+	unsigned GetCubeMap() const { return cubeMapBuffer; }
 
 	unsigned GetWidth() const { return w; }
 

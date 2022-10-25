@@ -24,20 +24,15 @@
 #define CAMERA_UBO_POINT 0
 #define RENDER_UBO_POINT 1
 #define GBUFFER_SIZE 7
-#define T_BUFFER 1
-
-
 
 class Render {
 private:
-	unsigned frameBuffer[T_BUFFER];
-	unsigned texBuffer[T_BUFFER];
-	unsigned rbo[T_BUFFER];
-	unsigned currTBuffer = T_BUFFER-1;
-	unsigned gBufferFrameBuffer;
-	unsigned gBufferTexBuffer[GBUFFER_SIZE];
-	unsigned gBufferRbo;
-	FrameBuffer defaultFrameBuffer;
+	FrameBufferO BackFrameBuffer;
+	Texture2D ColorBuffer;
+
+	FrameBufferO gFrameBuffer;
+	Texture2D gColorBuffers[GBUFFER_SIZE];
+
 	bool firstCall = true;
 	bool enableDeffered;
 	bool ssdoOn = false;
@@ -106,30 +101,6 @@ private:
 			}
 	}
 
-	void GenFrameBuffer() {
-		glGenFramebuffers(T_BUFFER, frameBuffer);
-		glGenTextures(T_BUFFER, texBuffer);
-		glGenRenderbuffers(T_BUFFER, rbo);
-		for (unsigned i = 0; i < T_BUFFER; i++) {
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[i]);
-			glBindTexture(GL_TEXTURE_2D, texBuffer[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texBuffer[i], 0);
-
-			glBindRenderbuffer(GL_RENDERBUFFER, rbo[i]);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo[i]);
-
-			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-		
-	}
-
 	void GenUbos() {
 		glGenBuffers(1, &cameraPropertyUbo);
 		glBindBuffer(GL_UNIFORM_BUFFER, cameraPropertyUbo);
@@ -143,32 +114,6 @@ private:
 		glBindBufferBase(GL_UNIFORM_BUFFER, RENDER_UBO_POINT, renderSettingsUbo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(SCR_WIDTH,SCR_HEIGHT)));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
-
-	void GenGbuffer() {
-		glGenFramebuffers(1, &gBufferFrameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, gBufferFrameBuffer);
-		GLuint attachments[GBUFFER_SIZE];
-		for (int i = 0; i < GBUFFER_SIZE; i++) {
-			glGenTextures(1, &gBufferTexBuffer[i]);
-			glBindTexture(GL_TEXTURE_2D, gBufferTexBuffer[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, gBufferTexBuffer[i], 0);
-			attachments[i] = GL_COLOR_ATTACHMENT0 + i;
-		}
-
-		glDrawBuffers(GBUFFER_SIZE, attachments);
-		glGenRenderbuffers(1, &gBufferRbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, gBufferRbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gBufferRbo);
-
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	int GenCubeMipMap(FrameBuffer Buffer, unsigned level = 4) {
@@ -200,6 +145,7 @@ private:
 				out.frameBuffer = i->GetFrameBuffer();
 				out.w = i->GetWidth();
 				out.h = i->GetHeight();
+
 				for (int j = 0; j < 6; j++) {
 					tmpCamera->Front = (captureViews[j * 2]);
 					tmpCamera->Up = captureViews[j * 2 + 1];
@@ -259,7 +205,7 @@ private:
 
 	void ApplyPostProcess() {
 		auto p = postProcess.begin();
-		(*p)->SetInTexBuffer(texBuffer[currTBuffer]);
+		(*p)->SetInTexBuffer(ColorBuffer.id);
 		for (p; p!=postProcess.end();++p) {
 			(*p)->excute();
 			
@@ -276,8 +222,7 @@ private:
 
 	void RenderGbuffer(Scene* s) {
 		auto camaraTransform = mainCamera->object->GetComponent<Transform>();
-		glBindFramebuffer(GL_FRAMEBUFFER, gBufferFrameBuffer);
-		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		gFrameBuffer.Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		for (auto& i : s->objects) {
 			if (!i->IsActive())
@@ -312,8 +257,8 @@ private:
 
 	void initSSAO() {
 		auto ssao = new SSAO(defferedShader);
-		ssao->mainShader->setTexture("gPosition", gBufferTexBuffer[0]);
-		ssao->mainShader->setTexture("gNormalDepth", gBufferTexBuffer[1]);
+		ssao->mainShader->setTexture("gPosition", GetGBuffer(0));
+		ssao->mainShader->setTexture("gNormalDepth", GetGBuffer(1));
 		AddPostProcess(ssao);
 		ssaoOn = true;
 	}
@@ -347,12 +292,7 @@ private:
 	void updateCurrTBuffer() {
 		taaShader->use();
 		taaShader->setMat4("lastCameraMVP", lastCameraMVP);
-		
-		currTBuffer += 1;
-		currTBuffer %= T_BUFFER;
-		defaultFrameBuffer.frameBuffer = frameBuffer[currTBuffer];
-		defaultFrameBuffer.texBuffer = texBuffer[currTBuffer];
-		defaultFrameBuffer.rbo = rbo[currTBuffer];
+	
 	}
 
 #ifdef _DEBUG
@@ -371,8 +311,16 @@ private:
 #endif // _DEBUG
 
 public:
-	Render() { 
-		GenFrameBuffer();  GenUbos(); GenGbuffer();
+	Render() : BackFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true),gFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true) {
+		GenUbos(); 
+		ColorBuffer = Texture2D(SCR_WIDTH, SCR_HEIGHT, GL_RGBA32F ,GL_RGBA);
+		BackFrameBuffer.AttachTexture(&ColorBuffer);
+
+		for (int i = 0; i < GBUFFER_SIZE; ++i) {
+			gColorBuffers[i] = Texture2D(SCR_WIDTH, SCR_HEIGHT, GL_RGBA32F, GL_RGBA);
+		}
+		gFrameBuffer.AttachTexture(gColorBuffers, GBUFFER_SIZE);
+			
 		auto blit = new Blit();
 		auto taa = new TAA();
 		AddPostProcess(blit);
@@ -381,25 +329,16 @@ public:
 		taaShader = taa->GetShader();
 		
 		taaShader->use();
-		taaShader->setTexture("gWorldPos", gBufferTexBuffer[0]);
+		taaShader->setTexture("gWorldPos", GetGBuffer(0));
 		taaShader->setTexture("gVelo", GetGBuffer(6));
 		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
 		cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
 		texMipMapShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/mip.fs");
-		defaultFrameBuffer.frameBuffer = frameBuffer[0];
-		defaultFrameBuffer.texBuffer = texBuffer[0];
-		defaultFrameBuffer.w = SCR_WIDTH;
-		defaultFrameBuffer.h = SCR_HEIGHT;
-		defaultFrameBuffer.rbo = rbo[0];
+		
 	}
 
 	~Render() {
-		glDeleteBuffers(T_BUFFER, frameBuffer);
-		glDeleteBuffers(T_BUFFER, texBuffer);
-		glDeleteBuffers(T_BUFFER, rbo);
-		glDeleteBuffers(GBUFFER_SIZE, gBufferTexBuffer);
-		glDeleteFramebuffers(1, &gBufferFrameBuffer);
-		glDeleteRenderbuffers(1, &gBufferRbo);
+		
 		for (auto& i : postProcess) {
 			delete i;
 			i = nullptr;
@@ -485,11 +424,13 @@ public:
 		}
 		else {
 			updateCurrTBuffer();
-			currBuffer = defaultFrameBuffer;
+			currBuffer.frameBuffer = BackFrameBuffer.frameBuffer;
+			currBuffer.w = BackFrameBuffer.w;
+			currBuffer.h = BackFrameBuffer.h;
+			currBuffer.texBuffer = ColorBuffer.id;
 		}
 			
-		glBindFramebuffer(GL_FRAMEBUFFER, currBuffer.frameBuffer);
-		glViewport(0, 0, currBuffer.w, currBuffer.h);
+		BackFrameBuffer.Bind();
 		glClearColor(0.7, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
@@ -500,7 +441,7 @@ public:
 			out.frameBuffer = currBuffer.frameBuffer;
 			out.texBuffer = currBuffer.texBuffer;
 			BlitMap(0, out, defferedShader.get());
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, gBufferFrameBuffer);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, gFrameBuffer.frameBuffer);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, currBuffer.frameBuffer);
 			glBlitFramebuffer(
 				0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST
@@ -554,11 +495,9 @@ public:
 		lastCameraMVP = mvp;
 	}
 
-	unsigned GetTexBuffer() const { return texBuffer[0]; }
+	unsigned GetTexBuffer() const { return ColorBuffer.id; }
 
-	unsigned GetFrameBuffer() const { return frameBuffer[0]; }
-
-	unsigned GetGBuffer(int index) { if (index >= 0 && index < GBUFFER_SIZE) return gBufferTexBuffer[index]; return -1; }
+	unsigned GetFrameBuffer() const { return BackFrameBuffer.frameBuffer; }
 
 	void AddPostProcess(PostProcess* p) {
 		
@@ -566,7 +505,7 @@ public:
 			p->GenFrameBuffer();
 		}
 		else {
-			p->SetInTexBuffer(texBuffer[0]);
+			p->SetInTexBuffer(ColorBuffer.id);
 		}
 		postProcess.push_front(p);
 	}
@@ -575,11 +514,11 @@ public:
 		defferedShader = s; 
 		defferedShader->use();
 		for (auto i = 0; i < GBUFFER_SIZE; i++) {
-			defferedShader->setTexture("gBuffer"+std::to_string(i), gBufferTexBuffer[i]);
+			defferedShader->setTexture("gBuffer"+std::to_string(i), gColorBuffers[i].id);
 		}
 	}
 
-	unsigned GetGBuffer(unsigned i) const { if (i >= 0 && i < GBUFFER_SIZE) return gBufferTexBuffer[i]; return 0; }
+	unsigned GetGBuffer(unsigned i) const { if (i >= 0 && i < GBUFFER_SIZE) return gColorBuffers[i].id; return 0; }
 
 	void openSSDO() &  {
 		if(!ssdoOn)
