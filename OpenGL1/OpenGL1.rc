@@ -1,5 +1,4 @@
-﻿// Microsoft Visual C++ 生成的资源脚本。
-//
+﻿
 
 #include "resource.h"
 
@@ -17,7 +16,7 @@
 // 中文(简体，中国) 资源
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE 4, 2
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
