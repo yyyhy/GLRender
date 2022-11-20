@@ -10,10 +10,7 @@ public:
 	BidirectionHFilter() :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_h.fs") {}
 
 	void excute() override {
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
-		BlitMap(GetInTexBuffer(), out, GetShader().get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 
 };
@@ -23,10 +20,7 @@ public:
 	BidirectionVFilter() :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_v.fs") {}
 
 	void excute() override {
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
-		BlitMap(GetInTexBuffer(), out, GetShader().get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 
 };

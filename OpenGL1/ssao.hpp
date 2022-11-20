@@ -7,45 +7,15 @@
 
 class SSAO : public PostProcess{
 private:
-	unsigned ssaoFrameBuffer;
-	unsigned ssaoTexBuffer;
-	unsigned ssaoBlurFrameBuffer;
-	unsigned ssaoBlurBuffer;
+	Texture2D ssaoTexBuffer;
+	Texture2D ssaoBlurBuffer;
 	
 public:
-	SSAO(sp_shader shader,unsigned quanlity = 64) : PostProcess("shaders/bf.vs", "shaders/ssao_apply.fs") {
+	SSAO(sp_shader shader,unsigned quanlity = 64) : PostProcess("shaders/bf.vs", "shaders/ssao_apply.fs")
+					, ssaoTexBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RED,GL_RED) 
+					, ssaoBlurBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_RED) {
 		mainShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/ssao.fs");
 		filterShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/commonblur.fs");
-		glGenFramebuffers(1, &ssaoFrameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, ssaoFrameBuffer);
-
-		glGenTextures(1, &ssaoTexBuffer);
-		glBindTexture(GL_TEXTURE_2D, ssaoTexBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexBuffer, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-		glGenFramebuffers(1, &ssaoBlurFrameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFrameBuffer);
-
-		glGenTextures(1, &ssaoBlurBuffer);
-		glBindTexture(GL_TEXTURE_2D, ssaoBlurBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurBuffer, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		mainShader->use();
 		std::vector<glm::vec3> samples;
@@ -88,24 +58,15 @@ public:
 	}
 
 	~SSAO() override {
-		glDeleteBuffers(1, &ssaoTexBuffer);
-		glDeleteBuffers(1, &ssaoBlurBuffer);
-		glDeleteFramebuffers(1, &ssaoFrameBuffer);
-		glDeleteFramebuffers(1, &ssaoBlurFrameBuffer);
+		
 	}
 
 	void excute() override {
 		FrameBuffer out;
-		out.frameBuffer = ssaoFrameBuffer;
-		out.texBuffer = ssaoTexBuffer;
-		BlitMap(0, out, mainShader.get());
-		out.frameBuffer = ssaoBlurFrameBuffer;
-		out.texBuffer = ssaoBlurBuffer;
-		BlitMap(ssaoTexBuffer, out, filterShader.get());
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
+		BlitMap(0, ssaoTexBuffer, mainShader.get());
+		BlitMap(ssaoTexBuffer, ssaoBlurBuffer, filterShader.get());
 		GetShader()->setTexture("ssaoMap", ssaoBlurBuffer);
-		BlitMap(GetInTexBuffer(), out, GetShader().get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 
 	sp_shader mainShader;

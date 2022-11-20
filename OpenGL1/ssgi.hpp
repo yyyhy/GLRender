@@ -12,10 +12,7 @@ public:
 	SSGI():PostProcess("shaders/bf.vs","shaders/ssgi.fs"){}
 
 	void excute() override {
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
-		BlitMap(GetInTexBuffer(), out, GetShader().get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 };
 

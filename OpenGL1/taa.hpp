@@ -20,12 +20,9 @@ public:
 	}
 
 	void excute() override{
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer(currTBuffer);
-		out.texBuffer = GetOutTexBuffer(currTBuffer);
 		taa->use();
-		taa->setTexture("lastFrame", GetOutTexBuffer(1-currTBuffer));
-		BlitMap(GetInTexBuffer(), out, taa.get());
+		taa->setTexture("lastFrame", GetOutTexBuffer(1-currTBuffer).id);
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(currTBuffer), taa.get(),GetOutFrameBuffer(currTBuffer));
 		
 	}
 

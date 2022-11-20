@@ -199,15 +199,15 @@ int main()
         defferedShader->setCubeMap("reflectCube[2].reflectCube", 0);
         defferedShader->setCubeMap("reflectCube[3].reflectCube", 0);
         render.InitReflectProbe(&scene);
-        //scene.SetSkyBox(probe->GetCubeMap());
+        //scene.SetSkyBox(probe->GetCubeMap().id);
         defferedShader->use();
-        defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap());
+        defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
         defferedShader->setBool("reflectCube[0].exist", true);
         defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());
-        defferedShader->setCubeMap("reflectCube[1].reflectCube", probe2->GetCubeMap());
+        defferedShader->setCubeMap("reflectCube[1].reflectCube", probe2->GetCubeMap().id);
         defferedShader->setBool("reflectCube[1].exist", true);
         defferedShader->setVec3("reflectCube[1].pos", probe2->object->GetComponent<Transform>()->GetPosition());
-        defferedShader->setCubeMap("reflectCube[2].reflectCube", probe3->GetCubeMap());
+        defferedShader->setCubeMap("reflectCube[2].reflectCube", probe3->GetCubeMap().id);
         defferedShader->setBool("reflectCube[2].exist", true);
         defferedShader->setVec3("reflectCube[2].pos", probe3->object->GetComponent<Transform>()->GetPosition());
     }
@@ -263,7 +263,7 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
             render.openSSGI();
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-            render.Capture();
+            render.CapturePostProcessOutput(0);
         globalTimer.updateTime(glfwGetTime());
         scene.Update();
         render(&scene);

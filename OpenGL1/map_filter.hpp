@@ -58,10 +58,19 @@ static void renderPlane() {
 	glBindVertexArray(0);
 }
 
+static FrameBufferO DefaultFrameBufferOut;
+
+inline void InitDefaultFrameBufferOut() {
+	if (DefaultFrameBufferOut.frameBuffer!=0&&DefaultFrameBufferOut.frameBuffer!=INVALID_FRAMEBUFFER_ID)
+	{
+		DefaultFrameBufferOut = FrameBufferO(SCR_WIDTH, SCR_HEIGHT, false);
+	}
+}
+
 mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, unsigned level = 4,bool over=false) {
 
 	unsigned prefilterMap;
-	if (over) {
+	if (!over) {
 		glGenTextures(1, &prefilterMap);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
 		for (unsigned int i = 0; i < 6; ++i)
@@ -142,14 +151,20 @@ mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned
 	return prefilterMap;
 }
 
-void BlitMap(unsigned in,const FrameBuffer& out,Shader *s) {
+void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBufferO& outFrameBuffer=InvalidFrameBuffer) {
 
 	s->use();
-	s->setTexture("tex", in);
+	s->setTexture("tex", in.id);
 	s->initTexture();
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, out.frameBuffer); 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out.texBuffer, 0);
+	InitDefaultFrameBufferOut();
+
+	if(outFrameBuffer.frameBuffer== InvalidFrameBuffer.frameBuffer)
+		glBindFramebuffer(GL_FRAMEBUFFER, DefaultFrameBufferOut.frameBuffer);
+	else
+		glBindFramebuffer(GL_FRAMEBUFFER, outFrameBuffer.frameBuffer);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, out.id, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	renderPlane();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

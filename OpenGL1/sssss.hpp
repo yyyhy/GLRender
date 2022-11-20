@@ -16,10 +16,7 @@ public:
 	}
 
 	void excute() override {
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
-		BlitMap(GetInTexBuffer(), out, GetShader().get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 
 

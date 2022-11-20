@@ -5,23 +5,22 @@
 
 #include"shader.hpp"
 #include"settings.hpp"
+#include"frame_buffer.hpp"
 
 class PostProcess {
 private:
 	std::shared_ptr<Shader> shader;
-	unsigned *frameBuffer;
-	unsigned inTexBuffer;
-	unsigned *outTexBuffer;
+	FrameBufferO *FrameBuffers;
+	Texture InTexture;
+	Texture *OutTextures;
 	unsigned size;
 	
+	bool needClearBuffers = true;
 public:
 	PostProcess(const char* vertexPath, const char* fragmentPath,unsigned bufferSize=1, std::vector<std::string>* preComplieCmd = NULL):enable(true),
-		frameBuffer(new unsigned[bufferSize]), outTexBuffer(new unsigned[bufferSize]),size(bufferSize) {
+		size(bufferSize) {
 		shader = std::make_shared<Shader>(vertexPath, fragmentPath,nullptr, preComplieCmd);
-		for (int i = 0; i < size; i++) {
-			frameBuffer[i] = 0;
-			outTexBuffer[i] = 0;
-		}
+		
 	}
 
 	PostProcess(const std::shared_ptr<Shader> s) noexcept{
@@ -31,47 +30,59 @@ public:
 	PostProcess() = default;
 
 	virtual	~PostProcess() {
-		glDeleteFramebuffers(size, frameBuffer);
-		glDeleteTextures(size, outTexBuffer);
-		delete[] frameBuffer;
-		delete[] outTexBuffer;
+		if (needClearBuffers) {
+			if (FrameBuffers != nullptr)
+				delete[] FrameBuffers;
+			if (OutTextures != nullptr)
+				delete[] OutTextures;
+		}
 	}
 
 	virtual void GenFrameBuffer() {
-		glGenFramebuffers(size, frameBuffer);
-		glGenTextures(size, outTexBuffer);
-		for (unsigned i = 0; i < size; ++i) {
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[i]);
-			glBindTexture(GL_TEXTURE_2D, outTexBuffer[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outTexBuffer[i], 0);
-
-
-			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		FrameBuffers = new FrameBufferO[size]();
+		OutTextures = new Texture2D[size];
+		for (int i = 0; i < size; ++i) {
+			FrameBuffers[i].Construct(SCR_WIDTH,SCR_HEIGHT,false);
+			OutTextures[i] = Texture2D(SCR_WIDTH, SCR_HEIGHT, GL_RGB32F, GL_RGB);
+			FrameBuffers[i].AttachTexture(&OutTextures[i]);
 		}
+		
 	}
 
 	virtual void SendBufferToNext(PostProcess* p) {
 		if(p)
-			p->SetInTexBuffer(outTexBuffer[0]);
+			p->SetInTexBuffer(OutTextures[0]);
 	}
 
-	void SetInTexBuffer(unsigned buffer) { 
-		inTexBuffer = buffer; 
+	void SetInTexBuffer(const Texture& buffer) { 
+		InTexture = buffer; 
 		shader->use();
-		shader->setTexture("tex", inTexBuffer); 
+		shader->setTexture("tex", InTexture); 
 	}
 
-	unsigned GetOutTexBuffer(unsigned index=0) const { return outTexBuffer[index]; }
+	void SetOutFrameBuffer(FrameBufferO* outBuffer) {
+		FrameBuffers = outBuffer;
+		needClearBuffers = false;
+	}
 
-	unsigned GetInTexBuffer() const { return inTexBuffer; }
+	void SetOutTexBuffer(Texture* outTex) {
+		OutTextures = outTex;
+		needClearBuffers = false;
+	}
 
-	unsigned GetOutFrameBuffer(unsigned index = 0) const { return frameBuffer[index]; }
+	const Texture& GetOutTexBuffer(unsigned index=0) const { 
+		if(OutTextures!=nullptr&&index<size)
+			return OutTextures[index]; 
+		return TargetOuputTexture;
+	}
+
+	Texture GetInTexBuffer() const { return InTexture; }
+
+	const FrameBufferO& GetOutFrameBuffer(unsigned index = 0) const { 
+		if(FrameBuffers!=nullptr && index < size)
+			return FrameBuffers[index]; 
+		return TargetOutputFrameBuffer;
+	}
 
 	virtual void excute() = 0;
 

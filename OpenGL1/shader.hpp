@@ -249,6 +249,11 @@ public:
         textures[name] = t;
     }
 
+    void setTexture(const std::string& name, sp_texture t) {
+        t->name = name;
+        textures[name] = *t;
+    }
+
     void setCubeMap(const std::string& name, int id) {
         cubeMaps[name] = id;
         stageChange = true;

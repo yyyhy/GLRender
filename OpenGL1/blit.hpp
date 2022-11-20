@@ -15,12 +15,9 @@ public:
 	Blit() :PostProcess("shaders/bf.vs", "shaders/blit.fs"){}
 
 	void excute() override {
-		FrameBuffer out;
-		out.frameBuffer = GetOutFrameBuffer();
-		out.texBuffer = GetOutTexBuffer();
 		auto s = GetShader();
 		//s->debug();
-		BlitMap(GetInTexBuffer(), out, s.get());
+		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), s.get(),GetOutFrameBuffer());
 	}
 };
 

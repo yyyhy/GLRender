@@ -117,7 +117,7 @@ private:
 	}
 
 	int GenCubeMipMap(FrameBuffer Buffer, unsigned level = 4) {
-		int map = ::GenCubeMipMap(cubeMipMapShader.get(), Buffer, level, true);
+		int map = ::GenCubeMipMap(cubeMipMapShader.get(), Buffer, level, false);
 		return map;
 	}
 
@@ -141,17 +141,13 @@ private:
 				tmpCamera->w = i->GetWidth();
 				tmpCamera->h = i->GetHeight();
 				tmpCamera->Position = pos;
-				FrameBuffer out;
-				out.frameBuffer = i->GetFrameBuffer();
-				out.w = i->GetWidth();
-				out.h = i->GetHeight();
-
+				
 				for (int j = 0; j < 6; j++) {
 					tmpCamera->Front = (captureViews[j * 2]);
 					tmpCamera->Up = captureViews[j * 2 + 1];
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer());
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap(), 0);
-					(*this)(s, out, false, true);
+					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
+					(*this)(s, i->GetFrameBuffer(), false, true);
 					int w = 512, h = 512;
 				}
 				tmpCamera->Fov = tmpFov;
@@ -160,11 +156,11 @@ private:
 				tmpCamera->h = tmpH;
 				tmpCamera->Position = tmpPos;
 				FrameBuffer b;
-				b.frameBuffer = i->GetFrameBuffer();
-				b.texBuffer = i->GetCubeMap();
+				b.frameBuffer = i->GetFrameBuffer().frameBuffer;
+				b.texBuffer = i->GetCubeMap().id;
 				b.w = i->GetWidth();
 				b.h = i->GetHeight();
-				b.rbo = i->GetRbo();
+				b.rbo = i->GetFrameBuffer().depthRBO;
 				int p = GenCubeMipMap(b, 4);
 				i->SetCubeMap(p);
 			}
@@ -203,10 +199,14 @@ private:
 		}
 	}
 
-	void ApplyPostProcess() {
+	void ApplyPostProcess(FrameBufferO& targetBuffer) {
 		auto p = postProcess.begin();
-		(*p)->SetInTexBuffer(ColorBuffer.id);
+		auto last = postProcess.end(); --last;
+		(*last)->SetOutFrameBuffer(&targetBuffer);
+		(*last)->SetOutTexBuffer(targetBuffer.GetTexture(0));
+		(*p)->SetInTexBuffer(*BackFrameBuffer.GetTexture(0));
 		for (p; p!=postProcess.end();++p) {
+
 			(*p)->excute();
 			
 			auto next = p;
@@ -311,9 +311,8 @@ private:
 #endif // _DEBUG
 
 public:
-	Render() : BackFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true),gFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true) {
+	Render() : BackFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true),gFrameBuffer(SCR_WIDTH,SCR_HEIGHT,true),ColorBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RGBA32F, GL_RGBA) {
 		GenUbos(); 
-		ColorBuffer = Texture2D(SCR_WIDTH, SCR_HEIGHT, GL_RGBA32F ,GL_RGBA);
 		BackFrameBuffer.AttachTexture(&ColorBuffer);
 
 		for (int i = 0; i < GBUFFER_SIZE; ++i) {
@@ -334,7 +333,6 @@ public:
 		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
 		cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
 		texMipMapShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/mip.fs");
-		
 	}
 
 	~Render() {
@@ -367,19 +365,15 @@ public:
 				tmpCamera->h = i->GetHeight();
 				trans->SetPosition(pos);
 				//tmpCamera->Position = pos;
-				FrameBuffer out;
-				out.frameBuffer = i->GetFrameBuffer();
-				out.w = i->GetWidth();
-				out.h = i->GetHeight();
 				for (int j = 0; j < 6; j++) {
 					tmpCamera->Front=(captureViews[j * 2]);
 					tmpCamera->Up = captureViews[j * 2 + 1];
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer());
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap(), 0);
-					(*this)(s, out, false,true);
-					int w = 512, h = 512;
-					/*unsigned char* imageData = new unsigned char[w * h * 3]{ 255 };
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer());
+					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
+					(*this)(s, i->GetFrameBuffer(), true,true);
+					/*int w = 512, h = 512;
+					unsigned char* imageData = new unsigned char[w * h * 3]{ 255 };
+					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
 					glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
 					std::string file = "baking/test" + std::to_string(j);
 					file.append(".png");
@@ -392,18 +386,18 @@ public:
 				trans->SetPosition(tmpPos);
 				//tmpCamera->Position = tmpPos;
 				FrameBuffer b;
-				b.frameBuffer = i->GetFrameBuffer();
-				b.texBuffer = i->GetCubeMap();
+				b.frameBuffer = i->GetFrameBuffer().frameBuffer;
+				b.texBuffer = i->GetCubeMap().id;
 				b.w = i->GetWidth();
 				b.h = i->GetHeight();
-				b.rbo = i->GetRbo();
+				b.rbo = i->GetFrameBuffer().depthRBO;
 				auto p=GenCubeMipMap(b, 4);
 				i->SetCubeMap(p);
 			}
 		}
 	}
 
-	void operator()(Scene* scene, FrameBuffer buffer = emptyBuffer, bool applyPost = true,bool applySky=true) {
+	void operator()(Scene* scene, const FrameBufferO& targetBuffer = TargetOutputFrameBuffer, bool applyPost = true,bool applySky=true) {
 		
 		if (mainCamera == NULL)
 			return;
@@ -418,17 +412,6 @@ public:
 		auto mvp=ApplyCameraProperties(mainCamera);
 
 		RenderGbuffer(scene);
-		FrameBuffer currBuffer;
-		if (buffer.w != emptyBuffer.w) {
-			currBuffer = buffer;
-		}
-		else {
-			updateCurrTBuffer();
-			currBuffer.frameBuffer = BackFrameBuffer.frameBuffer;
-			currBuffer.w = BackFrameBuffer.w;
-			currBuffer.h = BackFrameBuffer.h;
-			currBuffer.texBuffer = ColorBuffer.id;
-		}
 			
 		BackFrameBuffer.Bind();
 		glClearColor(0.7, 1, 1, 1);
@@ -437,12 +420,9 @@ public:
 		if (defferedShader != NULL) {
 			defferedShader->use();
 			ApplyLightProperties(defferedShader, scene);
-			FrameBuffer out;
-			out.frameBuffer = currBuffer.frameBuffer;
-			out.texBuffer = currBuffer.texBuffer;
-			BlitMap(0, out, defferedShader.get());
+			BlitMap(0, *BackFrameBuffer.GetTexture(0), defferedShader.get(), BackFrameBuffer);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, gFrameBuffer.frameBuffer);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, currBuffer.frameBuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, BackFrameBuffer.frameBuffer);
 			glBlitFramebuffer(
 				0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST
 			);
@@ -490,7 +470,7 @@ public:
 		}
 
 		if(applyPost)
-			ApplyPostProcess();
+			ApplyPostProcess(const_cast<FrameBufferO&>(targetBuffer));
 
 		lastCameraMVP = mvp;
 	}
@@ -543,9 +523,33 @@ public:
 #ifdef _DEBUG
 	void Capture() {
 		unsigned char* imageData = new unsigned char[SCR_WIDTH * SCR_HEIGHT * 3]{ 255 };
-		glBindFramebuffer(GL_FRAMEBUFFER, postProcess.back()->GetOutFrameBuffer());
+		glBindFramebuffer(GL_FRAMEBUFFER, postProcess.back()->GetOutFrameBuffer().frameBuffer);
 		glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
 		std::string file = "baking/capture.png";
+		stbi_write_png(file.c_str(), SCR_WIDTH, SCR_HEIGHT, 3, imageData, 0);
+		stbi_flip_vertically_on_write(1);
+		delete[] imageData;
+	}
+
+	void CaptureBackBuffer() {
+		unsigned char* imageData = new unsigned char[SCR_WIDTH * SCR_HEIGHT * 3] { 255 };
+		glBindFramebuffer(GL_FRAMEBUFFER, BackFrameBuffer.frameBuffer);
+		glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
+		std::string file = "baking/captureback.png";
+		stbi_write_png(file.c_str(), SCR_WIDTH, SCR_HEIGHT, 3, imageData, 0);
+		stbi_flip_vertically_on_write(1);
+		delete[] imageData;
+	}
+
+	void CapturePostProcessOutput(unsigned index) {
+		auto p = postProcess.begin();
+		for (int i = 0; i < index; ++index)
+			++p;
+
+		unsigned char* imageData = new unsigned char[SCR_WIDTH * SCR_HEIGHT * 3] { 255 };
+		glBindFramebuffer(GL_FRAMEBUFFER, (*p)->GetOutFrameBuffer().frameBuffer);
+		glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
+		std::string file = "baking/capturepp.png";
 		stbi_write_png(file.c_str(), SCR_WIDTH, SCR_HEIGHT, 3, imageData, 0);
 		stbi_flip_vertically_on_write(1);
 		delete[] imageData;
@@ -553,7 +557,5 @@ public:
 #endif // _DEBUG
 
 };
-
-
 
 #endif // !RENDER_H
