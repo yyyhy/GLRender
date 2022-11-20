@@ -1,5 +1,6 @@
 #version 420 core
-  
+ layout(location = 0) out vec4 ssaoColor;
+
 in vec2 texCoords;
 in vec3 uCameraPos;
 in mat4 CameraMVP;
@@ -47,5 +48,5 @@ void main()
         //float rangeCheck = smoothstep(0.0, 1.0, radius / abs(viewSpace.z - sampleDepth ));
         occlusion += (sampleDepth >= viewSpace.z &&sampleDepth<viewSpace.z+0.1 ? 1.0 : 0.0);     
     }
-    gl_FragColor=1.0-vec4(occlusion/64.0);
+    ssaoColor=1.0-vec4(occlusion/64.0);
 }  

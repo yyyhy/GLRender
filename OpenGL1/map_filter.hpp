@@ -61,9 +61,9 @@ static void renderPlane() {
 static FrameBufferO DefaultFrameBufferOut;
 
 inline void InitDefaultFrameBufferOut() {
-	if (DefaultFrameBufferOut.frameBuffer!=0&&DefaultFrameBufferOut.frameBuffer!=INVALID_FRAMEBUFFER_ID)
+	if (DefaultFrameBufferOut.frameBuffer==0||DefaultFrameBufferOut.frameBuffer==INVALID_FRAMEBUFFER_ID)
 	{
-		DefaultFrameBufferOut = FrameBufferO(SCR_WIDTH, SCR_HEIGHT, false);
+		DefaultFrameBufferOut.Construct(SCR_WIDTH, SCR_HEIGHT, false);
 	}
 }
 

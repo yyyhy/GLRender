@@ -1,11 +1,15 @@
 #version 420 core
   
+layout(location = 0) out vec4 ssdoColor;
+
 in vec2 texCoords;
 in vec3 uCameraPos;
 in mat4 CameraMVP;
 in mat4 CameraV;
 in mat4 CameraM;
 in mat4 CameraP;
+
+
 uniform sampler2D tex;
 uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
@@ -102,5 +106,5 @@ void main()
         }
     }
 
-    gl_FragColor=vec4(allssdo,0.0);
+    ssdoColor=vec4(allssdo,0.0);
 }  
