@@ -3,7 +3,7 @@
 #ifndef VERTICES_H
 #define VERTICES_H
 
-float boxVertices[] = {
+const static float boxVertices[] = {
 	// positions          
 	-10.0f,  10.0f, -10.0f,
 	-10.0f, -10.0f, -10.0f,
@@ -48,7 +48,7 @@ float boxVertices[] = {
 	 10.0f, -10.0f,  10.0f
 };
 
-glm::vec3 captureViews[] =
+const static glm::vec3 captureViews[] =
 {
 	 glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f),
 		glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f),
@@ -58,7 +58,7 @@ glm::vec3 captureViews[] =
 		 glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)
 };
 
-const float plane[] = {
+const static float plane[] = {
 	// positions   // texCoords
 	-1.0f,  1.0f,  0.0f, 1.0f,
 	-1.0f, -1.0f,  0.0f, 0.0f,

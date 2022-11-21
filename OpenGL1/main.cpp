@@ -5,23 +5,24 @@
 #include"object.hpp"
 #include"transform.hpp"
 #include"camera.hpp"
-#include"direct_light.hpp"
-#include"point_light.hpp"
+#include"directLight.hpp"
+#include"pointLight.hpp"
 #include"render.hpp"
 #include"scene.hpp"
 #include"CameraController.hpp"
 #include"test.hpp"
-#include"reflect_probe.hpp"
-#include"debugtool.hpp"
+#include"reflectProbe.hpp"
+#include"debugTool.hpp"
 #include <crtdbg.h>
-#include"spot_light.hpp"
+#include"spotLight.hpp"
 #include"gc.hpp"
-#include"light_flicker.hpp"
+#include"lightFlicker.hpp"
 #include"fitLTC.hpp"
-#include"sphere_light.hpp"
+#include"sphereLight.hpp"
 #include"SceneManager.hpp"
 #include"input.hpp"
 #include"SDF.hpp"
+#include"computeShader.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -45,7 +46,7 @@ int main()
 	#endif 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GLRender", NULL, NULL);
     GL_CHECK_CREATE_WINDOW(window);
-
+    
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -56,6 +57,9 @@ int main()
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_3D);
     sceneManager.init();
+
+    //ComputeShader cs("shaders/cs/test.csr");
+    //return 0;
 
     //glPatchParameteri(GL_PATCH_VERTICES, 3);
     /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
@@ -90,7 +94,7 @@ int main()
     sphereObj->AddComponent<Test>();
 
     scene.AddObject(sponzaObj);
-    //scene.AddObject(sphereObj);
+    scene.AddObject(sphereObj);
 
     auto cameraObj=CreateObject();
     auto cameraTrans=cameraObj->GetComponent<Transform>();

@@ -3,8 +3,8 @@
 #ifndef BIDIRECTION_FILTER_H
 #define BIDIRECTION_FILTER_H
 #include"cPostProcess.hpp"
-#include"frame_buffer.hpp"
-#include"map_filter.hpp"
+
+
 class BidirectionHFilter :public PostProcess {
 public:
 	BidirectionHFilter() :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_h.fs") {}

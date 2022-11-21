@@ -3,9 +3,9 @@
 #ifndef RENDER_H
 #define RENDER_H
 #include"scene.hpp"
-#include"reflect_probe.hpp"
-#include"frame_buffer.hpp"
-#include"map_filter.hpp"
+#include"reflectProbe.hpp"
+#include"frameBuffer.hpp"
+#include"filter.hpp"
 #include<random>
 #include<time.h>
 #include"ssao.hpp"
@@ -18,6 +18,7 @@
 #include"taa.hpp"
 #include"bloom.hpp"
 #include<list>
+#include"debugTool.hpp"
 
 #define CAMERA_UBO_SIZE 208+64+16+64
 #define	RENDER_SEETINGS_SIZE 16
@@ -147,7 +148,7 @@ private:
 					tmpCamera->Up = captureViews[j * 2 + 1];
 					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
-					(*this)(s, i->GetFrameBuffer(), false, true);
+					(*this)(s, i->GetFrameBuffer(), true);
 					int w = 512, h = 512;
 				}
 				tmpCamera->Fov = tmpFov;
@@ -370,14 +371,8 @@ public:
 					tmpCamera->Up = captureViews[j * 2 + 1];
 					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
-					(*this)(s, i->GetFrameBuffer(), true,true);
-					/*int w = 512, h = 512;
-					unsigned char* imageData = new unsigned char[w * h * 3]{ 255 };
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
-					glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
-					std::string file = "baking/test" + std::to_string(j);
-					file.append(".png");
-					stbi_write_png(file.c_str(), w, h, 3, imageData, 0);*/
+					(*this)(s, i->GetFrameBuffer(), true);
+					
 				}
 				tmpCamera->Fov = tmpFov;
 				tmpCamera->SetFront(tmpFront);
@@ -397,7 +392,7 @@ public:
 		}
 	}
 
-	void operator()(Scene* scene, const FrameBufferO& targetBuffer = TargetOutputFrameBuffer, bool applyPost = true,bool applySky=true) {
+	void operator()(Scene* scene, const FrameBufferO& targetBuffer = TargetOutputFrameBuffer, bool applySky=true) {
 		
 		if (mainCamera == NULL)
 			return;
@@ -469,8 +464,7 @@ public:
 			glDepthFunc(GL_LESS); // set depth function back to default
 		}
 
-		if(applyPost)
-			ApplyPostProcess(const_cast<FrameBufferO&>(targetBuffer));
+		ApplyPostProcess(const_cast<FrameBufferO&>(targetBuffer));
 
 		lastCameraMVP = mvp;
 	}

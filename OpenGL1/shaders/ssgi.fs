@@ -1,5 +1,7 @@
 #version 420 core
-  
+layout(location = 0) out vec4 ssgiColor;
+
+
 in vec2 texCoords;
 in vec3 uCameraPos;
 in mat4 CameraMVP;
@@ -178,7 +180,7 @@ void main()
     float flag=texture2D(gFlag,texCoords).w;
     vec3 col=texture2D(tex,texCoords).xyz;
     if(flag!=1){
-        gl_FragColor=vec4(col,1);return;
+        ssgiColor=vec4(col,1);return;
     }
     vec3 N=texture2D(gNormalDepth,texCoords).xyz;
     vec3 V=normalize(uCameraPos-worldPos);
@@ -191,7 +193,7 @@ void main()
         gi=refCol*calcMicroFacedBRDF(N,R,V,texCoords)*NdotL;
         //gl_FragColor=vec4(refCol,1.0);return;
     }
-    gl_FragColor=vec4(col+gi,1.0);
+    ssgiColor=vec4(col+gi,1.0);
     // if(r.intersect==1)
     //     gl_FragColor=vec4(refCol,1.0);
     // else

@@ -3,8 +3,7 @@
 #ifndef BLIT_H
 #define BLIT_H
 #include"cPostProcess.hpp"
-#include"frame_buffer.hpp"
-#include"map_filter.hpp"
+
 
 
 class Blit :public PostProcess {

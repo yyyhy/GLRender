@@ -5,7 +5,9 @@
 
 #include"shader.hpp"
 #include"settings.hpp"
-#include"frame_buffer.hpp"
+#include"frameBuffer.hpp"
+#include"filter.hpp"
+
 
 class PostProcess {
 private:

@@ -55,6 +55,9 @@
     <Filter Include="头文件\managers">
       <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core">
+      <UniqueIdentifier>{1a94f9cd-cc28-4a35-9be6-e31664339f3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -87,6 +90,9 @@
     <ClCompile Include="texture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="computeShader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -95,10 +101,10 @@
     <ClInclude Include="light.hpp">
       <Filter>头文件\component\light</Filter>
     </ClInclude>
-    <ClInclude Include="point_light.hpp">
+    <ClInclude Include="pointLight.hpp">
       <Filter>头文件\component\light</Filter>
     </ClInclude>
-    <ClInclude Include="direct_light.hpp">
+    <ClInclude Include="directLight.hpp">
       <Filter>头文件\component\light</Filter>
     </ClInclude>
     <ClInclude Include="assimp.hpp">
@@ -131,11 +137,8 @@
     <ClInclude Include="CameraController.hpp">
       <Filter>头文件\component\other</Filter>
     </ClInclude>
-    <ClInclude Include="reflect_probe.hpp">
+    <ClInclude Include="reflectProbe.hpp">
       <Filter>头文件\component</Filter>
-    </ClInclude>
-    <ClInclude Include="commons.hpp">
-      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ssao.hpp">
       <Filter>头文件\postprocess</Filter>
@@ -151,9 +154,6 @@
     </ClInclude>
     <ClInclude Include="ssgi.hpp">
       <Filter>头文件\postprocess</Filter>
-    </ClInclude>
-    <ClInclude Include="debugtool.hpp">
-      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="sssss.hpp">
       <Filter>头文件\postprocess</Filter>
@@ -191,19 +191,7 @@
     <ClInclude Include="render.hpp">
       <Filter>头文件\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="frame_buffer.hpp">
-      <Filter>头文件\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="map_filter.hpp">
-      <Filter>头文件\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.hpp">
-      <Filter>头文件\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="texture.hpp">
-      <Filter>头文件\rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="spot_light.hpp">
+    <ClInclude Include="spotLight.hpp">
       <Filter>头文件\component\light</Filter>
     </ClInclude>
     <ClInclude Include="sh.hpp">
@@ -218,7 +206,7 @@
     <ClInclude Include="gc.hpp">
       <Filter>头文件\gc</Filter>
     </ClInclude>
-    <ClInclude Include="light_flicker.hpp">
+    <ClInclude Include="lightFlicker.hpp">
       <Filter>头文件\component\other</Filter>
     </ClInclude>
     <ClInclude Include="taa.hpp">
@@ -236,7 +224,7 @@
     <ClInclude Include="fitLTC.hpp">
       <Filter>头文件\ltc</Filter>
     </ClInclude>
-    <ClInclude Include="sphere_light.hpp">
+    <ClInclude Include="sphereLight.hpp">
       <Filter>头文件\component\light</Filter>
     </ClInclude>
     <ClInclude Include="kd_tree.hpp">
@@ -260,11 +248,32 @@
     <ClInclude Include="SDF.hpp">
       <Filter>头文件\raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="draw_adapter.hpp">
-      <Filter>头文件\rendering</Filter>
-    </ClInclude>
     <ClInclude Include="ObjManager.hpp">
       <Filter>头文件\base</Filter>
+    </ClInclude>
+    <ClInclude Include="frameBuffer.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="filter.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="commons.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="debugTool.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="computeShader.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="drawAdapter.hpp">
+      <Filter>头文件\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

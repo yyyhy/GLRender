@@ -3,8 +3,7 @@
 #ifndef SSGI_H
 #define SSGI_H
 #include"cPostProcess.hpp"
-#include"map_filter.hpp"
-#include"frame_buffer.hpp"
+
 
 class SSGI :public PostProcess {
 

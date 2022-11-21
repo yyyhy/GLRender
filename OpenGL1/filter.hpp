@@ -3,11 +3,10 @@
 #ifndef MAP_FILTER_H
 #define MAP_FILTER_H
 
-#include"frame_buffer.hpp"
+#include"frameBuffer.hpp"
 #include"opengl.hpp"
 #include"shader.hpp"
 #include"glm.hpp"
-#include"reflect_probe.hpp"
 #include"commons.hpp"
 
 using mipmap = unsigned;
@@ -67,7 +66,7 @@ inline void InitDefaultFrameBufferOut() {
 	}
 }
 
-mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, unsigned level = 4,bool over=false) {
+inline mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, unsigned level = 4,bool over=false) {
 
 	unsigned prefilterMap;
 	if (!over) {
@@ -116,7 +115,7 @@ mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, unsigned
 	return prefilterMap;
 }
 
-mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned level = 4,unsigned w=512,unsigned h=512) {
+inline mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned level = 4,unsigned w=512,unsigned h=512) {
 	unsigned prefilterMap;
 	glGenTextures(1, &prefilterMap);
 	glBindTexture(GL_TEXTURE_2D, prefilterMap);
@@ -151,7 +150,7 @@ mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned
 	return prefilterMap;
 }
 
-void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBufferO& outFrameBuffer=InvalidFrameBuffer) {
+inline void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBufferO& outFrameBuffer=InvalidFrameBuffer) {
 
 	s->use();
 	s->setTexture("tex", in.id);

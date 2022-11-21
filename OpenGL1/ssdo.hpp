@@ -3,7 +3,6 @@
 #ifndef SSDO_H
 #define SSDO_H
 #include"cPostProcess.hpp"
-#include"map_filter.hpp"
 #include<time.h>
 #include<random>
 

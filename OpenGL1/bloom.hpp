@@ -3,7 +3,7 @@
 #ifndef BLOOM_H
 #define BLOOM_H
 #include"cPostProcess.hpp"
-#include"map_filter.hpp"
+
 
 class Bloom : public PostProcess {
 

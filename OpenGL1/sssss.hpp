@@ -4,8 +4,6 @@
 #define SSSSS_H
 
 #include"cPostProcess.hpp"
-#include"map_filter.hpp"
-#include"frame_buffer.hpp"
 
 
 class SSSSS :public PostProcess {

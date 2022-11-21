@@ -1,0 +1,17 @@
+#version 430
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba8) readonly uniform image2D input_image;
+layout(rgba8) writeonly uniform image2D out_image;
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    vec4 p = imageLoad(input_image, pos.xy);
+    barrier();
+    vec4 color = vec4(0.0,0.0,0.0,1.0);
+//此处可以做一些操作，颜色值改变之类的，我这边示例只做了个提取绿色通道图像
+    color.g = p.g;
+ 
+    imageStore( out_image,
+                ivec2(gl_GlobalInvocationID.xy),
+                color);
+}

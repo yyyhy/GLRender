@@ -2,7 +2,6 @@
 
 #ifndef TAA_H
 #define TAA_H
-#include"frame_buffer.hpp"
 #include"cPostProcess.hpp"
 
 std::vector<std::string> preComplie = { "ADJUST_UV" };

@@ -3,7 +3,7 @@
 #ifndef SSAO_H
 #define SSAO_H
 #include"cPostProcess.hpp"
-#include"map_filter.hpp"
+
 
 class SSAO : public PostProcess{
 private:

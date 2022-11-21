@@ -7,7 +7,7 @@
 #include"component.hpp"
 #include"transform.hpp"
 #include"stb.hpp"
-#include"frame_buffer.hpp"
+#include"frameBuffer.hpp"
 
 #define CUBE_MAP_W 512
 #define CUBE_MAP_H 512

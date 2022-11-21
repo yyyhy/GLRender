@@ -1,7 +1,8 @@
 #include"texture.hpp"
-#include"frame_buffer.hpp"
+#include"frameBuffer.hpp"
 #include"stb_image.h"
 #include<iostream>
+
 Texture2D::Texture2D(const std::string& path) :Texture(GL_TEXTURE_2D)
 {
 	int w, h,channel;
