@@ -43,6 +43,10 @@ struct Texture2D :public Texture {
         unsigned WrapS=GL_REPEAT,unsigned WrapT=GL_REPEAT,
         bool GenMip=true);
 
+    ~Texture2D();
+
+    void Release() override;
+
     void Construct(unsigned w, unsigned h, unsigned iFormat, unsigned format,
         unsigned MinFilter = GL_LINEAR, unsigned MagFilter = GL_LINEAR,
         unsigned WrapS = GL_REPEAT, unsigned WrapT = GL_REPEAT,
@@ -62,6 +66,10 @@ struct TextureCube:public Texture
         unsigned MinFilter = GL_LINEAR, unsigned MagFilter = GL_LINEAR,
         unsigned WrapS= GL_CLAMP_TO_EDGE,unsigned WrapT= GL_CLAMP_TO_EDGE
         ,unsigned WrapR= GL_CLAMP_TO_EDGE,bool GenMip = true);
+
+    void Release() override;
+
+    ~TextureCube();
 };
 
 #endif // !TEXTURE_H

@@ -17,7 +17,7 @@ struct FrameBufferO
     FrameBufferO(unsigned w, unsigned h, bool addDepthRBO = false);
     ~FrameBufferO();
     void AttachTexture(Texture*,unsigned cnt=1);
-    Texture* GetTexture(unsigned);
+    Texture* GetTexture(unsigned) const;
     FrameBufferO& operator=(const FrameBufferO&);
     void Construct(unsigned w, unsigned h, bool addDepthRBO = false);
     void Bind();

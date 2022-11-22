@@ -43,6 +43,17 @@ Texture2D::Texture2D(unsigned w, unsigned h, unsigned iFormat, unsigned format,
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+Texture2D::~Texture2D()
+{
+   
+}
+
+void Texture2D::Release()
+{
+    if (id != INVALID_TEXTURE_ID && id != 0)
+        glDeleteBuffers(1, &id);
+}
+
 void Texture2D::Construct(unsigned w, unsigned h, unsigned iFormat, unsigned format,
     unsigned MinFilter, unsigned MagFilter, unsigned WrapS, unsigned WrapT,
     bool GenMip){
@@ -204,7 +215,7 @@ void FrameBufferO::AttachTexture(Texture* t,unsigned cnt)
         glDrawBuffers(attachOffset, arrays);
 }
 
-Texture* FrameBufferO::GetTexture(unsigned index)
+Texture* FrameBufferO::GetTexture(unsigned index) const
 {
     if(index>=textures.size())
         return nullptr;
@@ -240,4 +251,15 @@ TextureCube::TextureCube(int w, int h,unsigned iFormat, unsigned format,
 
     if(GenMip)
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
+
+void TextureCube::Release()
+{
+    if (id != INVALID_TEXTURE_ID && id != 0)
+        glDeleteBuffers(1, &id);
+}
+
+TextureCube::~TextureCube()
+{
+    //std::cout << "TexCube release: " << id << "\n";
 }

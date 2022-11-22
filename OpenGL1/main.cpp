@@ -203,7 +203,7 @@ int main()
         defferedShader->setCubeMap("reflectCube[2].reflectCube", 0);
         defferedShader->setCubeMap("reflectCube[3].reflectCube", 0);
         render.InitReflectProbe(&scene);
-        //scene.SetSkyBox(probe->GetCubeMap().id);
+        scene.SetSkyBox(probe3->GetCubeMap().id);
         defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
         defferedShader->setBool("reflectCube[0].exist", true);

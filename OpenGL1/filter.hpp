@@ -12,7 +12,7 @@
 using mipmap = unsigned;
 static unsigned int cubeVAO = 0;
 static unsigned int cubeVBO = 0;
-static void renderCube()
+static inline void renderCube()
 {
 	// initialize (if necessary)
 	if (cubeVAO == 0)
@@ -37,7 +37,7 @@ static void renderCube()
 static unsigned planeVAO=0;
 static unsigned planeVBO=0;
 static unsigned planeFrameBuffer = 0;
-static void renderPlane() {
+static inline void renderPlane() {
 	if (planeVAO == 0) {
 		glGenVertexArrays(1, &planeVAO);
 		glBindVertexArray(planeVAO);
@@ -66,35 +66,20 @@ inline void InitDefaultFrameBufferOut() {
 	}
 }
 
-inline mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, unsigned level = 4,bool over=false) {
+inline void GenCubeMipMap(Shader * prefilterShader,const FrameBufferO& Buffer,const TextureCube& output, unsigned level = 4) {
 
-	unsigned prefilterMap;
-	if (!over) {
-		glGenTextures(1, &prefilterMap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, Buffer.w, Buffer.h, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-	}
-	else
-		prefilterMap = Buffer.texBuffer;
+	auto const prefilterTexture = Buffer.GetTexture(0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, output.id);
 	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	prefilterShader->use();
 	prefilterShader->setMat4("projection", glm::perspective(glm::radians(90.f), 1.f, 0.1f, 100.f));
-	prefilterShader->setCubeMap("environmentMap", Buffer.texBuffer);
+	prefilterShader->setCubeMap("environmentMap", prefilterTexture->id);
 	prefilterShader->initTexture();
-
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, Buffer.frameBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, Buffer.rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, Buffer.depthRBO);
 	for (int mip = 0; mip < level; mip++) {
 		unsigned int mipWidth = Buffer.w * std::pow(0.5, mip);
 		unsigned int mipHeight = Buffer.h * std::pow(0.5, mip);
@@ -102,17 +87,16 @@ inline mipmap GenCubeMipMap(Shader * prefilterShader,const FrameBuffer Buffer, u
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mipWidth, mipHeight);
 		float roughness = (float)mip / (float)(level - 1);
 		prefilterShader->setFloat("roughness", roughness);
-		for (unsigned int i = 0; i < 6; ++i)
+		for (unsigned int i = 0; i < 6; ++i) 
 		{
 			prefilterShader->setMat4("view", glm::lookAt({ 0,0,0 }, captureViews[i * 2], captureViews[i * 2 + 1]));
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, output.id, mip);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			renderCube();
 		}
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	return prefilterMap;
 }
 
 inline mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned level = 4,unsigned w=512,unsigned h=512) {
