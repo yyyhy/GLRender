@@ -9,7 +9,7 @@
 class SSSSS :public PostProcess {
 
 public:
-	SSSSS() :PostProcess("shaders/bf.vs", "shaders/sssss.fs") {
+	SSSSS(unsigned w, unsigned h) :PostProcess("shaders/bf.vs", "shaders/sssss.fs", w, h) {
 
 	}
 

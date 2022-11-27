@@ -9,7 +9,6 @@
 #include"glm.hpp"
 #include"commons.hpp"
 
-using mipmap = unsigned;
 static unsigned int cubeVAO = 0;
 static unsigned int cubeVBO = 0;
 static inline void renderCube()
@@ -57,7 +56,7 @@ static inline void renderPlane() {
 	glBindVertexArray(0);
 }
 
-static FrameBufferO DefaultFrameBufferOut;
+static FrameBuffer DefaultFrameBufferOut;
 
 inline void InitDefaultFrameBufferOut() {
 	if (DefaultFrameBufferOut.frameBuffer==0||DefaultFrameBufferOut.frameBuffer==INVALID_FRAMEBUFFER_ID)
@@ -66,7 +65,7 @@ inline void InitDefaultFrameBufferOut() {
 	}
 }
 
-inline void GenCubeMipMap(Shader * prefilterShader,const FrameBufferO& Buffer,const TextureCube& output, unsigned level = 4) {
+inline void GenCubeMipMap(Shader * prefilterShader,const FrameBuffer& Buffer,const TextureCube& output, unsigned level = 4) {
 
 
 	auto const prefilterTexture = Buffer.GetTexture(0);
@@ -99,42 +98,32 @@ inline void GenCubeMipMap(Shader * prefilterShader,const FrameBufferO& Buffer,co
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-inline mipmap GenTexMipMap(Shader* prefilterShader, const  FrameBuffer Buffer, unsigned level = 4,unsigned w=512,unsigned h=512) {
-	unsigned prefilterMap;
-	glGenTextures(1, &prefilterMap);
-	glBindTexture(GL_TEXTURE_2D, prefilterMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
+inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,const Texture& output, unsigned level = 4) {
+	auto const prefilterTexture = Buffer.GetTexture(0);
 
 	prefilterShader->use();
-	prefilterShader->setTexture("prefilterInMap", Buffer.texBuffer);
+	prefilterShader->setTexture("prefilterInMap", prefilterTexture->id);
 	prefilterShader->initTexture();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, Buffer.frameBuffer);
 	for (int mip = 0; mip < level; mip++) {
-		unsigned int mipWidth = w * std::pow(0.5, mip);
-		unsigned int mipHeight = h * std::pow(0.5, mip);
+		unsigned int mipWidth = Buffer.w * std::pow(0.5, mip);
+		unsigned int mipHeight = Buffer.h * std::pow(0.5, mip);
 		glViewport(0, 0, mipWidth, mipHeight);
 
 		float roughness = (float)mip / (float)(level - 1);
 		prefilterShader->setFloat("roughness", roughness);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prefilterMap, mip);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output.id, mip);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		renderPlane();
 
-		prefilterShader->setTexture("prefilterInMap", prefilterMap);
+		prefilterShader->setTexture("prefilterInMap", output.id);
 		prefilterShader->initTexture();
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	return prefilterMap;
 }
 
-inline void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBufferO& outFrameBuffer=InvalidFrameBuffer) {
+inline void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBuffer& outFrameBuffer=InvalidFrameBuffer) {
 
 	s->use();
 	s->setTexture("tex", in.id);

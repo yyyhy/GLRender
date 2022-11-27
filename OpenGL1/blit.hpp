@@ -11,7 +11,7 @@ class Blit :public PostProcess {
 private:
 	int f = 1;
 public:
-	Blit() :PostProcess("shaders/bf.vs", "shaders/blit.fs"){}
+	Blit(unsigned w, unsigned h) :PostProcess("shaders/bf.vs", "shaders/blit.fs", w, h){}
 
 	void excute() override {
 		auto s = GetShader();

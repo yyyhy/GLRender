@@ -20,7 +20,7 @@ enum ReflectProbeType {
 
 class ReflectProbe :public Component {
 private:
-	FrameBufferO frameBuffer;
+	FrameBuffer frameBuffer;
 	TextureCube cubeMapBuffer;
 
 	unsigned w, h;
@@ -58,7 +58,7 @@ public:
 
 	unsigned GetHeight() const { return h; }
 
-	const FrameBufferO& GetFrameBuffer() const { return frameBuffer; }
+	const FrameBuffer& GetFrameBuffer() const { return frameBuffer; }
 
 	ReflectProbeType GetReflectProbeType() const { return type; }
 
@@ -84,23 +84,12 @@ public:
 				glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
 				localRender(s, GetFrameBuffer(), true);
-				/*for (int j = 0; j < 6; ++j) {
-					int w = 512, h = 512;
-					unsigned char* imageData = new unsigned char[w * h * 3] { 255 };
-					glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
-					glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
-					std::string file = "baking/test" + std::to_string(j);
-					file.append(".png");
-					stbi_write_png(file.c_str(), w, h, 3, imageData, 0);
-				}*/
 			}
 			tmpCamera->Fov = tmpFov;
 			tmpCamera->SetFront(tmpFront);
 			tmpCamera->w = tmpW;
 			tmpCamera->h = tmpH;
 			trans->SetPosition(tmpPos);
-			//tmpCamera->Position = tmpPos;
 
 			TextureCube cube(GetFrameBuffer().w, GetFrameBuffer().h, GL_RGB, GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 			GenCubeMipMap(cubeMipMapShader.get(), GetFrameBuffer(), cube, 4);

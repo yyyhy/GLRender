@@ -18,6 +18,7 @@
 #include"bloom.hpp"
 #include<list>
 #include"debugTool.hpp"
+#include"RenderManager.hpp"
 
 #define CAMERA_UBO_SIZE 208+64+16+64
 #define	RENDER_SEETINGS_SIZE 16
@@ -31,10 +32,10 @@ static unsigned RenderSettingsUbo;
 class Render {
 private:
 
-	FrameBufferO BackFrameBuffer;
+	FrameBuffer BackFrameBuffer;
 	Texture2D ColorBuffer;
 
-	FrameBufferO gFrameBuffer;
+	FrameBuffer gFrameBuffer;
 	Texture2D gColorBuffers[GBUFFER_SIZE];
 
 	unsigned RenderWidth;
@@ -158,7 +159,7 @@ private:
 		}
 	}
 
-	void ApplyPostProcess(FrameBufferO& targetBuffer) {
+	void ApplyPostProcess(FrameBuffer& targetBuffer) {
 		auto p = postProcess.begin();
 		auto last = postProcess.end(); --last;
 		(*last)->SetOutFrameBuffer(&targetBuffer);
@@ -204,7 +205,7 @@ private:
 	}
 
 	void initSSDO() {
-		auto ssdo = new SSDO();
+		auto ssdo = new SSDO(RenderWidth,RenderHeight);
 		auto ssdoShader = ssdo->mainShader;
 		ssdoShader->setTexture("gPositionRoughness", GetGBuffer(0));
 		ssdoShader->setTexture("gNormalDepth", GetGBuffer(1));
@@ -215,7 +216,7 @@ private:
 	}
 
 	void initSSAO() {
-		auto ssao = new SSAO(defferedShader);
+		auto ssao = new SSAO(defferedShader, RenderWidth, RenderHeight);
 		ssao->mainShader->setTexture("gPosition", GetGBuffer(0));
 		ssao->mainShader->setTexture("gNormalDepth", GetGBuffer(1));
 		AddPostProcess(ssao);
@@ -223,7 +224,7 @@ private:
 	}
 
 	void initSSGI() {
-		auto ssgi = new SSGI();
+		auto ssgi = new SSGI(RenderWidth, RenderHeight);
 		auto ssgiShader = ssgi->GetShader();
 		ssgiShader->use();
 		ssgiShader->setTexture("gPositionRoughness", GetGBuffer(0));
@@ -235,8 +236,8 @@ private:
 	}
 
 	void initAntiNoise() {
-		auto v = new BidirectionVFilter();
-		auto h = new BidirectionHFilter();
+		auto v = new BidirectionVFilter(RenderWidth, RenderHeight);
+		auto h = new BidirectionHFilter(RenderWidth, RenderHeight);
 		auto vShader = v->GetShader();
 		vShader->setTexture("gNormal", GetGBuffer(1));
 		vShader->setTexture("gPosition", GetGBuffer(0));
@@ -268,7 +269,7 @@ private:
 
 #ifdef _DEBUG
 	void initSSSSS() {
-		auto s = new SSSSS();
+		auto s = new SSSSS(RenderWidth, RenderHeight);
 		auto shader = s->GetShader();
 		shader->use();
 		shader->setTexture("gPositionRoughness", GetGBuffer(0));
@@ -294,8 +295,8 @@ public:
 		}
 		gFrameBuffer.AttachTexture(gColorBuffers, GBUFFER_SIZE);
 			
-		auto blit = new Blit();
-		auto taa = new TAA();
+		auto blit = new Blit(RenderWidth, RenderHeight);
+		auto taa = new TAA(RenderWidth, RenderHeight);
 		AddPostProcess(blit);
 		//AddPostProcess(taa);
 		
@@ -307,17 +308,22 @@ public:
 		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
 		cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
 		texMipMapShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/mip.fs");
+
+		RenderManagerInstance.RegisterRender(this);
 	}
 
 	~Render() {
-		
 		for (auto& i : postProcess) {
 			delete i;
 			i = nullptr;
 		}
+		ColorBuffer.Release();
+		for (int i = 0; i < GBUFFER_SIZE; ++i) {
+			gColorBuffers[i].Release();
+		}
 	}
 
-	void operator()(Scene* scene, const FrameBufferO& targetBuffer = TargetOutputFrameBuffer, bool applySky=true) {
+	void operator()(Scene* scene, const FrameBuffer& targetBuffer = TargetOutputFrameBuffer, bool applySky=true) {
 		
 		if (mainCamera == NULL)
 			return;
@@ -393,7 +399,7 @@ public:
 			glDepthFunc(GL_LESS); // set depth function back to default
 		}
 
-		ApplyPostProcess(const_cast<FrameBufferO&>(targetBuffer));
+		ApplyPostProcess(const_cast<FrameBuffer&>(targetBuffer));
 
 		lastCameraMVP = mvp;
 	}

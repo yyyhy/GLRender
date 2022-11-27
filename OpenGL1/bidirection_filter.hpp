@@ -7,7 +7,7 @@
 
 class BidirectionHFilter :public PostProcess {
 public:
-	BidirectionHFilter() :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_h.fs") {}
+	BidirectionHFilter(unsigned w,unsigned h) :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_h.fs",w,h) {}
 
 	void excute() override {
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
@@ -17,7 +17,7 @@ public:
 
 class BidirectionVFilter :public PostProcess {
 public:
-	BidirectionVFilter() :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_v.fs") {}
+	BidirectionVFilter(unsigned w, unsigned h) :PostProcess("shaders/bf.vs", "shaders/bidirectionfilter_v.fs" , w, h) {}
 
 	void excute() override {
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());

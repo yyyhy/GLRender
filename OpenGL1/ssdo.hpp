@@ -12,8 +12,9 @@ private:
 	Texture2D ssdoBlurBuffer;
 
 public:
-	SSDO() :PostProcess("shaders/bf.vs", "shaders/ssdo_apply.fs"),ssdoTexBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RGB,GL_RGB)
-		, ssdoBlurBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_RGB) {
+	SSDO(unsigned w, unsigned h) :PostProcess("shaders/bf.vs", "shaders/ssdo_apply.fs", w, h)
+		, ssdoTexBuffer(w, h, GL_RGB,GL_RGB)
+		, ssdoBlurBuffer(w, h, GL_RGB, GL_RGB) {
 		
 		mainShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/ssdo.fs");
 		filterShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/commonblur.fs");
@@ -54,6 +55,11 @@ public:
 		BlitMap(ssdoTexBuffer, ssdoBlurBuffer, filterShader.get());
 		GetShader()->setTexture("ssdoMap", ssdoBlurBuffer);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
+	}
+
+	~SSDO() {
+		ssdoTexBuffer.Release();
+		ssdoBlurBuffer.Release();
 	}
 
 	sp_shader mainShader;

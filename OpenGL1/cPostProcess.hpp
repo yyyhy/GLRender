@@ -12,15 +12,18 @@
 class PostProcess {
 private:
 	std::shared_ptr<Shader> shader;
-	FrameBufferO *FrameBuffers;
+	FrameBuffer *FrameBuffers;
 	Texture InTexture;
 	Texture *OutTextures;
 	unsigned size;
-	
+	unsigned width, height;
 	bool needClearBuffers = true;
 public:
-	PostProcess(const char* vertexPath, const char* fragmentPath,unsigned bufferSize=1, std::vector<std::string>* preComplieCmd = NULL):enable(true),
-		size(bufferSize) {
+	PostProcess(const char* vertexPath, const char* fragmentPath, unsigned w, unsigned h, unsigned bufferSize=1, std::vector<std::string>* preComplieCmd = NULL)
+		:enable(true),
+		size(bufferSize) ,
+		width(w),
+		height(h) {
 		shader = std::make_shared<Shader>(vertexPath, fragmentPath,nullptr, preComplieCmd);
 		
 	}
@@ -35,17 +38,22 @@ public:
 		if (needClearBuffers) {
 			if (FrameBuffers != nullptr)
 				delete[] FrameBuffers;
-			if (OutTextures != nullptr)
+			if (OutTextures != nullptr) {
+				for (int i = 0; i < size; ++i) {
+					OutTextures[i].Release();
+				}
 				delete[] OutTextures;
+			}
+				
 		}
 	}
 
 	virtual void GenFrameBuffer() {
-		FrameBuffers = new FrameBufferO[size]();
+		FrameBuffers = new FrameBuffer[size]();
 		OutTextures = new Texture2D[size];
 		for (int i = 0; i < size; ++i) {
-			FrameBuffers[i].Construct(SCR_WIDTH,SCR_HEIGHT,false);
-			OutTextures[i] = Texture2D(SCR_WIDTH, SCR_HEIGHT, GL_RGB32F, GL_RGB);
+			FrameBuffers[i].Construct(width,height,false);
+			OutTextures[i] = Texture2D(width, height, GL_RGB32F, GL_RGB);
 			FrameBuffers[i].AttachTexture(&OutTextures[i]);
 		}
 		
@@ -62,7 +70,7 @@ public:
 		shader->setTexture("tex", InTexture); 
 	}
 
-	void SetOutFrameBuffer(FrameBufferO* outBuffer) {
+	void SetOutFrameBuffer(FrameBuffer* outBuffer) {
 		FrameBuffers = outBuffer;
 		needClearBuffers = false;
 	}
@@ -80,7 +88,7 @@ public:
 
 	Texture GetInTexBuffer() const { return InTexture; }
 
-	const FrameBufferO& GetOutFrameBuffer(unsigned index = 0) const { 
+	const FrameBuffer& GetOutFrameBuffer(unsigned index = 0) const { 
 		if(FrameBuffers!=nullptr && index < size)
 			return FrameBuffers[index]; 
 		return TargetOutputFrameBuffer;

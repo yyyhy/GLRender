@@ -13,7 +13,7 @@ private:
 	sp_shader taa;
 
 public:
-	TAA() :PostProcess("shaders/bf.vs", "shaders/taa.fs", 2,&preComplie), currTBuffer(0) {
+	TAA(unsigned w, unsigned h) :PostProcess("shaders/bf.vs", "shaders/taa.fs" , w, h, 2,&preComplie), currTBuffer(0) {
 		taa = GetShader();
 		
 	}

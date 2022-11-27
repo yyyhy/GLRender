@@ -31,7 +31,7 @@ inline bool CheckExtension(const std::string& extensionName) {
 	return false;
 }
 
-inline void SaveFrameBuffer(const FrameBufferO& fbo) {
+inline void SaveFrameBuffer(const FrameBuffer& fbo) {
 	unsigned char* imageData = new unsigned char[fbo.w * fbo.h * 3] { 255 };
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo.frameBuffer);
 	glReadPixels(0, 0, fbo.w, fbo.h, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);

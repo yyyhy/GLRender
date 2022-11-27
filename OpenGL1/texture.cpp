@@ -114,22 +114,20 @@ Texture3D::Texture3D(int w, int h, int d, unsigned channel):Texture(GL_TEXTURE_3
 
 Texture::~Texture()
 {
-    /*if (id != 0)
-        glDeleteBuffers(1, &id);*/
+    
 }
 
 void Texture::Release()
 {
-    if (id != 0)
-        glDeleteBuffers(1, &id);
+    
 }
 
-FrameBufferO::FrameBufferO():w(0),h(0),attachOffset(0),depthRBO(0),frameBuffer(INVALID_FRAMEBUFFER_ID)
+FrameBuffer::FrameBuffer():w(0),h(0),attachOffset(0),depthRBO(0),frameBuffer(INVALID_FRAMEBUFFER_ID)
 {
     
 }
 
-FrameBufferO::FrameBufferO(unsigned w, unsigned h, bool addDepthRBO):attachOffset(0),depthRBO(0),w(w),h(h)
+FrameBuffer::FrameBuffer(unsigned w, unsigned h, bool addDepthRBO):attachOffset(0),depthRBO(0),w(w),h(h)
 {
     if (w > 0 && h > 0) {
         glGenFramebuffers(1, &frameBuffer);
@@ -150,7 +148,7 @@ FrameBufferO::FrameBufferO(unsigned w, unsigned h, bool addDepthRBO):attachOffse
         frameBuffer = 0;
 }
 
-void FrameBufferO::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
+void FrameBuffer::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
     if (frameBuffer != INVALID_FRAMEBUFFER_ID) {
         std::cerr << "Can't construct a valid framebuffer\n";
         return;
@@ -176,7 +174,7 @@ void FrameBufferO::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
         frameBuffer = 0;
 }
 
-FrameBufferO::~FrameBufferO()
+FrameBuffer::~FrameBuffer()
 {
     if (frameBuffer != 0&&frameBuffer!=INVALID_FRAMEBUFFER_ID) {
         glDeleteFramebuffers(1, &frameBuffer);
@@ -186,7 +184,7 @@ FrameBufferO::~FrameBufferO()
     }
 }
 
-FrameBufferO& FrameBufferO::operator=(const FrameBufferO& fbo)
+FrameBuffer& FrameBuffer::operator=(const FrameBuffer& fbo)
 {
     
     frameBuffer = fbo.frameBuffer;
@@ -198,7 +196,7 @@ FrameBufferO& FrameBufferO::operator=(const FrameBufferO& fbo)
     return *this;
 }
 
-void FrameBufferO::AttachTexture(Texture* t,unsigned cnt)
+void FrameBuffer::AttachTexture(Texture* t,unsigned cnt)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     GLuint* arrays = new GLuint[cnt];
@@ -213,7 +211,7 @@ void FrameBufferO::AttachTexture(Texture* t,unsigned cnt)
         glDrawBuffers(attachOffset, arrays);
 }
 
-Texture* FrameBufferO::GetTexture(unsigned index) const
+Texture* FrameBuffer::GetTexture(unsigned index) const
 {
     if(index>=textures.size())
         return nullptr;
@@ -221,7 +219,7 @@ Texture* FrameBufferO::GetTexture(unsigned index) const
     return textures[index];
 }
 
-void FrameBufferO::Bind()
+void FrameBuffer::Bind()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     glViewport(0, 0, w, h);
@@ -259,5 +257,5 @@ void TextureCube::Release()
 
 TextureCube::~TextureCube()
 {
-    //std::cout << "TexCube release: " << id << "\n";
+    
 }

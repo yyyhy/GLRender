@@ -209,6 +209,7 @@
     <ClInclude Include="opengl.hpp" />
     <ClInclude Include="pointLight.hpp" />
     <ClInclude Include="render.hpp" />
+    <ClInclude Include="RenderManager.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="scene.hpp" />
     <ClInclude Include="SceneManager.hpp" />

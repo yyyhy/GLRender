@@ -11,9 +11,9 @@ private:
 	Texture2D ssaoBlurBuffer;
 	
 public:
-	SSAO(sp_shader shader,unsigned quanlity = 64) : PostProcess("shaders/bf.vs", "shaders/ssao_apply.fs")
-					, ssaoTexBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RED,GL_RED) 
-					, ssaoBlurBuffer(SCR_WIDTH, SCR_HEIGHT, GL_RED, GL_RED) {
+	SSAO(sp_shader shader, unsigned w, unsigned h,unsigned quanlity = 64) : PostProcess("shaders/bf.vs", "shaders/ssao_apply.fs", w, h)
+					, ssaoTexBuffer(w, h, GL_RED,GL_RED) 
+					, ssaoBlurBuffer(w, h, GL_RED, GL_RED) {
 		mainShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/ssao.fs");
 		filterShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/commonblur.fs");
 
@@ -58,11 +58,11 @@ public:
 	}
 
 	~SSAO() override {
-		
+		ssaoBlurBuffer.Release();
+		ssaoTexBuffer.Release();
 	}
 
 	void excute() override {
-		FrameBuffer out;
 		BlitMap(0, ssaoTexBuffer, mainShader.get());
 		BlitMap(ssaoTexBuffer, ssaoBlurBuffer, filterShader.get());
 		GetShader()->setTexture("ssaoMap", ssaoBlurBuffer);

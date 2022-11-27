@@ -52,11 +52,11 @@
     <Filter Include="头文件\brdf">
       <UniqueIdentifier>{ff73a5e4-313a-4d6d-b9b5-23f625b4a4bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\managers">
-      <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\core">
       <UniqueIdentifier>{1a94f9cd-cc28-4a35-9be6-e31664339f3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\managers">
+      <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -237,7 +237,7 @@
       <Filter>头文件\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="SceneManager.hpp">
-      <Filter>头文件\managers</Filter>
+      <Filter>头文件\core\managers</Filter>
     </ClInclude>
     <ClInclude Include="input.hpp">
       <Filter>头文件\base</Filter>
@@ -274,6 +274,9 @@
     </ClInclude>
     <ClInclude Include="drawAdapter.hpp">
       <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManager.hpp">
+      <Filter>头文件\core\managers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
