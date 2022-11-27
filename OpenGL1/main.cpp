@@ -66,7 +66,7 @@ int main()
     glfwTerminate();
     _CrtDumpMemoryLeaks();
     return 0;*/
-
+    
     Render render;
     Scene scene;
     scene.SetSkyBox({ "sky/right.jpg",
@@ -198,12 +198,19 @@ int main()
     defferedShader->setTexture("uSDF", t3D);*/
    
     {
+        defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", 0);
         defferedShader->setCubeMap("reflectCube[1].reflectCube", 0);
         defferedShader->setCubeMap("reflectCube[2].reflectCube", 0);
         defferedShader->setCubeMap("reflectCube[3].reflectCube", 0);
-        render.InitReflectProbe(&scene);
-        scene.SetSkyBox(probe3->GetCubeMap().id);
+        probe->SetDefferedShader(defferedShader);
+        probe2->SetDefferedShader(defferedShader);
+        probe3->SetDefferedShader(defferedShader);
+        probe->GenerateCubemap(&scene);
+        probe2->GenerateCubemap(&scene);
+        probe3->GenerateCubemap(&scene);
+        //render.InitReflectProbe(&scene);
+        //scene.SetSkyBox(probe3->GetCubeMap().id);
         defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
         defferedShader->setBool("reflectCube[0].exist", true);
@@ -267,7 +274,7 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
             render.openSSGI();
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-            render.CapturePostProcessOutput(0);
+            render.CaptureGBuffer();
         globalTimer.updateTime(glfwGetTime());
         scene.Update();
         render(&scene);

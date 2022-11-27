@@ -3,7 +3,6 @@
 #ifndef RENDER_H
 #define RENDER_H
 #include"scene.hpp"
-#include"reflectProbe.hpp"
 #include"frameBuffer.hpp"
 #include"filter.hpp"
 #include<random>
@@ -25,6 +24,9 @@
 #define CAMERA_UBO_POINT 0
 #define RENDER_UBO_POINT 1
 #define GBUFFER_SIZE 7
+
+static unsigned CameraPropertyUbo;
+static unsigned RenderSettingsUbo;
 
 class Render {
 private:
@@ -53,8 +55,7 @@ private:
 	unsigned i = 0, n = 4;
 
 	std::list<PostProcess*> postProcess;
-	unsigned cameraPropertyUbo;
-	unsigned renderSettingsUbo;
+	
 
 	void GenShadowMaps(Scene* scene) {
 		/*glCullFace(GL_FRONT);*/
@@ -107,65 +108,27 @@ private:
 	}
 
 	void GenUbos() {
-		glGenBuffers(1, &cameraPropertyUbo);
-		glBindBuffer(GL_UNIFORM_BUFFER, cameraPropertyUbo);
-		glBufferData(GL_UNIFORM_BUFFER, CAMERA_UBO_SIZE, NULL, GL_STATIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UBO_POINT, cameraPropertyUbo);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		glGenBuffers(1, &renderSettingsUbo);
-		glBindBuffer(GL_UNIFORM_BUFFER, renderSettingsUbo);
-		glBufferData(GL_UNIFORM_BUFFER, RENDER_SEETINGS_SIZE, NULL, GL_STATIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, RENDER_UBO_POINT, renderSettingsUbo);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(RenderWidth,RenderHeight)));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
-
-	void GenReflectProbe(Scene* s) {
-		std::vector<ReflectProbe*> reflectProbes;
-		for (auto& o : s->objects) {
-			auto probe = o->GetComponent<ReflectProbe>();
-			if (probe)
-				reflectProbes.push_back(probe);
+		if (CameraPropertyUbo == 0) {
+			glGenBuffers(1, &CameraPropertyUbo);
+			glBindBuffer(GL_UNIFORM_BUFFER, CameraPropertyUbo);
+			glBufferData(GL_UNIFORM_BUFFER, CAMERA_UBO_SIZE, NULL, GL_STATIC_DRAW);
+			glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UBO_POINT, CameraPropertyUbo);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
-		for (auto& i : reflectProbes) {
-			if (i->GetReflectProbeType() == ReflectProbeType::Dynamic) {
-				auto pos = i->object->GetComponent<Transform>()->GetPosition();
-				auto tmpCamera = mainCamera;
-				auto tmpFront = tmpCamera->Front;
-				auto tmpFov = tmpCamera->Fov;
-				auto tmpW = tmpCamera->w;
-				auto tmpH = tmpCamera->h;
-				auto tmpPos = tmpCamera->Position;
-				tmpCamera->Fov = 90;
-				tmpCamera->w = i->GetWidth();
-				tmpCamera->h = i->GetHeight();
-				tmpCamera->Position = pos;
-				
-				for (int j = 0; j < 6; j++) {
-					tmpCamera->Front = (captureViews[j * 2]);
-					tmpCamera->Up = captureViews[j * 2 + 1];
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
-					(*this)(s, i->GetFrameBuffer(), true);
-					int w = 512, h = 512;
-				}
-				tmpCamera->Fov = tmpFov;
-				tmpCamera->SetFront(tmpFront);
-				tmpCamera->w = tmpW;
-				tmpCamera->h = tmpH;
-				tmpCamera->Position = tmpPos;
-
-				TextureCube cube(i->GetFrameBuffer().w, i->GetFrameBuffer().h, GL_RGB, GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-				GenCubeMipMap(cubeMipMapShader.get(), i->GetFrameBuffer(), cube, 4);
-				i->SetCubeMap(cube);
-			}
-		}
+		
+		if (RenderSettingsUbo == 0) {
+			glGenBuffers(1, &RenderSettingsUbo);
+			glBindBuffer(GL_UNIFORM_BUFFER, RenderSettingsUbo);
+			glBufferData(GL_UNIFORM_BUFFER, RENDER_SEETINGS_SIZE, NULL, GL_STATIC_DRAW);
+			glBindBufferBase(GL_UNIFORM_BUFFER, RENDER_UBO_POINT, RenderSettingsUbo);
+			glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(RenderWidth, RenderHeight)));
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		}	
 	}
 
 	glm::mat4 ApplyCameraProperties(Camera* c) {
 		auto trans = c->object->GetComponent<Transform>();
-		glBindBuffer(GL_UNIFORM_BUFFER, cameraPropertyUbo);
+		glBindBuffer(GL_UNIFORM_BUFFER, CameraPropertyUbo);
 		auto m = c->GetModel();
 		auto v = c->GetView();
 		auto p = c->GetProjection();
@@ -291,6 +254,18 @@ private:
 	
 	}
 
+	void BindGBuffer() const {
+		defferedShader->use();
+		for (auto i = 0; i < GBUFFER_SIZE; i++) {
+			defferedShader->setTexture("gBuffer" + std::to_string(i), gColorBuffers[i].id);
+		}
+	}
+
+	void BindRenderSettings() const{
+		glBindBuffer(GL_UNIFORM_BUFFER, RenderSettingsUbo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(RenderWidth, RenderHeight)));
+	}
+
 #ifdef _DEBUG
 	void initSSSSS() {
 		auto s = new SSSSS();
@@ -322,7 +297,7 @@ public:
 		auto blit = new Blit();
 		auto taa = new TAA();
 		AddPostProcess(blit);
-		AddPostProcess(taa);
+		//AddPostProcess(taa);
 		
 		taaShader = taa->GetShader();
 		
@@ -342,51 +317,6 @@ public:
 		}
 	}
 
-	void InitReflectProbe(Scene* s) {
-		std::vector<ReflectProbe*> reflectProbes;
-		for (auto& o : s->objects) {
-			auto probe = o->GetComponent<ReflectProbe>();
-			if (probe)
-				reflectProbes.push_back(probe);
-		}
-		for (auto& i : reflectProbes) {
-			if (i->GetReflectProbeType() == ReflectProbeType::Static||1) {
-				auto pos = i->object->GetComponent<Transform>()->GetPosition();
-				auto tmpCamera = mainCamera;
-				auto tmpFront = tmpCamera->Front;
-				auto tmpFov = tmpCamera->Fov;
-				auto tmpW = tmpCamera->w;
-				auto tmpH = tmpCamera->h;
-				auto trans = tmpCamera->object->GetComponent<Transform>();
-				auto tmpPos = trans->GetPosition();
-				tmpCamera->Fov = 90;
-				tmpCamera->w = i->GetWidth();
-				tmpCamera->h = i->GetHeight();
-				trans->SetPosition(pos);
-				//tmpCamera->Position = pos;
-				for (int j = 0; j < 6; j++) {
-					tmpCamera->Front=(captureViews[j * 2]);
-					tmpCamera->Up = captureViews[j * 2 + 1];
-					glBindFramebuffer(GL_FRAMEBUFFER, i->GetFrameBuffer().frameBuffer);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i->GetCubeMap().id, 0);
-					(*this)(s, i->GetFrameBuffer(), true);
-					
-				}
-				tmpCamera->Fov = tmpFov;
-				tmpCamera->SetFront(tmpFront);
-				tmpCamera->w=tmpW ;
-				tmpCamera->h=tmpH;
-				trans->SetPosition(tmpPos);
-				//tmpCamera->Position = tmpPos;
-				
-				TextureCube cube(i->GetFrameBuffer().w, i->GetFrameBuffer().h, GL_RGB, GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-				GenCubeMipMap(cubeMipMapShader.get(), i->GetFrameBuffer(), cube, 4);
-				i->SetCubeMap(cube);
-				
-			}
-		}
-	}
-
 	void operator()(Scene* scene, const FrameBufferO& targetBuffer = TargetOutputFrameBuffer, bool applySky=true) {
 		
 		if (mainCamera == NULL)
@@ -394,6 +324,10 @@ public:
 		auto camaraTransform = mainCamera->object->GetComponent<Transform>();
 		if (camaraTransform == NULL)
 			return;
+
+		BindRenderSettings();
+		BindGBuffer();
+
 		if (firstCall) {
 			GenStaticShadowMaps(scene);
 			firstCall = false;
@@ -481,12 +415,8 @@ public:
 
 	void SetDefferedShader(std::shared_ptr<Shader> s) { 
 		defferedShader = s; 
-		defferedShader->use();
-		for (auto i = 0; i < GBUFFER_SIZE; i++) {
-			defferedShader->setTexture("gBuffer"+std::to_string(i), gColorBuffers[i].id);
-		}
 	}
-
+	
 	unsigned GetGBuffer(unsigned i) const { if (i >= 0 && i < GBUFFER_SIZE) return gColorBuffers[i].id; return 0; }
 
 	void openSSDO() &  {
@@ -512,6 +442,10 @@ public:
 #ifdef _DEBUG
 	void Capture() {
 		SaveFrameBuffer(postProcess.back()->GetOutFrameBuffer());
+	}
+
+	void CaptureGBuffer() {
+		SaveFrameBuffer(gFrameBuffer);
 	}
 
 	void CaptureBackBuffer() {

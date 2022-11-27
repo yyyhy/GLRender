@@ -10,7 +10,6 @@
 #include"frameBuffer.hpp"
 #include"shader.hpp"
 #include"render.hpp"
-
 #define CUBE_MAP_W 512
 #define CUBE_MAP_H 512
 
@@ -27,16 +26,16 @@ private:
 	unsigned w, h;
 	ReflectProbeType type;
 	
-	//sp_shader cubeMipMapShader;
-	//Render localRender;
+	sp_shader cubeMipMapShader;
+	Render localRender;
 public:
 	explicit ReflectProbe(int w = CUBE_MAP_W, int h = CUBE_MAP_H) :
 		w(w), h(h), type(Static),frameBuffer(w,h,true),
-		cubeMapBuffer(w,h,GL_RGB,GL_RGB, GL_LINEAR,GL_LINEAR)
-		/*,localRender(w,h)*/ {
+		cubeMapBuffer(w,h,GL_RGB,GL_RGB, GL_LINEAR,GL_LINEAR),
+		localRender(w,h) {
 		name = "refProbe";
 		frameBuffer.AttachTexture(&cubeMapBuffer);
-		//cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
+		cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
 	}
 
 	~ReflectProbe() {
@@ -63,42 +62,56 @@ public:
 
 	ReflectProbeType GetReflectProbeType() const { return type; }
 
-	//void GenerateCubemap(Scene* s) {
-	//	
-	//	if (GetReflectProbeType() == ReflectProbeType::Static || 1) {
-	//		auto pos = object->GetComponent<Transform>()->GetPosition();
-	//		auto tmpCamera = mainCamera;
-	//		auto tmpFront = tmpCamera->Front;
-	//		auto tmpFov = tmpCamera->Fov;
-	//		auto tmpW = tmpCamera->w;
-	//		auto tmpH = tmpCamera->h;
-	//		auto trans = tmpCamera->object->GetComponent<Transform>();
-	//		auto tmpPos = trans->GetPosition();
-	//		tmpCamera->Fov = 90;
-	//		tmpCamera->w = GetWidth();
-	//		tmpCamera->h = GetHeight();
-	//		trans->SetPosition(pos);
-	//		//tmpCamera->Position = pos;
-	//		for (int j = 0; j < 6; j++) {
-	//			tmpCamera->Front = (captureViews[j * 2]);
-	//			tmpCamera->Up = captureViews[j * 2 + 1];
-	//			glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
-	//			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
-	//			localRender(s, GetFrameBuffer(), true);
+	void GenerateCubemap(Scene* s) {
+		
+		if (GetReflectProbeType() == ReflectProbeType::Static || 1) {
+			auto pos = object->GetComponent<Transform>()->GetPosition();
+			auto tmpCamera = mainCamera;
+			auto tmpFront = tmpCamera->Front;
+			auto tmpFov = tmpCamera->Fov;
+			auto tmpW = tmpCamera->w;
+			auto tmpH = tmpCamera->h;
+			auto trans = tmpCamera->object->GetComponent<Transform>();
+			auto tmpPos = trans->GetPosition();
+			tmpCamera->Fov = 90;
+			tmpCamera->w = GetWidth();
+			tmpCamera->h = GetHeight();
+			trans->SetPosition(pos);
+			//tmpCamera->Position = pos;
+			for (int j = 0; j < 6; j++) {
+				tmpCamera->Front = (captureViews[j * 2]);
+				tmpCamera->Up = captureViews[j * 2 + 1];
+				glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
+				localRender(s, GetFrameBuffer(), true);
+				/*for (int j = 0; j < 6; ++j) {
+					int w = 512, h = 512;
+					unsigned char* imageData = new unsigned char[w * h * 3] { 255 };
+					glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
+					glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
+					std::string file = "baking/test" + std::to_string(j);
+					file.append(".png");
+					stbi_write_png(file.c_str(), w, h, 3, imageData, 0);
+				}*/
+			}
+			tmpCamera->Fov = tmpFov;
+			tmpCamera->SetFront(tmpFront);
+			tmpCamera->w = tmpW;
+			tmpCamera->h = tmpH;
+			trans->SetPosition(tmpPos);
+			//tmpCamera->Position = tmpPos;
 
-	//		}
-	//		tmpCamera->Fov = tmpFov;
-	//		tmpCamera->SetFront(tmpFront);
-	//		tmpCamera->w = tmpW;
-	//		tmpCamera->h = tmpH;
-	//		trans->SetPosition(tmpPos);
-	//		//tmpCamera->Position = tmpPos;
+			TextureCube cube(GetFrameBuffer().w, GetFrameBuffer().h, GL_RGB, GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+			GenCubeMipMap(cubeMipMapShader.get(), GetFrameBuffer(), cube, 4);
+			
+			SetCubeMap(cube);
+		}
+	}
 
-	//		TextureCube cube(GetFrameBuffer().w, GetFrameBuffer().h, GL_RGB, GL_RGB, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	//		GenCubeMipMap(cubeMipMapShader.get(), GetFrameBuffer(), cube, 4);
-	//		SetCubeMap(cube);
-	//	}
-	//}
+	void SetDefferedShader(sp_shader shader) {
+		localRender.SetDefferedShader(shader);
+	}
 };
 
 
