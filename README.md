@@ -16,3 +16,4 @@ A simple real-time renderer
 ## Requirement
  - Change additional libs & additional includes path in your project setting
  - Make sure you have Microsoft Visual C++2013 & 2015 Redistributable(x64)
+ - Your GPU must support OpenGL4.6
