@@ -248,9 +248,6 @@
     <ClInclude Include="SDF.hpp">
       <Filter>头文件\raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="ObjManager.hpp">
-      <Filter>头文件\base</Filter>
-    </ClInclude>
     <ClInclude Include="frameBuffer.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
@@ -276,6 +273,9 @@
       <Filter>头文件\core</Filter>
     </ClInclude>
     <ClInclude Include="RenderManager.hpp">
+      <Filter>头文件\core\managers</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjManager.hpp">
       <Filter>头文件\core\managers</Filter>
     </ClInclude>
   </ItemGroup>

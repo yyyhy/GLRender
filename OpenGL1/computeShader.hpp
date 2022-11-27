@@ -56,8 +56,8 @@ public:
 
 		id = glCreateProgram();
 		glAttachShader(id, cs);
-		glDeleteShader(cs);
 		glLinkProgram(id);
+		glDeleteShader(cs);
 		
 	}
 	void Use() const&;

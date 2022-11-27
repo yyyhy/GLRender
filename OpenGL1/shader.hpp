@@ -284,11 +284,8 @@ public:
             if(i->second.type==GL_TEXTURE_2D)
                 glBindTexture(GL_TEXTURE_2D, i->second.id);
             else {
-                //std::cout << "3d\n";
                 glBindTexture(GL_TEXTURE_3D, i->second.id);
             }
-                
-            //std::cout << i->first << " " << i->second.id << "\n";
         }
 
         for (auto i = cubeMaps.begin(); i != cubeMaps.end(); i++, index++) {

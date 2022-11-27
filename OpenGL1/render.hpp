@@ -48,8 +48,6 @@ private:
 	bool ssgiOn = false;
 	bool antiNoiseOn = false;
 	sp_shader defferedShader;
-	sp_shader cubeMipMapShader;
-	sp_shader texMipMapShader;
 	sp_shader taaShader;
 	sp_shader blitShader;
 	glm::mat4 lastCameraMVP=glm::mat4(0);
@@ -296,18 +294,8 @@ public:
 		gFrameBuffer.AttachTexture(gColorBuffers, GBUFFER_SIZE);
 			
 		auto blit = new Blit(RenderWidth, RenderHeight);
-		auto taa = new TAA(RenderWidth, RenderHeight);
-		AddPostProcess(blit);
-		//AddPostProcess(taa);
 		
-		taaShader = taa->GetShader();
-		
-		taaShader->use();
-		taaShader->setTexture("gWorldPos", GetGBuffer(0));
-		taaShader->setTexture("gVelo", GetGBuffer(6));
-		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
-		cubeMipMapShader = std::make_shared<Shader>("shaders/mipmap.vs", "shaders/mipmap.fs");
-		texMipMapShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/mip.fs");
+		AddPostProcess(blit);				
 
 		RenderManagerInstance.RegisterRender(this);
 	}
@@ -445,6 +433,16 @@ public:
 			initSSGI();
 	}
 
+	void OpenTAA()& {
+		auto taa = new TAA(RenderWidth, RenderHeight);
+		taaShader = taa->GetShader();
+
+		taaShader->use();
+		taaShader->setTexture("gWorldPos", GetGBuffer(0));
+		taaShader->setTexture("gVelo", GetGBuffer(6));
+		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
+		AddPostProcess(taa);
+	}
 #ifdef _DEBUG
 	void Capture() {
 		SaveFrameBuffer(postProcess.back()->GetOutFrameBuffer());

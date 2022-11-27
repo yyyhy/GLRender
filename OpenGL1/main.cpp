@@ -56,11 +56,16 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_3D);
+    glEnable(GL_COMPUTE_SHADER);
     sceneManager.init();
 
-    //ComputeShader cs("shaders/cs/test.csr");
-    //return 0;
+    const GLubyte* name = glGetString(GL_VENDOR); //返回负责当前OpenGL实现厂商的名字  
+    const GLubyte* biaoshifu = glGetString(GL_RENDERER); //返回一个渲染器标识符，通常是个硬件平台  
+    const GLubyte* OpenGLVersion = glGetString(GL_VERSION); //返回当前OpenGL实现的版本号  
 
+    printf("OpenGL实现厂商的名字：%s\n", name);
+    printf("渲染器标识符：%s\n", biaoshifu);
+    printf("OpenGL实现的版本号：%s\n", OpenGLVersion);
     //glPatchParameteri(GL_PATCH_VERTICES, 3);
     /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
     glfwTerminate();
@@ -84,17 +89,19 @@ int main()
     
     auto sponzaObj= CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
+    auto doorObj = CreateObject("objs/door.FBX");
     render.SetDefferedShader(defferedShader);
     //sponzaObj->buildBVH();
 
-    //sponzaObj->GetComponent<Transform>()->Translate(0, 0, 0);
-    //sponzaObj->GetComponent<Transform>()->SetScale(glm::vec3(1, 1, 1));
     sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 5,2));
     sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
     sphereObj->AddComponent<Test>();
+    doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
+    doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
     scene.AddObject(sponzaObj);
     scene.AddObject(sphereObj);
+    scene.AddObject(doorObj);
 
     auto cameraObj=CreateObject();
     auto cameraTrans=cameraObj->GetComponent<Transform>();
@@ -181,12 +188,13 @@ int main()
     gBufferShader->setTexture("roughnessMap", "objs/tex/roughness.png");
     gBufferShader->setTexture("metallicMap", "objs/tex/metallic.png");
     
-    gBufferShader2->setTexture("albedoMap", "objs/tex/red/albedo.png");
-    gBufferShader2->setTexture("normalMap", "objs/tex/red/normal.png");
-    gBufferShader2->setTexture("roughnessMap", "objs/tex/red/roughness.png");
+    gBufferShader2->setTexture("albedoMap", "objs/tex/marble/albedo.jpg");
+    gBufferShader2->setTexture("normalMap", "objs/tex/marble/normal.jpg");
+    gBufferShader2->setTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
 
     sponzaObj->SetShader(-1, gBufferShader, Deffered);
     sphereObj->SetShader(-1, gBufferShader2, Deffered);
+    doorObj->SetShader(-1, gBufferShader2, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
 
     defferedShader->setTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
@@ -209,7 +217,6 @@ int main()
         probe->GenerateCubemap(&scene);
         probe2->GenerateCubemap(&scene);
         probe3->GenerateCubemap(&scene);
-        //render.InitReflectProbe(&scene);
         //scene.SetSkyBox(probe3->GetCubeMap().id);
         defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
@@ -262,7 +269,7 @@ int main()
     //sponzaObj->LoadLightMapData();
 
     //return 0;
-
+    render.OpenTAA();
     RENDER_MAIN_LOOP(window)
     {
         

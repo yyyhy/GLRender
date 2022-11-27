@@ -16,8 +16,10 @@ private:
 	Texture InTexture;
 	Texture *OutTextures;
 	unsigned size;
-	unsigned width, height;
+	
 	bool needClearBuffers = true;
+protected:
+	unsigned width, height;
 public:
 	PostProcess(const char* vertexPath, const char* fragmentPath, unsigned w, unsigned h, unsigned bufferSize=1, std::vector<std::string>* preComplieCmd = NULL)
 		:enable(true),
@@ -86,7 +88,7 @@ public:
 		return TargetOuputTexture;
 	}
 
-	Texture GetInTexBuffer() const { return InTexture; }
+	const Texture& GetInTexBuffer() const { return InTexture; }
 
 	const FrameBuffer& GetOutFrameBuffer(unsigned index = 0) const { 
 		if(FrameBuffers!=nullptr && index < size)
