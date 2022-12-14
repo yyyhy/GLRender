@@ -22,7 +22,7 @@ public:
 		auto s = GetShader();
 		cs.SetTexture("input_image", GetInTexBuffer());
 		cs.SetTexture("out_image", GetOutTexBuffer());
-		cs.Dispath(width, height, 1);
+		//cs.Dispath(width, height, 1);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), s.get(),GetOutFrameBuffer());
 	}
 };

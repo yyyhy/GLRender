@@ -126,13 +126,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\Cpp\GLR\OpenGL1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Projects\C++\GLR\GLRender\OpenGL1\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>D:\Projects\Cpp\GLR\OpenGL1\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Projects\C++\GLR\GLRender\OpenGL1\libs</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;assimp-vc142-mtd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

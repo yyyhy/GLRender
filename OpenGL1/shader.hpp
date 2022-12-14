@@ -135,6 +135,15 @@ public:
         if (geometryPath != nullptr)
             glDeleteShader(geometry);
 
+        use();
+        setCubeMap("reflectCube[0].reflectCube", 0);
+        setBool("reflectCube[0].exist", false);
+        setCubeMap("reflectCube[1].reflectCube", 0);
+        setBool("reflectCube[1].exist", false);
+        setCubeMap("reflectCube[2].reflectCube", 0);
+        setBool("reflectCube[2].exist", false);
+        setCubeMap("reflectCube[3].reflectCube", 0);
+        setBool("reflectCube[3].exist", false);
     }
     
     ~Shader() {

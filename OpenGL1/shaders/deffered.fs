@@ -273,10 +273,10 @@ vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
     F0 = mix(F0, albedo, metallic);
 
     vec3 H = normalize(V + L);
-    float NdotL = max(dot(N, L), 0.0001); 
-    float NdotV = max(dot(N, V), 0.0001);
-    float VdotH = max(dot(V,H),0.0001);
-    float NdotH = max(dot(N,H),0.0001);
+    float NdotL = max(dot(N, L), 0.001); 
+    float NdotV = max(dot(N, V), 0.001);
+    float VdotH = max(dot(V,H),0.001);
+    float NdotH = max(dot(N,H),0.001);
 
     float NDF = DistributionGGX(NdotH, rough);   
     float G   = GeometrySmith(NdotL,NdotV, rough); 
@@ -284,7 +284,7 @@ vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
 
     vec3 numerator    = NDF * G * F; 
     float denominator = (4.0 * NdotL * NdotV);
-    vec3 BRDF = numerator / denominator;
+    vec3 BRDF = numerator / vec3(denominator,denominator,denominator);
     return BRDF;
 }
 
@@ -436,7 +436,7 @@ uint getCsmLevel(float depth){
 }
 
 vec3 calcIBL(ReflectCube cube,vec3 N,vec3 V,vec2 texCoords,vec3 BRDFdir){
-    vec3 ibl;
+    vec3 ibl=vec3(0);
     vec3 R=reflect(-V,N);
     vec3 BRDF = calcMicroFacedBRDF(N,R,V,texCoords);
     vec3 F0 = vec3(0.04); 
@@ -471,23 +471,30 @@ void main()
     //gl_FragColor=vec4(sdf);return;
     // vec3 lightmapcol=texture2D(gLightMap,texCoords).xyz;
     // vec3 lightMapDir=normalize(texture2D(gLightMapDir,texCoords).xyz);
-    vec3 L;
-    vec3 Lo;
-    vec3 radiance;
-    float NdotL; 
-    vec3 BRDF;
-    vec3 BRDFdir;
-    vec4 shadowCoords;
+    vec3 L=vec3(0);
+    vec3 Lo=vec3(0);
+    vec3 radiance=vec3(0);
+    float NdotL=0; 
+    vec3 BRDF=vec3(0);
+    vec3 BRDFdir=vec3(0);
     uint level=getCsmLevel(depth);
-    shadowCoords=mainLight.lightMVP[level]*vec4(vWorldPos,1.0);
+    vec4 shadowCoords=mainLight.lightMVP[level]*vec4(vWorldPos,1.0);
+    
     
     if(mainLight.exist){
         L = normalize(-mainLight.uLightDir);
-        radiance=mainLight.uLightColor*(1-wet);
+        radiance=mainLight.uLightColor;
         NdotL=max(dot(N, L), 0.0); 
         float bias=max(EPS,(1-NdotL)*0.0001);
-        float shadow;
-        shadow=calcShadow(mainLight.shadowMap[level],shadowCoords,bias,true,false);
+        float shadow=0;
+        if(level==0U)
+       	    shadow=calcShadow(mainLight.shadowMap[0],shadowCoords,bias,true,false);
+        else if(level==1U)
+       	    shadow=calcShadow(mainLight.shadowMap[1],shadowCoords,bias,true,false);
+        else if(level==2U)
+       	    shadow=calcShadow(mainLight.shadowMap[2],shadowCoords,bias,true,false);
+        else 
+       	    shadow=calcShadow(mainLight.shadowMap[3],shadowCoords,bias,true,false);
         // if(level<3U){
         //     float csmD=mainLight.csmLevelDivide[level];
         //     float csmDNext=mainLight.csmLevelDivide[level+1U];
@@ -504,8 +511,8 @@ void main()
         // }
         
         BRDF = calcMicroFacedBRDF(N,L,V,texCoords);
-        BRDF+=MultiScatterBRDF(NdotL,NdotV);
-        BRDFdir=BRDF;
+        BRDF +=MultiScatterBRDF(NdotL,NdotV);
+        BRDFdir = BRDF;
         Lo += BRDF*radiance * NdotL*shadow;
         // if(shadow<0.5){
         //     //if(lightmapcol.x+lightmapcol.y+lightmapcol.z>0.1){
@@ -518,29 +525,31 @@ void main()
         // }
         
         //Lo+=mainLight.uLightColor*wet*pow(max(0.0,dot(N,normalize(L+V))),500)*shadow;
+
     }
     for(int i=0;i<4;i++){
         if(pointLight[i].exist){
             L=normalize(pointLight[i].pos-vWorldPos);
             NdotL=max(dot(N, L), 0.0); 
             float dis=sqrt(dot(pointLight[i].pos-vWorldPos,pointLight[i].pos-vWorldPos));
-            radiance=pointLight[i].col/(pointLight[i].Kl*dis+pointLight[i].Kq*dis*dis+1.0)*(1-wet);
+            radiance=pointLight[i].col/(pointLight[i].Kl*dis+pointLight[i].Kq*dis*dis+1.0);
             BRDF = calcMicroFacedBRDF(N,L,V,texCoords);
             Lo += max(vec3(0.0,0.0,0.0),BRDF * radiance * NdotL);
         }
     }
-    float dis=0;
-    vec3 ibl;
+    float dis=999;
+    vec3 ibl=vec3(0);
     for(int i=0;i<4;i++){
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));
-            dis+=pow(2.7,-d);
+            dis=min(dis,d);
         }
     }
     for(int i=0;i<4;i++){
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));
-            ibl+=calcIBL(reflectCube[i],N,V,texCoords,BRDFdir)*(pow(2.7,-d)/dis);
+            float factor=dis/max(d,0.001);
+            ibl+=calcIBL(reflectCube[i],N,V,texCoords,BRDFdir)*factor;
         }
     }
     Lo+=ibl;
@@ -580,20 +589,6 @@ void main()
         BRDF=calcMicroFacedBRDF(N,L,V,texCoords);
         Lo+=sphereLight[i].luminance/dot(p-vWorldPos,p-vWorldPos)*BRDF*max(0,dot(L,N));
     }
-
-
-    // {
-    //     CapsuleLight cl;
-    //     cl.p0=vec3(0,0.8,0);
-    //     cl.p1=vec3(-3,0.8,0);
-    //     cl.L=vec3(3,5,4);
-    //     cl.radius=0.3;
-    //     vec3 R=normalize(reflect(-V,N));
-    //     vec3 p=CapsuleLight_MRP(cl,vWorldPos,R);
-    //     L=normalize(p-vWorldPos);
-    //     BRDF=calcMicroFacedBRDF(N,L,V,texCoords);
-    //     Lo+=cl.L/dot(p-vWorldPos,p-vWorldPos)*BRDF*max(0,dot(L,N));
-    // }
     
     vec3 color=Lo;
     

@@ -81,8 +81,7 @@ int main()
         "sky/front.jpg",
         "sky/back.jpg"
         });
-    
-    std::shared_ptr<Shader> pbrMat = std::make_shared<Shader>("shaders/pbr.vs", "shaders/pbr.fs");
+
     std::shared_ptr<Shader> gBufferShader = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> gBufferShader2 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
@@ -138,14 +137,7 @@ int main()
     o->SetShader(-1, s);
     scene.AddObject(o);*/
 
-    auto o2 = CreateObject();
-    o2->GetComponent<Transform>()->SetPosition({ 3,1,0 });
-    o2->GetComponent<Transform>()->SetScale({ 0.2,0.2,0.2 });
-    auto s2 = std::make_shared<Shader>("shaders/pbr.vs", "shaders/photon.fs");
-    s2->use();
-    s2->setVec3("col", { 5,0,5 });
-    o2->SetShader(-1, s2);
-    scene.AddObject(o2);
+    
     
 
     auto probeObj = CreateObject();
@@ -206,11 +198,7 @@ int main()
     defferedShader->setTexture("uSDF", t3D);*/
    
     {
-        defferedShader->use();
-        defferedShader->setCubeMap("reflectCube[0].reflectCube", 0);
-        defferedShader->setCubeMap("reflectCube[1].reflectCube", 0);
-        defferedShader->setCubeMap("reflectCube[2].reflectCube", 0);
-        defferedShader->setCubeMap("reflectCube[3].reflectCube", 0);
+        
         probe->SetDefferedShader(defferedShader);
         probe2->SetDefferedShader(defferedShader);
         probe3->SetDefferedShader(defferedShader);
