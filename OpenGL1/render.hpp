@@ -65,10 +65,10 @@ private:
 					continue;
 				rsmShader->use();
 				auto mats = l->GetLightMat();
-				for (unsigned i = 0; i < l->bufferSize; ++i) {
+				for (unsigned i = 0; i < l->FrameBufferSize; ++i) {
 					rsmShader->setMat4("LightMat", mats.at(i));
-					glViewport(0, 0, l->GetRSMWidth(), l->GetRSMHeigth());
-					glBindFramebuffer(GL_FRAMEBUFFER, l->GetFrameBuffer(i));
+
+					l->GetFrameBuffer(i).Bind();
 					glClearColor(0, 0, 0, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					for (auto& o : scene->objects) {
@@ -76,8 +76,6 @@ private:
 						o->draw(l->rsmShader.get());
 					}
 				}
-				
-				
 			}
 	}
 
@@ -89,12 +87,11 @@ private:
 					continue;
 				rsmShader->use();
 				//std::cout << l->GetRSMWidth() << " " << l->GetRSMHeigth() << " " << l->GetFrameBuffer() << " " << l->GetRSMBuffer() << "\n\n";
-				auto mat = l->GetLightMat();
-				for (unsigned i = 0; i < l->bufferSize; ++i) {
-					rsmShader->setMat4("LightMat", mat.at(i));
-
-					glBindFramebuffer(GL_FRAMEBUFFER, l->GetFrameBuffer(i));
-					glViewport(0, 0, l->GetRSMWidth(), l->GetRSMHeigth());
+				auto mats = l->GetLightMat();
+				for (unsigned i = 0; i < l->FrameBufferSize; ++i) {
+					rsmShader->setMat4("LightMat", mats.at(i));
+					auto fbo = l->GetFrameBuffer(i);
+					fbo.Bind();
 					glClearColor(0.3, 1, 1, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					for (auto& o : scene->objects) {
@@ -102,7 +99,6 @@ private:
 						o->draw(l->rsmShader.get());
 					}
 				}
-				
 			}
 	}
 

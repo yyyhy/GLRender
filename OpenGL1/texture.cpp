@@ -154,6 +154,8 @@ void FrameBuffer::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
         return;
     }
     if (w > 0 && h > 0) {
+        this->w = w;
+        this->h = h;
         glGenFramebuffers(1, &frameBuffer);
         if (addDepthRBO) {
             glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -217,7 +219,7 @@ Texture* FrameBuffer::GetTexture(unsigned index) const
     return textures[index];
 }
 
-void FrameBuffer::Bind()
+void FrameBuffer::Bind() const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     glViewport(0, 0, w, h);

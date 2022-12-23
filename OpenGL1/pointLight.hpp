@@ -12,8 +12,8 @@ private:
 	glm::vec3 position;
 
 public:
-	PointLight() :Light(), position(glm::vec3(0.f, 0.f, 0.f)),Kl(0.22f),Kq(0.2f){}
-	PointLight(const Spectrum& col, float inten, const glm::vec3& pos) :Light(col, inten), position(pos), Kl(0.22f), Kq(0.2f) {}
+	PointLight(unsigned rsmW, unsigned rsmH) :Light(rsmW,rsmH,6), position(glm::vec3(0.f, 0.f, 0.f)),Kl(0.22f),Kq(0.2f){}
+	PointLight(unsigned rsmW, unsigned rsmH,const Spectrum& col, float inten, const glm::vec3& pos) :Light(rsmW, rsmH,6,col, inten), position(pos), Kl(0.22f), Kq(0.2f) {}
 
 	void SetKl(float k) { Kl = k; }
 

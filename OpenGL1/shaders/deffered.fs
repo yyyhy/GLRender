@@ -514,6 +514,8 @@ void main()
         BRDF +=MultiScatterBRDF(NdotL,NdotV);
         BRDFdir = BRDF;
         Lo += BRDF*radiance * NdotL*shadow;
+
+	    gl_FragColor = vec4(Lo, 1.0);return;
         // if(shadow<0.5){
         //     //if(lightmapcol.x+lightmapcol.y+lightmapcol.z>0.1){
         //         BRDF=calcMicroFacedBRDF(N,-lightMapDir,V,texCoords);

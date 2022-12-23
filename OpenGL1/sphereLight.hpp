@@ -17,7 +17,7 @@ public:
 		engine = std::default_random_engine(time(NULL));
 		dir = std::uniform_real_distribution<float>(-1, 1);
 	}
-	SphereLight(const Spectrum& col, float flux) :Light(col, flux, false, false, 0), position({0,0,0}),radius(0) {
+	SphereLight(const Spectrum& col, float flux) :Light(0,0,0,col, flux, false, false), position({0,0,0}),radius(0) {
 		setUpRandomEngine();
 	}
 

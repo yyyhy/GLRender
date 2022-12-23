@@ -4,6 +4,7 @@
 #include"glm.hpp"
 #include"component.hpp"
 #include"photon.hpp"
+#include"frameBuffer.hpp"
 
 typedef glm::vec3 Spectrum;
 #define WHITE Spectrum(1.f,1.f,1.f)
@@ -17,34 +18,28 @@ class Light:public Component {
 protected:
 	float flux;
 	Spectrum color;
-	unsigned *rsmBuffer;
-	unsigned *frameBuffer;
-	unsigned *rbo;
+
+	FrameBuffer* frameBuffers;
 	bool genShadowMap = false;
 	bool genRsm = false;
 	int rsmW;
 	int rsmH;
 
 public:
-	const unsigned bufferSize;
-	Light(unsigned bufferSize=1):flux(0),color(WHITE),bufferSize(bufferSize) { 
+	unsigned FrameBufferSize;
+
+	Light(unsigned rsmW,unsigned rsmH,unsigned frameBufferSize):FrameBufferSize(frameBufferSize),flux(0),color(WHITE),rsmW(rsmW),rsmH(rsmH), frameBuffers(new FrameBuffer[frameBufferSize]) {
 		name = "light"; 
-		rsmBuffer = new unsigned[bufferSize];
-		frameBuffer = new unsigned[bufferSize];
-		rbo = new unsigned[bufferSize];
 	}
 	
-	Light(const Spectrum& col, float inten, bool genSM = false,bool genRsm=false, unsigned bufferSize = 1) :flux(inten), color(col), genShadowMap(genSM),genRsm(genRsm), bufferSize(bufferSize) { name = "light"; rsmBuffer = new unsigned[bufferSize];
-		frameBuffer = new unsigned[bufferSize];
-		rbo = new unsigned[bufferSize];
+	Light(unsigned rsmW, unsigned rsmH,unsigned frameBufferSize,const Spectrum& col
+		, float inten, bool genSM = false,bool genRsm=false) 
+		:FrameBufferSize(frameBufferSize), flux(inten), color(col), genShadowMap(genSM),genRsm(genRsm), rsmW(rsmW), rsmH(rsmH), frameBuffers(new FrameBuffer[frameBufferSize]) {
+		name = "light";
+
 	}
 	
 	virtual ~Light(){
-		glDeleteBuffers(bufferSize, rsmBuffer);
-		glDeleteBuffers(bufferSize, frameBuffer);
-		delete[] frameBuffer;
-		delete[] rsmBuffer;
-		delete[] rbo;
 #ifdef _DEBUG
 		std::cout << "light lose\n";
 #endif // _DEBUG
@@ -61,9 +56,7 @@ public:
 
 	bool hasRsm() const { return genShadowMap; }
 
-	uint32_t GetFrameBuffer(unsigned index) const { if (index < bufferSize) return frameBuffer[index]; return 0; }
-
-	unsigned GetRSMBuffer(unsigned index) const { if (index < bufferSize) return rsmBuffer[index]; return 0; }
+	const FrameBuffer& GetFrameBuffer(unsigned index) const {  return frameBuffers[index]; }
 
 	unsigned GetRSMWidth() const { return rsmW; }
 

@@ -5,9 +5,17 @@
 #define DIRECT_LIGHT_H
 #include "light.hpp"
 #include"sh.hpp"
+#include"texture.hpp"
 
 const static unsigned CSM_MAX_LEVEL = 4;
 const static float CSM_AUJUST_FACTOR = 0.9f;
+
+
+//RSM Struct
+//      0       8      16      24       32
+//Tex0:       Albedo            |  Depth
+//Tex1:       Normal            |  Roughness
+//Tex2:       Position          |  Metallic
 
 class DirectLight :public Light {
 private:
@@ -24,15 +32,19 @@ private:
 		dis1 = std::uniform_real_distribution<float>(-8, 8);
 	}
 
+	Texture2D* RSMTextureBuffers;
+
+	const unsigned RSM_SIZE = 3;
 public:
 
-	DirectLight():Light(),direction(glm::vec3(0.f,-1.f,0.f)),radius(50){
+	DirectLight():Light(RSM_W / 4, RSM_H / 4, CSM_MAX_LEVEL),direction(glm::vec3(0.f,-1.f,0.f)),radius(50){
 		setUpRandomEngine();
 	}
 
 	DirectLight(const Spectrum& col, float flux, const glm::vec3& dir, bool genRsm) :
-		Light(col, flux, genRsm,false,CSM_MAX_LEVEL), direction(glm::normalize(dir)),radius(50) { 
-		if (genRsm) initBuffer(RSM_W/4, RSM_H/4); 
+		Light(RSM_W / 4, RSM_H / 4, CSM_MAX_LEVEL,col, flux, genRsm,false), direction(glm::normalize(dir)),radius(50) {
+		if (genRsm)
+			initBuffer(RSM_W/4, RSM_H/4); 
 		setUpRandomEngine();
 	}
 
@@ -46,7 +58,7 @@ public:
 		if (genShadowMap) {
 			//auto div = GetCsmDivide();
 			for (unsigned i = 0; i < CSM_MAX_LEVEL; ++i) {
-				s.setTexture("mainLight.shadowMap["+std::to_string(i)+"]", rsmBuffer[i]);
+				s.setTexture("mainLight.shadowMap["+std::to_string(i)+"]", RSMTextureBuffers[i*RSM_SIZE]);
 				s.setMat4("mainLight.lightMVP[" + std::to_string(i)+"]", currMats.at(i));
 			}
 			s.setInt("mainLight.csmLevel", CSM_MAX_LEVEL);
@@ -99,32 +111,19 @@ public:
 
 	void initBuffer(int w, int h) override{
 		rsmShader = std::make_shared<Shader>("shaders/RSM.vs", "shaders/RSM.fs");
-		rsmH = h;
-		rsmW = w;
-		glGenFramebuffers(bufferSize, frameBuffer);
-		glGenTextures(bufferSize, rsmBuffer);
-		glGenRenderbuffers(bufferSize, rbo);
-		for (unsigned i = 0; i < bufferSize; ++i) {
-			glBindTexture(GL_TEXTURE_2D, rsmBuffer[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rsmBuffer[i], 0);
+		
+		
+		RSMTextureBuffers = new Texture2D[RSM_SIZE*CSM_MAX_LEVEL];
 
-			glBindRenderbuffer(GL_RENDERBUFFER, rbo[i]);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
-			glBindRenderbuffer(GL_RENDERBUFFER, 0);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo[i]);
-
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!11" << std::endl;
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		for (int j = 0; j < CSM_MAX_LEVEL; j++) {
+			frameBuffers[j].Construct(w, h, true);
+			for (int i = 0; i < RSM_SIZE; ++i) {
+				RSMTextureBuffers[j*RSM_SIZE+i] = Texture2D(w, h, GL_RGBA32F, GL_RGB, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, false);
+			}
+			frameBuffers[j].AttachTexture(&RSMTextureBuffers[j * RSM_SIZE],RSM_SIZE);
 		}
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 	}
 

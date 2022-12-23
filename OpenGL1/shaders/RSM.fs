@@ -1,7 +1,11 @@
-#version 330 core
+#version 430 core
 #define PACK 0
 #define LinearZ 1
 uniform int DepthPackWay;
+
+layout (location = 0) out vec4 RSMAlbedoDepth;
+layout (location = 1) out vec4 RSMNormalRoughness;
+layout (location = 2) out vec4 RSMPositionMetallic;
 
 vec4 pack (float depth) {
     // 使用rgba 4字节共32位来存储z值,1个字节精度为1/256
@@ -25,7 +29,7 @@ float LinearizeDepth(float depth)
 void main()
 {
     if(DepthPackWay==PACK)
-        gl_FragColor=vec4(pack(gl_FragCoord.z));
+        RSMAlbedoDepth=vec4(pack(gl_FragCoord.z));
     else if(DepthPackWay==LinearZ)
-        gl_FragColor=vec4(LinearizeDepth(gl_FragCoord.z));
+        RSMAlbedoDepth=vec4(LinearizeDepth(gl_FragCoord.z));
 }

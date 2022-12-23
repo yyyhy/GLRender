@@ -112,10 +112,10 @@ int main()
     DirectLight *l=new DirectLight(Spectrum(1.f, 1.f, 1.f),500000.f,glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)),true);
     objL->AddComponent(l);
     //l->isStatic = true;
-    SpotLight* sl = new SpotLight(Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
+    /*SpotLight* sl = new SpotLight(512,512,Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
     objL->AddComponent(sl);
     sl->pos = { 2,4,1 };
-    sl->isStatic = true;
+    sl->isStatic = true;*/
     //scene.AddLight(sl);
     scene.AddLight(l);
     scene.AddObject(objL);
@@ -202,11 +202,11 @@ int main()
         probe->SetDefferedShader(defferedShader);
         probe2->SetDefferedShader(defferedShader);
         probe3->SetDefferedShader(defferedShader);
-        probe->GenerateCubemap(&scene);
+       /* probe->GenerateCubemap(&scene);
         probe2->GenerateCubemap(&scene);
-        probe3->GenerateCubemap(&scene);
+        probe3->GenerateCubemap(&scene);*/
         //scene.SetSkyBox(probe3->GetCubeMap().id);
-        defferedShader->use();
+        /*defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
         defferedShader->setBool("reflectCube[0].exist", true);
         defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());
@@ -215,7 +215,7 @@ int main()
         defferedShader->setVec3("reflectCube[1].pos", probe2->object->GetComponent<Transform>()->GetPosition());
         defferedShader->setCubeMap("reflectCube[2].reflectCube", probe3->GetCubeMap().id);
         defferedShader->setBool("reflectCube[2].exist", true);
-        defferedShader->setVec3("reflectCube[2].pos", probe3->object->GetComponent<Transform>()->GetPosition());
+        defferedShader->setVec3("reflectCube[2].pos", probe3->object->GetComponent<Transform>()->GetPosition());*/
     }
     /*defferedShader->use();
     defferedShader->setBool("lightMapOff", true);*/

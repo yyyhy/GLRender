@@ -12,13 +12,13 @@ public:
 	Vector3f dir;
 	Vector3f pos;
 public:
-	SpotLight(Spectrum color, float r, float inten, Vector3f dir, bool genSM = false) :dir(glm::normalize(dir)), radius(r), Light(color, inten, genSM) { if(genSM) initBuffer(2048,2048); }
+	SpotLight(unsigned rsmW, unsigned rsmH,Spectrum color, float r, float inten, Vector3f dir, bool genSM = false)
+		:dir(glm::normalize(dir)), radius(r), Light(rsmW,rsmH,1,color, inten, genSM) { if(genSM) initBuffer(2048,2048); }
 
 	void initBuffer(int w, int h) override{
 		rsmShader = std::make_shared<Shader>("shaders/RSM.vs", "shaders/RSM.fs");
-		rsmH = h;
-		rsmW = w;
-		glGenFramebuffers(bufferSize, frameBuffer);
+
+		/*glGenFramebuffers(bufferSize, frameBuffer);
 		glGenTextures(bufferSize, rsmBuffer);
 		glGenRenderbuffers(bufferSize, rbo);
 		for (unsigned i = 0; i < bufferSize; ++i) {
@@ -39,7 +39,7 @@ public:
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 				std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!11" << std::endl;
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
+		}*/
 	}
 
 	std::vector<glm::mat4> GetLightMat() override {
@@ -62,7 +62,7 @@ public:
 		s.setFloat("spotLight.radius", radius);
 		s.setVec3("spotLight.pos", pos);
 		if (genShadowMap) {
-			s.setTexture("spotLight.shadowMap0", rsmBuffer[0]);
+			//s.setTexture("spotLight.shadowMap0", rsmBuffer[0]);
 			s.setMat4("spotLight.lightMVP", GetLightMat().at(0));
 		}
 	}

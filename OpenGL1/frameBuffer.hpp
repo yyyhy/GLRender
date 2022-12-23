@@ -20,7 +20,7 @@ struct FrameBuffer
     Texture* GetTexture(unsigned) const;
     FrameBuffer& operator=(const FrameBuffer&);
     void Construct(unsigned w, unsigned h, bool addDepthRBO = false);
-    void Bind();
+    void Bind() const;
 
     //void AttachRenderBuffer(const RenderBuffer& rb);
 };
