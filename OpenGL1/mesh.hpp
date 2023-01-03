@@ -226,7 +226,7 @@ public:
 		}
 		if (!bvh) {
 			if (kdTree)
-				kdTree->intersect(ray,&intersec);
+				kdTree->Intersect(ray,&intersec);
 			else {
 				if(vertices.size())
 					std::cerr << "No Accel-Structure attach to this obj!"<<index<<"\n";

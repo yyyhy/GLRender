@@ -51,7 +51,7 @@ public:
 	}
 
 	void mappingPhotons(AccelStructrue* accStructure, Light* l,unsigned mount) {
-		auto box = accStructure->getBounds();
+		auto box = accStructure->GetBounds();
 		std::cout << "Photon area:\n " <<"x: "<< box.pMin.x << " -  " << box.pMax.x<<"\n"
 					<< "y: " << box.pMin.y << " -  " << box.pMax.y << "\n"
 					<< "z: " << box.pMin.z << " -  " << box.pMax.z << "\n";

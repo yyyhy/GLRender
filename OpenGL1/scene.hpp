@@ -163,8 +163,8 @@ public:
 			photonMappingEngine->genLightMap(bvh, m->vertices, path + std::to_string(index) + ".txt");
 	}
 
-	Texture3D genSDF() {
-		SDF s;
+	Texture3D GenerateGlobalSDF() {
+		SDF s(16);
 		return s.GenerateSDF(bvh);
 	}
 

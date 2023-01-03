@@ -3,7 +3,7 @@
 
 #ifndef COMPUTE_SHADER_H
 #define COMPUTE_SHADER_H
-
+#include"ComputeBuffer.hpp"
 #include <glad/glad.h>
 #include"glm.hpp"
 #include <string>
@@ -66,9 +66,10 @@ public:
 	void SetInt(const std::string&, int) const&;
 	void SetFloat(const std::string&, float) const&;
 	void SetVec4(const std::string&, const glm::vec4&) const&;
-	void SetVec3(const std::string&, const glm::vec4&) const&;
-	void SetVec2(const std::string&, const glm::vec4&) const&;
-
+	void SetVec3(const std::string&, const glm::vec3&) const&;
+	void SetVec2(const std::string&, const glm::vec2&) const&;
+	void SetBuffer(int index, const ComputeBuffer&) const&;
+	void SetBindingImage(int index, const Texture& tex) const&;
 	void Dispath(int x, int y, int z) const&;
 	void DispathIndirect() const&;
 };

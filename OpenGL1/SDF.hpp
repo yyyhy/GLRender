@@ -9,15 +9,15 @@ public:
 	SDF(float accuracy = 16) :accuracy(accuracy){}
 
 	Texture3D GenerateSDF(AccelStructrue* acc) {
-		Bounds3 box = acc->getBounds();
+		Bounds3 box = acc->GetBounds();
 		Vector3f start = box.pMin;
-		Vector3f d = box.Diagonal();
+		Vector3f diag = box.Diagonal();
 		float* data=new float[accuracy * accuracy * accuracy];
 		for (unsigned x = 0; x < accuracy; ++x) {
 			for (unsigned y = 0; y < accuracy; ++y) {
 				for (unsigned z = 0; z < accuracy; ++z) {
 					
-					Vector3f pos = start + d * Vector3f(( x + 0.5 ) / accuracy, (y + 0.5) / accuracy, 
+					Vector3f pos = start + diag * Vector3f(( x + 0.5 ) / accuracy, (y + 0.5) / accuracy, 
 						(z + 0.5) / accuracy);
 
 					float pi = glm::pi<float>();
@@ -42,7 +42,7 @@ public:
 		}
 		auto t3D= Texture3D(data, accuracy, accuracy, accuracy, GL_RED);
 		t3D.box = box;
-		delete data;
+		delete[] data;
 		return t3D;
 	}
 

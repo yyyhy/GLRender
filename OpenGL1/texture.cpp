@@ -90,7 +90,7 @@ Texture3D::Texture3D(float* data, int w, int h, int d, unsigned channel):Texture
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_UNSIGNED_BYTE, data);
+    glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_FLOAT, data);
     glBindTexture(GL_TEXTURE_3D, 0);
 }
 
@@ -108,7 +108,7 @@ Texture3D::Texture3D(int w, int h, int d, unsigned channel):Texture(GL_TEXTURE_3
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_UNSIGNED_BYTE, NULL);
+    glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_FLOAT, NULL);
     glBindTexture(GL_TEXTURE_3D, 0);
 }
 

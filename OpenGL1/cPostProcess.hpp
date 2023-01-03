@@ -55,7 +55,7 @@ public:
 		OutTextures = new Texture2D[size];
 		for (int i = 0; i < size; ++i) {
 			FrameBuffers[i].Construct(width,height,false);
-			OutTextures[i] = Texture2D(width, height, GL_RGB32F, GL_RGB);
+			OutTextures[i] = Texture2D(width, height, GL_RGBA32F, GL_RGBA);
 			FrameBuffers[i].AttachTexture(&OutTextures[i]);
 		}
 		

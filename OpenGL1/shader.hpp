@@ -305,7 +305,7 @@ public:
         stageChange = false;
     }
 
-    Texture GetTexture(const std::string& name) {
+    Texture& GetTexture(const std::string& name) {
         auto t = textures[name];
         return t;
     }

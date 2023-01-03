@@ -33,7 +33,7 @@ class Render {
 private:
 
 	FrameBuffer BackFrameBuffer;
-	Texture2D ColorBuffer;
+	Texture2D BackColorBuffer;
 
 	FrameBuffer gFrameBuffer;
 	Texture2D gColorBuffers[GBUFFER_SIZE];
@@ -55,7 +55,7 @@ private:
 
 	std::list<PostProcess*> postProcess;
 	
-
+	bool firstGenShadowMaps = true;
 	void GenShadowMaps(Scene* scene) {
 		/*glCullFace(GL_FRONT);*/
 		for (auto& l : scene->lights)
@@ -73,10 +73,25 @@ private:
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					for (auto& o : scene->objects) {
 						rsmShader->setMat4("trans", (*o->GetComponent<Transform>())());
+
+						auto shader = o->GetShader(0, Deffered);
+						if (shader != nullptr) {
+							Texture& albedoMap = shader->GetTexture("albedoMap");
+							rsmShader->setTexture("albedoMap", albedoMap);
+							Texture& normalMap = shader->GetTexture("normalMap");
+							rsmShader->setTexture("normalMap", normalMap);
+							Texture& roughnessMap = shader->GetTexture("roughnessMap");
+							rsmShader->setTexture("roughnessMap", roughnessMap);
+						}
 						o->draw(l->rsmShader.get());
 					}
 				}
+
+				if (firstGenShadowMaps) {
+					firstGenShadowMaps = false;
+				}
 			}
+
 	}
 
 	void GenStaticShadowMaps(Scene* scene) {
@@ -280,9 +295,9 @@ public:
 	Render(unsigned width=SCR_WIDTH,unsigned height=SCR_HEIGHT) :
 		RenderWidth(width),RenderHeight(height),
 		BackFrameBuffer(width,height,true),gFrameBuffer(width,height,true),
-		ColorBuffer(width, height, GL_RGBA32F, GL_RGBA) {
+		BackColorBuffer(width, height, GL_RGBA32F, GL_RGBA) {
 		GenUbos(); 
-		BackFrameBuffer.AttachTexture(&ColorBuffer);
+		BackFrameBuffer.AttachTexture(&BackColorBuffer);
 
 		for (int i = 0; i < GBUFFER_SIZE; ++i) {
 			gColorBuffers[i] = Texture2D(width, height, GL_RGBA32F, GL_RGBA);
@@ -301,7 +316,7 @@ public:
 			delete i;
 			i = nullptr;
 		}
-		ColorBuffer.Release();
+		BackColorBuffer.Release();
 		for (int i = 0; i < GBUFFER_SIZE; ++i) {
 			gColorBuffers[i].Release();
 		}
@@ -388,7 +403,7 @@ public:
 		lastCameraMVP = mvp;
 	}
 
-	unsigned GetTexBuffer() const { return ColorBuffer.id; }
+	unsigned GetTexBuffer() const { return BackColorBuffer.id; }
 
 	unsigned GetFrameBuffer() const { return BackFrameBuffer.frameBuffer; }
 
@@ -398,7 +413,7 @@ public:
 			p->GenFrameBuffer();
 		}
 		else {
-			p->SetInTexBuffer(ColorBuffer.id);
+			p->SetInTexBuffer(BackColorBuffer.id);
 		}
 		postProcess.push_front(p);
 	}

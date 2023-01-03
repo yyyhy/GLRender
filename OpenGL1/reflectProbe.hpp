@@ -31,7 +31,7 @@ private:
 public:
 	explicit ReflectProbe(int w = CUBE_MAP_W, int h = CUBE_MAP_H) :
 		w(w), h(h), type(Static),frameBuffer(w,h,true),
-		cubeMapBuffer(w,h,GL_RGB,GL_RGB, GL_LINEAR,GL_LINEAR),
+		cubeMapBuffer(w,h,GL_RGBA32F,GL_RGBA, GL_LINEAR,GL_LINEAR),
 		localRender(w,h) {
 		name = "refProbe";
 		frameBuffer.AttachTexture(&cubeMapBuffer);

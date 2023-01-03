@@ -48,7 +48,7 @@ public:
 
     void Sample(Intersection& pos, float& pdf);
 
-    Bounds3 getBounds() const override {
+    Bounds3 GetBounds() const override {
         return root->bounds;
     }
 

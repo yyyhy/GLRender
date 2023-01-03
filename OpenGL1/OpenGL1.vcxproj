@@ -158,7 +158,9 @@
     <ClCompile Include="brdf.cpp" />
     <ClCompile Include="brdf_ddx.hpp" />
     <ClCompile Include="BVH.cpp" />
+    <ClCompile Include="ComputeBuffer.cpp" />
     <ClCompile Include="computeShader.cpp" />
+    <ClCompile Include="DFGI.cpp" />
     <ClCompile Include="gc.cpp" />
     <ClCompile Include="include\glad.c" />
     <ClCompile Include="main.cpp" />
@@ -181,9 +183,12 @@
     <ClInclude Include="BVH.hpp" />
     <ClInclude Include="camera.hpp" />
     <ClInclude Include="CameraController.hpp" />
+    <ClInclude Include="ComputeBuffer.hpp" />
     <ClInclude Include="computeShader.hpp" />
     <ClInclude Include="component.hpp" />
     <ClInclude Include="debugTool.hpp" />
+    <ClInclude Include="DFGI.hpp" />
+    <ClInclude Include="DFGIRayStruct.hpp" />
     <ClInclude Include="drawAdapter.hpp" />
     <ClInclude Include="fitLTC.hpp" />
     <ClInclude Include="gc.hpp" />

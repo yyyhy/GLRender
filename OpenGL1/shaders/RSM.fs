@@ -3,9 +3,21 @@
 #define LinearZ 1
 uniform int DepthPackWay;
 
-layout (location = 0) out vec4 RSMAlbedoDepth;
-layout (location = 1) out vec4 RSMNormalRoughness;
-layout (location = 2) out vec4 RSMPositionMetallic;
+layout (location = 0) out vec4 RSMDepth;
+layout (location = 1) out vec4 RSMAlbedoFlag;
+layout (location = 2) out vec4 RSMNormalRoughness;
+layout (location = 3) out vec4 RSMPositionMetallic;
+
+in vec2 TexCoords;
+in vec3 FragPos;
+in vec3 Normal;
+in vec3 Tangent;
+in vec3 Bitangent;
+
+uniform sampler2D albedoMap;
+uniform sampler2D metallicMap;
+uniform sampler2D normalMap;
+uniform sampler2D roughnessMap;
 
 vec4 pack (float depth) {
     // 使用rgba 4字节共32位来存储z值,1个字节精度为1/256
@@ -29,7 +41,17 @@ float LinearizeDepth(float depth)
 void main()
 {
     if(DepthPackWay==PACK)
-        RSMAlbedoDepth=vec4(pack(gl_FragCoord.z));
+        RSMDepth=vec4(pack(gl_FragCoord.z));
     else if(DepthPackWay==LinearZ)
-        RSMAlbedoDepth=vec4(LinearizeDepth(gl_FragCoord.z));
+        RSMDepth=vec4(LinearizeDepth(gl_FragCoord.z));
+    RSMAlbedoFlag.xyz=texture(albedoMap, TexCoords).rgb;
+
+    float rough=texture2D(roughnessMap,TexCoords).x;
+    vec3 normal=texture2D(normalMap,TexCoords,0).xyz;
+    normal=normal*2.0-1.0;
+    mat3 TBN=mat3(Tangent,Bitangent,Normal);
+    RSMNormalRoughness=vec4(TBN*normal,rough);
+
+    float mettalic=texture(metallicMap, TexCoords).x;
+    RSMPositionMetallic=vec4(FragPos,mettalic);
 }

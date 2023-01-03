@@ -303,7 +303,7 @@ public:
 		return hit;
 	}
 
-	Bounds3 getBounds() const override {
+	Bounds3 GetBounds() const override {
 		return box;
 	}
 };

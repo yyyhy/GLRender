@@ -367,7 +367,7 @@ float PCFShadow(sampler2D shadowMap, vec4 shadowCoords,float bias,bool unPack,bo
             if(unPack)
                 depth=unpack(texture2D(shadowMap,uv.xy+vec2(i,j)*size));
             else
-                depth=texture2D(shadowMap,uv.xy+vec2(i,j)*size).x/100.0;
+                depth=texture2D(shadowMap,uv.xy+vec2(i,j)*size).w/100.0;
             if(depth-d<-bias)
                 v-=1.0/float(64);
         }
@@ -515,7 +515,7 @@ void main()
         BRDFdir = BRDF;
         Lo += BRDF*radiance * NdotL*shadow;
 
-	    gl_FragColor = vec4(Lo, 1.0);return;
+	    //gl_FragColor = vec4(Lo, 1.0);return;
         // if(shadow<0.5){
         //     //if(lightmapcol.x+lightmapcol.y+lightmapcol.z>0.1){
         //         BRDF=calcMicroFacedBRDF(N,-lightMapDir,V,texCoords);
@@ -541,6 +541,7 @@ void main()
     }
     float dis=999;
     vec3 ibl=vec3(0);
+    float totolFactor=0;
     for(int i=0;i<4;i++){
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));
@@ -551,10 +552,12 @@ void main()
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));
             float factor=dis/max(d,0.001);
+            totolFactor+=factor;
             ibl+=calcIBL(reflectCube[i],N,V,texCoords,BRDFdir)*factor;
         }
     }
-    Lo+=ibl;
+    if(ibl.x>0&&ibl.y>0&&ibl.z>0)
+    Lo+=ibl/totolFactor;
     
     if(spotLight.exist){
         vec3 l2o=normalize(vWorldPos-spotLight.pos);
@@ -574,15 +577,15 @@ void main()
         }
     }
     {
-        if(!lightMapOff){
-            vec3 lm=texture2D(gLightMap,texCoords).xyz;
-            vec3 ld=normalize(texture2D(gLightMapDir,texCoords).xyz);
-            BRDF=calcMicroFacedBRDF(N,-ld,V,texCoords);
-            vec3 pm=BRDF*lm;
-            Lo+=pm;
-            //gl_FragColor=vec4(lm,1);return;
+        // if(!lightMapOff){
+        //     vec3 lm=texture2D(gLightMap,texCoords).xyz;
+        //     vec3 ld=normalize(texture2D(gLightMapDir,texCoords).xyz);
+        //     BRDF=calcMicroFacedBRDF(N,-ld,V,texCoords);
+        //     vec3 pm=BRDF*lm;
+        //     Lo+=pm;
+        //     //gl_FragColor=vec4(lm,1);return;
 
-        }
+        // }
     }
     for(int i=0;i<4;i++){
         vec3 R=normalize(reflect(-V,N));

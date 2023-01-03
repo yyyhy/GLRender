@@ -58,6 +58,12 @@
     <Filter Include="头文件\core\managers">
       <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\rtgi">
+      <UniqueIdentifier>{459df571-8fda-4cfa-8d49-7e44d96a59f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\rtgi\dfgi">
+      <UniqueIdentifier>{ae529aab-e658-4485-b1c5-81a397a1f9bc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -91,6 +97,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="computeShader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DFGI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeBuffer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -277,6 +289,15 @@
     </ClInclude>
     <ClInclude Include="ObjManager.hpp">
       <Filter>头文件\core\managers</Filter>
+    </ClInclude>
+    <ClInclude Include="DFGIRayStruct.hpp">
+      <Filter>头文件\rtgi\dfgi</Filter>
+    </ClInclude>
+    <ClInclude Include="DFGI.hpp">
+      <Filter>头文件\rtgi\dfgi</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeBuffer.hpp">
+      <Filter>头文件\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

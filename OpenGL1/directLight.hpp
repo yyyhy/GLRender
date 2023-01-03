@@ -6,6 +6,7 @@
 #include "light.hpp"
 #include"sh.hpp"
 #include"texture.hpp"
+#include"debugtool.hpp"
 
 const static unsigned CSM_MAX_LEVEL = 4;
 const static float CSM_AUJUST_FACTOR = 0.9f;
@@ -13,9 +14,10 @@ const static float CSM_AUJUST_FACTOR = 0.9f;
 
 //RSM Struct
 //      0       8      16      24       32
-//Tex0:       Albedo            |  Depth
-//Tex1:       Normal            |  Roughness
-//Tex2:       Position          |  Metallic
+//Tex0:              Depth
+//Tex1:       Albedo            |  Flag
+//Tex2:       Normal            |  Roughness
+//Tex3:       Position          |  Metallic
 
 class DirectLight :public Light {
 private:
@@ -34,7 +36,7 @@ private:
 
 	Texture2D* RSMTextureBuffers;
 
-	const unsigned RSM_SIZE = 3;
+	const unsigned RSM_SIZE = 4;
 public:
 
 	DirectLight():Light(RSM_W / 4, RSM_H / 4, CSM_MAX_LEVEL),direction(glm::vec3(0.f,-1.f,0.f)),radius(50){
@@ -118,7 +120,12 @@ public:
 		for (int j = 0; j < CSM_MAX_LEVEL; j++) {
 			frameBuffers[j].Construct(w, h, true);
 			for (int i = 0; i < RSM_SIZE; ++i) {
-				RSMTextureBuffers[j*RSM_SIZE+i] = Texture2D(w, h, GL_RGBA32F, GL_RGB, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, false);
+				if(i==0)
+					RSMTextureBuffers[j * RSM_SIZE + i] = Texture2D(w, h, GL_RGBA32F, GL_RGBA, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, false);
+				else if(i==1)
+					RSMTextureBuffers[j * RSM_SIZE + i] = Texture2D(w, h, GL_RGB32F, GL_RGB, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, false);
+				else
+					RSMTextureBuffers[j * RSM_SIZE + i] = Texture2D(w, h, GL_RGBA32F, GL_RGBA, GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, false);
 			}
 			frameBuffers[j].AttachTexture(&RSMTextureBuffers[j * RSM_SIZE],RSM_SIZE);
 		}
@@ -135,6 +142,12 @@ public:
 		p.color = GetSpectrum()*pdfs;
 		p.dir = direction;
 		return p;
+	}
+
+	void SaveRSM(unsigned csmLevel, unsigned rsmLevel) const {
+		frameBuffers[csmLevel].Bind();
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RSMTextureBuffers[csmLevel * RSM_SIZE+rsmLevel].id, 0);
+		SaveFrameBuffer(frameBuffers[csmLevel]);
 	}
 };
 #endif // !DIRECT_LIGHT_H

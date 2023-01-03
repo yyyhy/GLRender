@@ -142,8 +142,6 @@ public:
 
     bool IsActive() const { return active; }
 
-    bool isStatic;
-    
     void LoadLightMapData() {
         for (auto& m : meshs)
             m->LoadLightMapData();
@@ -162,6 +160,7 @@ public:
         }
     }
 
+    bool isStatic;
     friend class Component;
     friend class Scene;
     friend std::shared_ptr<Object> CreateObject();

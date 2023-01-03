@@ -179,14 +179,14 @@ void main()
     float depth=texture2D(gNormalDepth,texCoords).w;
     float flag=texture2D(gFlag,texCoords).w;
     vec3 col=texture2D(tex,texCoords).xyz;
-    if(flag!=1){
+    if(flag!=1||depth==0){
         ssgiColor=vec4(col,1);return;
     }
     vec3 N=texture2D(gNormalDepth,texCoords).xyz;
     vec3 V=normalize(uCameraPos-worldPos);
     vec3 R=normalize(reflect(-V,N));
     float NdotL=max(0.0,dot(N,R));
-    vec3 gi;
+    vec3 gi=vec3(0);
     RayMarchingResult r=RayMarching(worldPos,R);
     if(r.IsHit){
         vec3 refCol=texture2D(tex,r.UV/screenSize).xyz*(MAX_STEP-r.IterationCount)/float(MAX_STEP);
