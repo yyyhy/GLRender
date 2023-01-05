@@ -1,6 +1,11 @@
 
 #include"computeShader.hpp"
 
+ComputeShader::~ComputeShader()
+{
+	glDeleteProgram(id);
+}
+
 void ComputeShader::Use() const& {
 	glUseProgram(id);
 }
@@ -16,6 +21,14 @@ void ComputeShader::SetFloat(const std::string& name, float v) const&
 
 void ComputeShader::SetTexture(const std::string& name, const Texture& tex) &{
 	textures[name] = tex;
+}
+
+void ComputeShader::SetTexture(const std::string& name, unsigned id)&
+{
+	Texture t;
+	t.name = name;
+	t.id = id;
+	textures[name] = t;
 }
 
 void ComputeShader::SetVec3(const std::string& name, const glm::vec3& v) const&
@@ -42,7 +55,7 @@ void ComputeShader::Dispath(int x, int y, int z) const& {
 	for (auto i = textures.begin(); i != textures.end(); i++, index++) {
 		SetInt(i->first, index);
 		glActiveTexture(GL_TEXTURE0 + index);
-		glBindTexture(GL_TEXTURE_2D, i->second.id);
+		glBindTexture(i->second.type, i->second.id);
 		
 	}
 	

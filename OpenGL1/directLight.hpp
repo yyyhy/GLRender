@@ -60,7 +60,7 @@ public:
 		if (genShadowMap) {
 			//auto div = GetCsmDivide();
 			for (unsigned i = 0; i < CSM_MAX_LEVEL; ++i) {
-				s.setTexture("mainLight.shadowMap["+std::to_string(i)+"]", RSMTextureBuffers[i*RSM_SIZE]);
+				s.SetTexture("mainLight.shadowMap["+std::to_string(i)+"]", RSMTextureBuffers[i*RSM_SIZE]);
 				s.setMat4("mainLight.lightMVP[" + std::to_string(i)+"]", currMats.at(i));
 			}
 			s.setInt("mainLight.csmLevel", CSM_MAX_LEVEL);
@@ -148,6 +148,10 @@ public:
 		frameBuffers[csmLevel].Bind();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RSMTextureBuffers[csmLevel * RSM_SIZE+rsmLevel].id, 0);
 		SaveFrameBuffer(frameBuffers[csmLevel]);
+	}
+
+	const Texture& GetRSM(unsigned csmLevel, unsigned rsmLevel) const {
+		return RSMTextureBuffers[csmLevel * RSM_SIZE + rsmLevel];
 	}
 };
 #endif // !DIRECT_LIGHT_H

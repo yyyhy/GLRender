@@ -8,10 +8,9 @@
 
 struct DFGIRay
 {
-	glm::vec3 direction;
-	glm::vec3 hitPosition;
-	glm::vec3 flux;
-
-	unsigned refCount;
+	glm::vec3 direction; char tmp0[4];
+	glm::vec3 hitPosition; char tmp1[4];
+	glm::vec3 flux; char tmp2[4];
+	unsigned refCount; char tmp3[12];
 };
 #endif // !DFGI_RAY_STRUCT

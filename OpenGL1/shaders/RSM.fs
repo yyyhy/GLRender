@@ -44,7 +44,8 @@ void main()
         RSMDepth=vec4(pack(gl_FragCoord.z));
     else if(DepthPackWay==LinearZ)
         RSMDepth=vec4(LinearizeDepth(gl_FragCoord.z));
-    RSMAlbedoFlag.xyz=texture(albedoMap, TexCoords).rgb;
+    RSMAlbedoFlag.xyz=texture2D(albedoMap, TexCoords).xyz;
+    RSMAlbedoFlag.w=0;
 
     float rough=texture2D(roughnessMap,TexCoords).x;
     vec3 normal=texture2D(normalMap,TexCoords,0).xyz;

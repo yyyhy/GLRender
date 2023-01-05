@@ -114,6 +114,7 @@ int main()
 
     auto objL = CreateObject();
     DirectLight *l=new DirectLight(Spectrum(1.f, 1.f, 1.f),500000.f,glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)),true);
+    std::cout << l->GetRSM(2, 0).id << "\n";
     objL->AddComponent(l);
     //l->isStatic = true;
     /*SpotLight* sl = new SpotLight(512,512,Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
@@ -159,27 +160,27 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
    
-    gBufferShader->setTexture("albedoMap", "objs/tex/albedo.png");
-    gBufferShader->setTexture("normalMap", "objs/tex/normal.png");
-    gBufferShader->setTexture("roughnessMap", "objs/tex/roughness.png");
-    gBufferShader->setTexture("metallicMap", "objs/tex/metallic.png");
+    gBufferShader->SetTexture("albedoMap", "objs/tex/albedo.png");
+    gBufferShader->SetTexture("normalMap", "objs/tex/normal.png");
+    gBufferShader->SetTexture("roughnessMap", "objs/tex/roughness.png");
+    gBufferShader->SetTexture("metallicMap", "objs/tex/metallic.png");
     
-    gBufferShader2->setTexture("albedoMap", "objs/tex/marble/albedo.jpg");
-    gBufferShader2->setTexture("normalMap", "objs/tex/marble/normal.jpg");
-    gBufferShader2->setTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
+    gBufferShader2->SetTexture("albedoMap", "objs/tex/marble/albedo.jpg");
+    gBufferShader2->SetTexture("normalMap", "objs/tex/marble/normal.jpg");
+    gBufferShader2->SetTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
 
     sponzaObj->SetShader(-1, gBufferShader, Deffered);
     sphereObj->SetShader(-1, gBufferShader2, Deffered);
     doorObj->SetShader(-1, gBufferShader2, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
 
-    defferedShader->setTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
-    defferedShader->setTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
+    defferedShader->SetTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
+    defferedShader->SetTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
     
     /*scene.buildBVH();
     Texture3D t3D = scene.GenerateGlobalSDF();
     defferedShader->use();
-    defferedShader->setTexture("uSDF", t3D);*/
+    defferedShader->SetTexture("uSDF", t3D);*/
    
     {
         

@@ -24,7 +24,7 @@ layout(std140 , binding=0) uniform CameraMats{
     mat4 mvp;         //192
     mat4 lastMvp;     //256
     vec3 CameraPos;   //320
-    vec2 Offset;      //336  272 
+    vec2 Offset;      //336  352 
 };
 
 layout(std140, binding=1) uniform RenderSettings{

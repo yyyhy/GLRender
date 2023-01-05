@@ -77,11 +77,11 @@ private:
 						auto shader = o->GetShader(0, Deffered);
 						if (shader != nullptr) {
 							Texture& albedoMap = shader->GetTexture("albedoMap");
-							rsmShader->setTexture("albedoMap", albedoMap);
+							rsmShader->SetTexture("albedoMap", albedoMap);
 							Texture& normalMap = shader->GetTexture("normalMap");
-							rsmShader->setTexture("normalMap", normalMap);
+							rsmShader->SetTexture("normalMap", normalMap);
 							Texture& roughnessMap = shader->GetTexture("roughnessMap");
-							rsmShader->setTexture("roughnessMap", roughnessMap);
+							rsmShader->SetTexture("roughnessMap", roughnessMap);
 						}
 						o->draw(l->rsmShader.get());
 					}
@@ -197,11 +197,11 @@ private:
 			if (!i->IsActive())
 				continue;
 			auto transform = i->GetComponent<Transform>();
-			if (transform == NULL)
+			if (transform == nullptr)
 				continue;
 			for (int j = 0; j < i->GetMeshLength(); j++) {
 				auto shader = i->GetShader(j,Deffered);
-				if (shader != NULL) {
+				if (shader != nullptr) {
 					shader->use();
 					shader->setMat4("preTrans", transform->lastTransform);
 					shader->setMat4("trans", (*transform)());
@@ -216,9 +216,9 @@ private:
 	void initSSDO() {
 		auto ssdo = new SSDO(RenderWidth,RenderHeight);
 		auto ssdoShader = ssdo->mainShader;
-		ssdoShader->setTexture("gPositionRoughness", GetGBuffer(0));
-		ssdoShader->setTexture("gNormalDepth", GetGBuffer(1));
-		ssdoShader->setTexture("gAlbedoMetallic", GetGBuffer(2));
+		ssdoShader->SetTexture("gPositionRoughness", GetGBuffer(0));
+		ssdoShader->SetTexture("gNormalDepth", GetGBuffer(1));
+		ssdoShader->SetTexture("gAlbedoMetallic", GetGBuffer(2));
 
 		AddPostProcess(ssdo);
 		ssdoOn = true;
@@ -226,8 +226,8 @@ private:
 
 	void initSSAO() {
 		auto ssao = new SSAO(defferedShader, RenderWidth, RenderHeight);
-		ssao->mainShader->setTexture("gPosition", GetGBuffer(0));
-		ssao->mainShader->setTexture("gNormalDepth", GetGBuffer(1));
+		ssao->mainShader->SetTexture("gPosition", GetGBuffer(0));
+		ssao->mainShader->SetTexture("gNormalDepth", GetGBuffer(1));
 		AddPostProcess(ssao);
 		ssaoOn = true;
 	}
@@ -236,10 +236,10 @@ private:
 		auto ssgi = new SSGI(RenderWidth, RenderHeight);
 		auto ssgiShader = ssgi->GetShader();
 		ssgiShader->use();
-		ssgiShader->setTexture("gPositionRoughness", GetGBuffer(0));
-		ssgiShader->setTexture("gNormalDepth", GetGBuffer(1));
-		ssgiShader->setTexture("gAlbedoMetallic", GetGBuffer(2));
-		ssgiShader->setTexture("gFlag", GetGBuffer(3));
+		ssgiShader->SetTexture("gPositionRoughness", GetGBuffer(0));
+		ssgiShader->SetTexture("gNormalDepth", GetGBuffer(1));
+		ssgiShader->SetTexture("gAlbedoMetallic", GetGBuffer(2));
+		ssgiShader->SetTexture("gFlag", GetGBuffer(3));
 		AddPostProcess(ssgi);
 		ssgiOn = true;
 	}
@@ -248,11 +248,11 @@ private:
 		auto v = new BidirectionVFilter(RenderWidth, RenderHeight);
 		auto h = new BidirectionHFilter(RenderWidth, RenderHeight);
 		auto vShader = v->GetShader();
-		vShader->setTexture("gNormal", GetGBuffer(1));
-		vShader->setTexture("gPosition", GetGBuffer(0));
+		vShader->SetTexture("gNormal", GetGBuffer(1));
+		vShader->SetTexture("gPosition", GetGBuffer(0));
 		auto hShader = h->GetShader();
-		hShader->setTexture("gNormal", GetGBuffer(1));
-		hShader->setTexture("gPosition", GetGBuffer(0));
+		hShader->SetTexture("gNormal", GetGBuffer(1));
+		hShader->SetTexture("gPosition", GetGBuffer(0));
 		AddPostProcess(v);
 		AddPostProcess(h);
 		antiNoiseOn = true;
@@ -267,7 +267,7 @@ private:
 	void BindGBuffer() const {
 		defferedShader->use();
 		for (auto i = 0; i < GBUFFER_SIZE; i++) {
-			defferedShader->setTexture("gBuffer" + std::to_string(i), gColorBuffers[i].id);
+			defferedShader->SetTexture("gBuffer" + std::to_string(i), gColorBuffers[i].id);
 		}
 	}
 
@@ -281,9 +281,9 @@ private:
 		auto s = new SSSSS(RenderWidth, RenderHeight);
 		auto shader = s->GetShader();
 		shader->use();
-		shader->setTexture("gPositionRoughness", GetGBuffer(0));
-		shader->setTexture("gNormalDepth", GetGBuffer(1));
-		shader->setTexture("gAlbedoMetallic", GetGBuffer(2));
+		shader->SetTexture("gPositionRoughness", GetGBuffer(0));
+		shader->SetTexture("gNormalDepth", GetGBuffer(1));
+		shader->SetTexture("gAlbedoMetallic", GetGBuffer(2));
 		shader->setVec3("L", glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)));
 		shader->setInt("range", 2);
 		AddPostProcess(s);
@@ -449,9 +449,9 @@ public:
 		taaShader = taa->GetShader();
 
 		taaShader->use();
-		taaShader->setTexture("gWorldPos", GetGBuffer(0));
-		taaShader->setTexture("gVelo", GetGBuffer(6));
-		taaShader->setTexture("gNormalDepth", GetGBuffer(1));
+		taaShader->SetTexture("gWorldPos", GetGBuffer(0));
+		taaShader->SetTexture("gVelo", GetGBuffer(6));
+		taaShader->SetTexture("gNormalDepth", GetGBuffer(1));
 		AddPostProcess(taa);
 	}
 #ifdef _DEBUG

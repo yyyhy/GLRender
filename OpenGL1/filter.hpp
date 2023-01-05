@@ -102,7 +102,7 @@ inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,cons
 	auto const prefilterTexture = Buffer.GetTexture(0);
 
 	prefilterShader->use();
-	prefilterShader->setTexture("prefilterInMap", prefilterTexture->id);
+	prefilterShader->SetTexture("prefilterInMap", prefilterTexture->id);
 	prefilterShader->initTexture();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, Buffer.frameBuffer);
@@ -117,7 +117,7 @@ inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,cons
 		glClear(GL_DEPTH_BUFFER_BIT);
 		renderPlane();
 
-		prefilterShader->setTexture("prefilterInMap", output.id);
+		prefilterShader->SetTexture("prefilterInMap", output.id);
 		prefilterShader->initTexture();
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -126,7 +126,7 @@ inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,cons
 inline void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBuffer& outFrameBuffer=InvalidFrameBuffer) {
 
 	s->use();
-	s->setTexture("tex", in.id);
+	s->SetTexture("tex", in.id);
 	s->initTexture();
 	
 	InitDefaultFrameBufferOut();

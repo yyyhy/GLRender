@@ -69,7 +69,7 @@ public:
 	void SetInTexBuffer(const Texture& buffer) { 
 		InTexture = buffer; 
 		shader->use();
-		shader->setTexture("tex", InTexture); 
+		shader->SetTexture("tex", InTexture); 
 	}
 
 	void SetOutFrameBuffer(FrameBuffer* outBuffer) {

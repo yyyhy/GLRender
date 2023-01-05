@@ -229,7 +229,7 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
-    void setTexture(const std::string& name, const std::string& path) {
+    void SetTexture(const std::string& name, const std::string& path) {
         Texture2D tex2D(path);
         tex2D.name = name;
         if (tex2D.name != "albedoMap") {
@@ -243,7 +243,7 @@ public:
         stageChange = true;
     }
 
-    void setTexture(const std::string& name, int id, bool is3D=false) {
+    void SetTexture(const std::string& name, int id, bool is3D=false) {
         Texture t;
         t.name = name;
         t.id = id;
@@ -253,12 +253,12 @@ public:
         stageChange = true;
     }
 
-    void setTexture(const std::string& name, Texture& t) {
+    void SetTexture(const std::string& name, Texture& t) {
         t.name = name;
         textures[name] = t;
     }
 
-    void setTexture(const std::string& name, sp_texture t) {
+    void SetTexture(const std::string& name, sp_texture t) {
         t->name = name;
         textures[name] = *t;
     }
@@ -290,11 +290,7 @@ public:
         for (auto i = textures.begin(); i != textures.end();i++,index++) {
             setInt(i->first, index);
             glActiveTexture(GL_TEXTURE0 + index);
-            if(i->second.type==GL_TEXTURE_2D)
-                glBindTexture(GL_TEXTURE_2D, i->second.id);
-            else {
-                glBindTexture(GL_TEXTURE_3D, i->second.id);
-            }
+            glBindTexture(i->second.type, i->second.id);
         }
 
         for (auto i = cubeMaps.begin(); i != cubeMaps.end(); i++, index++) {
@@ -306,8 +302,7 @@ public:
     }
 
     Texture& GetTexture(const std::string& name) {
-        auto t = textures[name];
-        return t;
+        return textures[name];
     }
 
     void debug() {

@@ -17,9 +17,10 @@ public:
 	ComputeBuffer(ComputeBuffer&) = delete;
 	ComputeBuffer(ComputeBuffer&&) = delete;
 
-	void SetData(void*, unsigned) const;
+	~ComputeBuffer();
+	void SetData(void*) const;
 
-	void ReadData(void*) const;
+	void* ReadData() const;
 	
 	friend class ComputeShader;
 };

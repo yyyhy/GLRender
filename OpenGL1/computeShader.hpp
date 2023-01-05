@@ -60,9 +60,11 @@ public:
 		glDeleteShader(cs);
 		
 	}
+	virtual ~ComputeShader();
 	void Use() const&;
 
 	void SetTexture(const std::string&, const Texture& tex) &;
+	void SetTexture(const std::string&, unsigned id)&;
 	void SetInt(const std::string&, int) const&;
 	void SetFloat(const std::string&, float) const&;
 	void SetVec4(const std::string&, const glm::vec4&) const&;
