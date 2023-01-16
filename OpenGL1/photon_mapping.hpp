@@ -25,7 +25,7 @@ template<class T> using photon_queue = std::priority_queue<T, std::vector<T>,
 std::thread* startGenLightMap(std::vector<Vertex>& vertices, const std::string& outfile
 	, int begin, int len, PhotonMapping* pm);
 
-std::vector<Vector3f> sampleVectors(unsigned size = 1024) {
+inline std::vector<Vector3f> sampleVectors(unsigned size = 1024) {
 	std::vector<Vector3f> vs;
 	std::default_random_engine engine;
 	std::uniform_real_distribution<float> real(0.0, 1.0);

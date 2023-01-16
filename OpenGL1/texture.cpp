@@ -84,11 +84,13 @@ Texture3D::Texture3D(float* data, int w, int h, int d, unsigned channel):Texture
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_3D, id);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glGenerateMipmap(GL_TEXTURE_3D);
 
     glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_FLOAT, data);
     glBindTexture(GL_TEXTURE_3D, 0);

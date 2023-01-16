@@ -1,5 +1,7 @@
 
-#version 460 core
+#version 450 core
+#extension GL_EXT_shader_atomic_float : enable
+
 layout(local_size_x = 16, local_size_y = 1) in;
 struct DFGIRay{
     vec3 direction;
@@ -9,27 +11,30 @@ struct DFGIRay{
     uint refCount;
 };
 
-layout(rgba32f) uniform image2D RSMAlbedoFlag;
-layout(rgba32f) uniform image2D RSMNormalRoughness;
-layout(rgba32f) uniform image2D RSMPositionMetallic;
-
 // scene cellize
 // 32 * 32 * 32 Grids, each grid contians 16 ray
 // Downsample factor is 16 by default
-layout(std430, binding = 3) buffer RayBuffer{
-    DFGIRay rays[32*32*32*16];
+layout(std430, binding = 0) buffer DFGIRaysBuffer{
+    DFGIRay rays[];
 };
 
-layout(std430, binding = 4) buffer RayCounterBuffer{
-    uint gridRayCounter[32*32*32];
+layout(std430, binding = 1) buffer DFGIRayCounterBuffer{
+    uint gridRayCounter[];
 };
+
+
+uniform vec2 SampleOffset;
+uniform sampler2D RSMAlbedoFlag;
+uniform sampler2D RSMNormalRoughness;
+uniform sampler2D RSMPositionMetallic;
 uniform sampler3D GlobalSDF;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
 const int GRID_MAX_CONTAINS_RAY=16;
 const int DOWN_SAMPLE=16;
-uniform ivec3 SceneGridsResolution;
+uniform vec3 SceneGridsResolution=vec3(32);
 uniform vec3 LightFlux;
+const vec3 LightDirection=vec3(-0.5,-1.0,0.3);
 
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
@@ -40,8 +45,13 @@ ivec3 WorldPosToGridIndex(vec3 worldPos){
     return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
 }
 
+vec3 GridIndexToWorldPos(ivec3 gridIndex){
+    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+    return GlobalSDFBoxMin+(vec3(gridIndex)+vec3(0.5))*gridSize;
+}
+
 uint LinearGridIndex(ivec3 gridIndex){
-    return (gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
+    return uint(gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
 } 
 
 bool UVWIsValid(vec3 uvw){
@@ -51,9 +61,10 @@ bool UVWIsValid(vec3 uvw){
 }
 
 const int MAX_TRACE_STEPS = 128;
-const float EPS = 0.1;
+const float EPS = 0.3;
 
 void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
+    //ray.refCount=1;
     vec3 currPosition=start;
     for(int i=0;i<MAX_TRACE_STEPS;++i){
         vec3 uvw=WorldPosToUVW(currPosition);
@@ -61,7 +72,7 @@ void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
             float sdfValue=texture3D(GlobalSDF,uvw).x;
             if(sdfValue<EPS){
                 ray.hitPosition=currPosition;
-                ray.refCount++;
+                ray.refCount=1;
             }
             else{
                 currPosition+=direction*sdfValue;
@@ -130,32 +141,44 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 
 
 void main() {
-    ivec2 uvIndex = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 uv=uvIndex*DOWN_SAMPLE;
-    vec3 albedo=imageLoad(RSMAlbedoFlag,uv).xyz;
-    vec3 N=imageLoad(RSMNormalRoughness,uv).xyz;
-    vec3 worldPos=imageLoad(RSMPositionMetallic,uv).xyz;
-    float roughness=imageLoad(RSMNormalRoughness,uv).w;
-
     uint sampleIndex=gl_LocalInvocationID.x;
-    vec2 Xi=Hammersley(sampleIndex,16);
+    vec2 Xi=Hammersley(sampleIndex-1U,16);
+    ivec2 uvIndex = ivec2(gl_GlobalInvocationID.xy+SampleOffset)*DOWN_SAMPLE;
+    vec2 uv=uvIndex/vec2(1600,900);
+    //uv+=Xi*DOWN_SAMPLE*DOWN_SAMPLE/vec2(1600,900);
+
+    vec3 albedo=texture2D(RSMAlbedoFlag,uv).xyz;
+    vec3 N=texture2D(RSMNormalRoughness,uv).xyz;
+    if(length(N)<0.99){
+        return;
+    }
+    vec3 worldPos=texture2D(RSMPositionMetallic,uv).xyz;
+    float roughness=texture2D(RSMNormalRoughness,uv).w;
+
     vec3 H=ImportanceSampleGGX(Xi,N,roughness);
-    vec3 L=normalize(2.0 * dot(N, H) * H - N);
-    float NdotL=max(dot(N,L),0.0);
+    vec3 V=-normalize(LightDirection);
+    vec3 L=normalize(2.0 * dot(V, H) * H - V);
+    float NdotL=max(dot(N,V),0.0);
+    // DFGIRay r;
+    // r.hitPosition=vec3(4,1,1);
+    // r.direction=GlobalSDFBoxMin;
+    // r.flux=vec3(texture2D(RSMPositionMetallic,vec2(0.2,0.2)).xyz);
+    // rays[0]=r;
+    // rays[1]=r;
+    // gridRayCounter[0]=1;
+    // gridRayCounter[1]=12;
     if(NdotL>0.0){
-        DFGIRay ray;
-        ray.flux=LightFlux*albedo*NdotL/PI;
-        ray.direction=L;
+        DFGIRay ray;     
         ray.refCount=0;
         ray.hitPosition=vec3(0,0,0);
-
-        TraceGlobalSDF(worldPos,L,ray);
+        TraceGlobalSDF(worldPos+L*(EPS*1.1),L,ray);
         if(ray.refCount!=0){
+            ray.flux=LightFlux*albedo*NdotL/PI;
+            ray.direction=L;
             ivec3 gridIndex=WorldPosToGridIndex(ray.hitPosition);
             uint linearIndex=LinearGridIndex(gridIndex);
-
             uint rayCount=gridRayCounter[linearIndex];
-            gridRayCounter[linearIndex]=(gridRayCounter[linearIndex]+1)%GRID_MAX_CONTAINS_RAY;
+            gridRayCounter[linearIndex]=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
             uint rayIndex=linearIndex*GRID_MAX_CONTAINS_RAY+rayCount;
             rays[rayIndex]=ray;
         }

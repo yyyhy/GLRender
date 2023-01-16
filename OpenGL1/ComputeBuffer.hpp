@@ -10,10 +10,10 @@
 class ComputeBuffer {
 private:
 	unsigned size;
-	unsigned count;
+	unsigned long count;
 	unsigned id;
 public:
-	ComputeBuffer(unsigned size, unsigned cnt);
+	ComputeBuffer(unsigned size, unsigned long cnt);
 	ComputeBuffer(ComputeBuffer&) = delete;
 	ComputeBuffer(ComputeBuffer&&) = delete;
 

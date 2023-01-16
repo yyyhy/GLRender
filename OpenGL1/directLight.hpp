@@ -68,6 +68,10 @@ public:
 		}
 	}
 
+	glm::vec3 GetRayPower() const {
+		return GetSpectrum() / (radius * radius * glm::pi<float>());
+	}
+
 	void GetCsmDivide() {
 		auto n = mainCamera->near;
 		auto f = mainCamera->far;
@@ -150,7 +154,7 @@ public:
 		SaveFrameBuffer(frameBuffers[csmLevel]);
 	}
 
-	const Texture& GetRSM(unsigned csmLevel, unsigned rsmLevel) const {
+	Texture2D& GetRSM(unsigned csmLevel, unsigned rsmLevel) const {
 		return RSMTextureBuffers[csmLevel * RSM_SIZE + rsmLevel];
 	}
 };

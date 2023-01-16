@@ -29,7 +29,7 @@ public:
 		delete bvh;
 	}
 
-	Scene() :skyBuffer(0) {
+	Scene() :skyBuffer(0),bvh(nullptr) {
 		sky = new Shader("shaders/sky.vs", "shaders/sky.fs");
 		sky->setInt("skybox", 0);
 		glGenVertexArrays(1, &skyVAO);
@@ -107,7 +107,7 @@ public:
 		std::vector<Shape*> meshs;
 		for (auto& i : objects) {
 			for (int j = 0; j < i->GetMeshLength(); j++) {
-				auto m = i->meshs[j];
+				auto m = i->meshes[j];
 				meshs.push_back(m.get());
 			}
 		}
@@ -132,16 +132,16 @@ public:
 
 	void genLightMap(Object* o,int index,const std::string& path) {
 		if (index == -1) {
-			for (unsigned i = 0; i < o->meshs.size(); ++i) {
-				photonMappingEngine->genLightMap(o->meshs[i]->vertices, path + std::to_string(i) + ".txt");
+			for (unsigned i = 0; i < o->meshes.size(); ++i) {
+				photonMappingEngine->genLightMap(o->meshes[i]->vertices, path + std::to_string(i) + ".txt");
 				//pm.startGenLightMap(o->meshs[i]->vertices, "./baking/lightMap/bk" + std::to_string(i) + ".txt");
 			}
 				
 			return;
 		}
-		if (index >= o->meshs.size())
+		if (index >= o->meshes.size())
 			return;
-		auto m = o->meshs.at(index);
+		auto m = o->meshes.at(index);
 		if(m!=NULL)
 			photonMappingEngine->genLightMap(m->vertices, path + std::to_string(index) + ".txt");
 	}
@@ -150,21 +150,31 @@ public:
 		if (!bvh)
 			buildBVH();
 		if (index == -1) {
-			for (unsigned i = 0; i < o->meshs.size(); ++i) {
-				photonMappingEngine->genLightMap(bvh,o->meshs[i]->vertices, path + std::to_string(i) + ".txt");
+			for (unsigned i = 0; i < o->meshes.size(); ++i) {
+				photonMappingEngine->genLightMap(bvh,o->meshes[i]->vertices, path + std::to_string(i) + ".txt");
 			}
 
 			return;
 		}
-		if (index >= o->meshs.size())
+		if (index >= o->meshes.size())
 			return;
-		auto m = o->meshs.at(index);
+		auto m = o->meshes.at(index);
 		if (m != NULL)
 			photonMappingEngine->genLightMap(bvh, m->vertices, path + std::to_string(index) + ".txt");
 	}
 
-	Texture3D GenerateGlobalSDF() {
-		SDF s(16);
+	glm::vec3 GetSceneBoundMax() const {
+		Bounds3 box = bvh->GetBounds();
+		return box.pMax;
+	}
+
+	glm::vec3 GetSceneBoundMin() const {
+		Bounds3 box = bvh->GetBounds();
+		return box.pMin;
+	}
+
+	Texture3D GenerateGlobalSDF(unsigned resolution) {
+		SDF s(resolution);
 		return s.GenerateSDF(bvh);
 	}
 

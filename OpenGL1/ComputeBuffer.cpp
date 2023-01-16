@@ -1,6 +1,6 @@
 #include "ComputeBuffer.hpp"
 
-ComputeBuffer::ComputeBuffer(unsigned size, unsigned cnt):size(size),count(cnt)
+ComputeBuffer::ComputeBuffer(unsigned size, unsigned long cnt):size(size),count(cnt)
 {
 	glGenBuffers(1, &id);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, id);

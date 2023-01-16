@@ -36,6 +36,11 @@ void ComputeShader::SetVec3(const std::string& name, const glm::vec3& v) const&
 	glUniform3fv(glGetUniformLocation(id, name.c_str()), 1,&v[0]);
 }
 
+void ComputeShader::SetVec2(const std::string& name, const glm::vec2& v) const&
+{
+	glUniform2fv(glGetUniformLocation(id, name.c_str()), 1, &v[0]);
+}
+
 void ComputeShader::SetBuffer(int index, const ComputeBuffer& ssbo) const&
 {
 	Use();

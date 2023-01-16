@@ -1,0 +1,75 @@
+
+#version 460 core
+layout(local_size_x = 1, local_size_y = 1) in;
+struct DFGIRay{
+    vec3 direction;
+    vec3 hitPosition;
+    vec3 flux;
+
+    uint refCount;
+};
+
+struct GridLightInfo{
+    vec3 Flux;
+    vec3 ImportanceDirection;
+    vec3 ImportancePosition;
+};
+
+layout(std430, binding = 0) buffer DFGIRaysBuffer{
+    DFGIRay rays[];
+};
+
+
+// scene cellize
+// 32 * 32 * 32 Grids, each grid contians 16 ray
+// Downsample factor is 16 by default
+layout(std430, binding = 1) buffer DFGIGridLightInfos{
+    GridLightInfo infos[];
+};
+
+uniform vec3 SceneGridsResolution=vec3(32);
+uniform vec3 GlobalSDFBoxMin=vec3(-17.4,-1.7,-7.8);
+uniform vec3 GlobalSDFBoxMax=vec3(17.4,15.6,7.8);
+
+uint LinearGridIndex(ivec3 gridIndex){
+    return uint(gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
+} 
+
+vec3 GridIndexToWorldPos(ivec3 gridIndex){
+    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+    return GlobalSDFBoxMin+(vec3(gridIndex)+vec3(0.5))*gridSize;
+}
+
+void main(){
+    ivec3 gridIndex = ivec3(gl_GlobalInvocationID.xyz);
+    vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
+    uint linearGridIndex=LinearGridIndex(gridIndex);
+    uint offset=linearGridIndex*16;
+
+    vec3 flux=vec3(0);
+    vec3 direction=vec3(0);
+    vec3 position=vec3(0);
+
+    for(int i=0;i<16;++i){
+        DFGIRay ray=rays[offset+i];
+        flux+=ray.flux;
+        direction+=ray.direction;
+        position+=ray.hitPosition;
+    }
+
+    flux/=16.0;
+    direction/=16.0;
+    position/=16.0;
+
+    GridLightInfo info;
+    // info.Flux=flux;
+    // info.ImportanceDirection=direction;
+    // info.ImportancePosition=position;
+
+    GridLightInfo originInfo=infos[linearGridIndex];
+    info.Flux=0.1*flux+0.9*originInfo.Flux;
+    info.ImportanceDirection=normalize(0.1*direction+0.9*originInfo.ImportanceDirection);
+    info.ImportancePosition=0.1*position+0.9*originInfo.ImportancePosition;
+
+    infos[linearGridIndex]=info;
+}

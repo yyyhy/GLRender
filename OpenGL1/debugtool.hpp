@@ -41,6 +41,17 @@ inline void SaveFrameBuffer(const FrameBuffer& fbo) {
 	delete[] imageData;
 }
 
+inline const GLubyte* GetGLVender() {
+	return glGetString(GL_VENDOR);
+}
+
+inline const GLubyte* GetGLRenderer() {
+	return glGetString(GL_RENDERER);
+}
+
+inline const GLubyte* GetGLVersion() {
+	return glGetString(GL_VERSION);
+}
 
 #endif // DEBUG
 

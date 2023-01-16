@@ -76,35 +76,36 @@ public:
 		return area;
 	}
 };
-//bool rayTriangleIntersect(const Vector3d& v0, const Vector3d& v1,
-//	const Vector3d& v2, const Vector3d& orig,
-//	const Vector3d& dir, float& tnear, float& u, float& v)
-//{
-//	Vector3d edge1 = v1 - v0;
-//	Vector3d edge2 = v2 - v0;
-//	Vector3d pvec = glm::cross(dir, edge2);
-//	float det = glm::dot(edge1, pvec);
-//	if (det == 0 || det < 0)
-//		return false;
-//
-//	Vector3d tvec = orig - v0;
-//	u = glm::dot(tvec, pvec);
-//	if (u < 0 || u > det)
-//		return false;
-//
-//	Vector3d qvec = glm::cross(tvec, edge1);
-//	v = glm::dot(dir, qvec);
-//	if (v < 0 || u + v > det)
-//		return false;
-//
-//	float invDet = 1 / det;
-//
-//	tnear = glm::dot(edge2, qvec) * invDet;
-//	u *= invDet;
-//	v *= invDet;
-//
-//	return true;
-//}
+
+inline bool rayTriangleIntersect(const Vector3d& v0, const Vector3d& v1,
+	const Vector3d& v2, const Vector3d& orig,
+	const Vector3d& dir, float& tnear, float& u, float& v)
+{
+	Vector3d edge1 = v1 - v0;
+	Vector3d edge2 = v2 - v0;
+	Vector3d pvec = glm::cross(dir, edge2);
+	float det = glm::dot(edge1, pvec);
+	if (det == 0 || det < 0)
+		return false;
+
+	Vector3d tvec = orig - v0;
+	u = glm::dot(tvec, pvec);
+	if (u < 0 || u > det)
+		return false;
+
+	Vector3d qvec = glm::cross(tvec, edge1);
+	v = glm::dot(dir, qvec);
+	if (v < 0 || u + v > det)
+		return false;
+
+	float invDet = 1 / det;
+
+	tnear = glm::dot(edge2, qvec) * invDet;
+	u *= invDet;
+	v *= invDet;
+
+	return true;
+}
 
 static unsigned meshIndex = 0;
 
@@ -142,6 +143,8 @@ public:
 	MeshTriangle(std::vector<Vertex>& vertices, std::vector<unsigned>& indices)
 		:vertices(std::move(vertices)), indices(std::move(indices)){
 		setupMesh();
+		std::vector<Vertex>().swap(vertices);
+		std::vector<unsigned>().swap(indices);
 	};
 
 	~MeshTriangle();
@@ -177,7 +180,7 @@ public:
 	bool intersect(const Ray& ray, float& tnear, uint32_t& index) const override
 	{
 		bool intersect = false;
-		/*for (uint32_t k = 0; k < indices.size()/3; ++k) {
+		for (uint32_t k = 0; k < indices.size()/3; ++k) {
 			const Vector3d& v0 = vertices[indices[k * 3]].Position;
 			const Vector3d& v1 = vertices[indices[k * 3 + 1]].Position;
 			const Vector3d& v2 = vertices[indices[k * 3 + 2]].Position;
@@ -189,7 +192,7 @@ public:
 				index = k;
 				intersect |= true;
 			}
-		}*/
+		}
 
 		return intersect;
 	}

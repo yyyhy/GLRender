@@ -58,15 +58,13 @@ int main()
     glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_3D);
     glEnable(GL_COMPUTE_SHADER);
+    
     sceneManager.init();
 
-    const GLubyte* name = glGetString(GL_VENDOR); //返回负责当前OpenGL实现厂商的名字  
-    const GLubyte* biaoshifu = glGetString(GL_RENDERER); //返回一个渲染器标识符，通常是个硬件平台  
-    const GLubyte* OpenGLVersion = glGetString(GL_VERSION); //返回当前OpenGL实现的版本号  
-
-    printf("OpenGL实现厂商的名字：%s\n", name);
-    printf("渲染器标识符：%s\n", biaoshifu);
-    printf("OpenGL实现的版本号：%s\n", OpenGLVersion);
+    printf("OpenGL Vender：%s\n", GetGLVender());
+    printf("GPU：%s\n", GetGLRenderer());
+    printf("OpenGL Version：%s\n", GetGLVersion());
+    
     //glPatchParameteri(GL_PATCH_VERTICES, 3);
     /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
     glfwTerminate();
@@ -86,24 +84,24 @@ int main()
     std::shared_ptr<Shader> gBufferShader = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> gBufferShader2 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
-    DFGI dfgi;
+    DFGI* dfgi = new DFGI(1600, 900);
     auto sponzaObj= CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
     auto doorObj = CreateObject("objs/door.FBX");
     render.SetDefferedShader(defferedShader);
-    /*sponzaObj->buildBVH();
-    sphereObj->buildBVH();*/
+    sponzaObj->buildBVH();
+    //sphereObj->buildBVH();
     //doorObj->buildBVH();
 
 
-    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 5,2));
-    sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
-    sphereObj->AddComponent<Test>();
+    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0,0));
+    //sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
+    //sphereObj->AddComponent<Test>();
     doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
     doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
     scene.AddObject(sponzaObj);
-    scene.AddObject(sphereObj);
+    //scene.AddObject(sphereObj);
     //scene.AddObject(doorObj);
 
     auto cameraObj=CreateObject();
@@ -113,9 +111,17 @@ int main()
     scene.AddObject(cameraObj);
 
     auto objL = CreateObject();
-    DirectLight *l=new DirectLight(Spectrum(1.f, 1.f, 1.f),500000.f,glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)),true);
-    std::cout << l->GetRSM(2, 0).id << "\n";
+    DirectLight *l=new DirectLight(Spectrum(250/255.f, 240/255.f, 253/255.f),300000.f,glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)),true);
     objL->AddComponent(l);
+    for (int i = 0; i < 4; ++i) {
+        dfgi->RSMAlbedoFlag[i] = l->GetRSM(i, 1);
+        dfgi->RSMNormalRoughness[i] = l->GetRSM(i, 2);
+        dfgi->RSMPositionMetallic[i] = l->GetRSM(i, 3);
+    }
+    dfgi->LightFlux = l->GetRayPower();
+    dfgi->gAlbedoMetallic = render.GetGBuffer(2);
+    dfgi->gPositionRoughness = render.GetGBuffer(0);
+    dfgi->gNormalDepth = render.GetGBuffer(1);
     //l->isStatic = true;
     /*SpotLight* sl = new SpotLight(512,512,Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
     objL->AddComponent(sl);
@@ -177,11 +183,12 @@ int main()
     defferedShader->SetTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
     defferedShader->SetTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
     
-    /*scene.buildBVH();
-    Texture3D t3D = scene.GenerateGlobalSDF();
-    defferedShader->use();
-    defferedShader->SetTexture("uSDF", t3D);*/
-   
+    scene.buildBVH();
+    Texture3D t3D = scene.GenerateGlobalSDF(16);
+    dfgi->GlobalSDFBoxMax = scene.GetSceneBoundMax();
+    dfgi->GlobalSDFBoxMin = scene.GetSceneBoundMin();
+    dfgi->gSDF = t3D;
+
     {
         
        // probe->SetDefferedShader(defferedShader);
@@ -242,10 +249,18 @@ int main()
     //sponzaObj->LoadLightMapData();
 
     //return 0;
-    //render.OpenTAA();
+    render.OpenTAA();
+    render.AddPostProcess(dfgi);
+    float dir = -0.1;
     RENDER_MAIN_LOOP(window)
     {
+        /*dfgi->LightFlux = l->GetRayPower();
+        auto spc = l->GetSpectrum();
+        spc.x += dir;
+        if (spc.x < 0.1 || spc.x>2)
+            dir = -dir;
         
+        l->SetSpectrum(spc);*/
         processInput(window);
         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             render.openSSDO();
@@ -256,7 +271,7 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
             l->SaveRSM(2, 1);
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-            render.CaptureGBuffer();
+            dfgi->Debug();
         globalTimer.updateTime(glfwGetTime());
         scene.Update();
         render(&scene);

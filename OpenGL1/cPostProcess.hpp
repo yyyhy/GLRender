@@ -26,7 +26,8 @@ public:
 		size(bufferSize) ,
 		width(w),
 		height(h) {
-		shader = std::make_shared<Shader>(vertexPath, fragmentPath,nullptr, preComplieCmd);
+		if(vertexPath!=nullptr&&fragmentPath!=nullptr)
+			shader = std::make_shared<Shader>(vertexPath, fragmentPath,nullptr, preComplieCmd);
 		
 	}
 
@@ -38,9 +39,9 @@ public:
 
 	virtual	~PostProcess() {
 		if (needClearBuffers) {
-			if (FrameBuffers != nullptr)
+			if (FrameBuffers != nullptr && size>0)
 				delete[] FrameBuffers;
-			if (OutTextures != nullptr) {
+			if (OutTextures != nullptr && size > 0) {
 				for (int i = 0; i < size; ++i) {
 					OutTextures[i].Release();
 				}
@@ -68,8 +69,10 @@ public:
 
 	void SetInTexBuffer(const Texture& buffer) { 
 		InTexture = buffer; 
-		shader->use();
-		shader->SetTexture("tex", InTexture); 
+		if (shader) {
+			shader->use();
+			shader->SetTexture("tex", InTexture);
+		}
 	}
 
 	void SetOutFrameBuffer(FrameBuffer* outBuffer) {

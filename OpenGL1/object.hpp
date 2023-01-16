@@ -24,7 +24,7 @@ private:
     void loadModel(const std::string &path);
     void processNode(aiNode* node, const aiScene* scene);
     MeshTriangle* processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<std::shared_ptr<MeshTriangle>> meshs;
+    std::vector<std::shared_ptr<MeshTriangle>> meshes;
     std::vector<Component*> components;
     bool active;
     bool createFinish = false;
@@ -44,10 +44,10 @@ public:
         std::cout << "Copy obj\n";
 #endif // _DEBUG
 
-        for (int i = 0; i < o.meshs.size(); i++) {
+        for (int i = 0; i < o.meshes.size(); i++) {
             MeshTriangle *mesh = new MeshTriangle();
-            *mesh = *o.meshs.at(i);
-            meshs.push_back(std::shared_ptr<MeshTriangle>(mesh));
+            *mesh = *o.meshes.at(i);
+            meshes.push_back(std::shared_ptr<MeshTriangle>(mesh));
         }
         for (int i = 0; i < o.components.size(); i++) {
             Component* com = new Component(*o.components[i]);
@@ -59,7 +59,7 @@ public:
     }
 
     Object(Object&& o) noexcept {
-        meshs.swap(o.meshs);
+        meshes.swap(o.meshes);
         components.swap(o.components);
         active = o.active;
         isStatic = o.isStatic;
@@ -71,7 +71,7 @@ public:
     }
 
     Object& operator=(Object& o) {
-        meshs = o.meshs;
+        meshes = o.meshes;
         for (auto& c : o.components) {
             auto tmp = c;
             components.push_back(c);
@@ -115,26 +115,26 @@ public:
     }
 
     void SetShader(int index, std::shared_ptr<Shader> s,RenderPass p=Forward) {
-        if(index>0||index<meshs.size())
-            meshs.at(index)->SetShader(std::shared_ptr<Shader>(s),p);
+        if(index>0||index<meshes.size())
+            meshes.at(index)->SetShader(std::shared_ptr<Shader>(s),p);
         if (index == -1)
-            for (auto& i : meshs)
+            for (auto& i : meshes)
                 i->SetShader(std::shared_ptr<Shader>(s),p);
     }
 
     std::shared_ptr<Shader> GetShader(int index, RenderPass p = Forward) const{
         if (index >= 0 && index < GetMeshLength()) {
             if(p==Forward)
-                return meshs.at(index)->forwardShader;
+                return meshes.at(index)->forwardShader;
 
             else if(p==Deffered)
-                return meshs.at(index)->defferedShader;
+                return meshes.at(index)->defferedShader;
         }
             
         return NULL;
     }
 
-    int GetMeshLength() const { return meshs.size(); }
+    int GetMeshLength() const { return meshes.size(); }
 
     void SetActive(bool ac) {
         active = ac;
@@ -143,18 +143,18 @@ public:
     bool IsActive() const { return active; }
 
     void LoadLightMapData() {
-        for (auto& m : meshs)
+        for (auto& m : meshes)
             m->LoadLightMapData();
     }
 
     void buildKdTree() {
-        for (auto& m : meshs) {
+        for (auto& m : meshes) {
             m->buildKdTree();
         }
     }
 
     void buildBVH() {
-        for (auto& m : meshs) {
+        for (auto& m : meshes) {
             Vector3f posOffset = GetComponent<Transform>()->GetPosition();
             m->buildBVH();
         }

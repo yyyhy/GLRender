@@ -29,7 +29,8 @@ public:
 
 	void excute() override {
 		auto s = GetShader();
-		cs.SetTexture("sadimage", 19);
+		cs.SetTexture("sadimage", 11);
+		cs.SetTexture("RSM", 15);
 		cs.SetBindingImage(0, GetInTexBuffer());
 		/*cs.SetFloat("f", 2);
 		ComputeBuffer ssbo(sizeof(SSBO), 4);
@@ -50,7 +51,7 @@ public:
 		for (int i = 0; i < 4; ++i)
 			std::cout << data[i].col.x<<" "<<data[i].col.y<<" "<<data[i].col.z<<"  " ;
 		std::cout << "\n";*/
-		cs.Dispath(width, height, 1);
+		//cs.Dispath(width, height, 1);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), s.get(),GetOutFrameBuffer());
 	}
 };

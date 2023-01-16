@@ -29,7 +29,7 @@ void Object::processNode(aiNode* node, const aiScene* scene)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshs.push_back(std::shared_ptr<MeshTriangle>(processMesh(mesh, scene)));
+        meshes.push_back(std::shared_ptr<MeshTriangle>(processMesh(mesh, scene)));
     }
     // 接下来对它的子节点重复这一过程
     for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -108,10 +108,10 @@ void Object::draw(int meshIndex) const&
 {
     if (!createFinish)
         return;
-    if (meshIndex < meshs.size() && meshIndex >= 0)
-        meshs.at(meshIndex)->draw();
+    if (meshIndex < meshes.size() && meshIndex >= 0)
+        meshes.at(meshIndex)->draw();
     else if (meshIndex == -1)
-        for (auto& i : meshs)
+        for (auto& i : meshes)
             i->draw();
 }
 
@@ -119,7 +119,7 @@ void Object::draw(Shader* s) const&
 {
     if (!createFinish)
         return;
-    for (auto& i : meshs)
+    for (auto& i : meshes)
         i->draw(s);
 }
 
@@ -127,7 +127,7 @@ void Object::drawGBuffer() const&
 {
     if (!createFinish)
         return;
-    for (auto& i : meshs) {
+    for (auto& i : meshes) {
         i->drawGBuffer();
         //return;
     }
@@ -136,7 +136,7 @@ void Object::drawGBuffer() const&
 
 void Object::drawInstance(unsigned size) const&
 {
-    for (auto& m : meshs)
+    for (auto& m : meshes)
         m->drawInstance(size);
 }
 

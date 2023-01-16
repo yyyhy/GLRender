@@ -1,0 +1,207 @@
+#version 450 core
+#extension GL_EXT_shader_atomic_float : enable
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z=1) in;
+
+struct GridLightInfo{
+    vec3 Flux;
+    vec3 ImportanceDirection;
+    vec3 ImportancePosition;
+};
+
+layout(std140 , binding=0) uniform CameraProperty{
+    mat4 model;       //0
+    mat4 view;        //64
+    mat4 projection;  //128
+    mat4 mvp;         //192
+    mat4 lastMvp;     //256
+    vec3 CameraPos;   //320
+    vec2 Offset;      //336  272 
+};
+
+layout(binding=1,rgba32f) uniform image2D outputImage;
+uniform sampler3D gSDF;
+uniform sampler2D gPositionRoughness;
+uniform sampler2D gNormalDepth;
+uniform sampler2D gAlbedoMetallic;
+uniform vec3 SceneGridsResolution=vec3(32);
+uniform vec3 GlobalSDFBoxMin=vec3(-17.4,-1.7,-7.8); //vec3(-17.4,-1.7,-7.8);
+uniform vec3 GlobalSDFBoxMax=vec3(17.4,15.6,7.8); //vec3(17.4,15.6,7.8);
+
+layout(std430, binding = 2) buffer DFGIGridLightInfos{
+    GridLightInfo infos[];
+};
+
+layout(std430, binding =3 ) buffer DFGIGridCanSparse{
+    uint gridCanSparseIndex[];
+};
+
+vec3 WorldPosToUVW(vec3 worldPos){
+    return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
+}
+
+ivec3 WorldPosToGridIndex(vec3 worldPos){
+    vec3 uvw=WorldPosToUVW(worldPos);
+    return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
+}
+
+uint LinearGridIndex(ivec3 gridIndex){
+    return uint(gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
+} 
+
+const float PI = 3.14159265359;
+
+float DistributionGGX(float NdotH, float roughness){
+    float a=roughness;
+    float ggx=a*a/(PI*pow(NdotH*NdotH*(a*a-1.0)+1.0,2.0));
+    return ggx;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness){
+    float k=pow(1.0+roughness,2.0)/8.0;
+    float g=NdotV/(NdotV*(1.0-k)+k);
+    return g;
+}
+
+float GeometrySmith(float NdotV,float NdotL, float roughness){
+    return GeometrySchlickGGX(NdotV,roughness)*GeometrySchlickGGX(NdotL,roughness);
+}
+
+vec3 fresnelSchlick(vec3 F0, float VdotH){
+    return F0+(1.0-F0)*pow(1.0-VdotH,5.0);
+}
+
+float saturate(float a){
+    if(a<0)
+        return 0.0;
+    if(a>1)
+        return 1.0;
+    return a;
+}
+
+vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
+    
+    vec3 albedo=texture(gAlbedoMetallic,tex).xyz;
+    float rough=texture(gPositionRoughness,tex).w;
+    //rough=0.5;
+    vec3 F0 = vec3(0.04); 
+    float metallic=texture(gAlbedoMetallic,tex).w;
+    //metallic=0.5;
+    F0 = mix(F0, albedo, metallic);
+
+    vec3 H = normalize(V + L);
+    float NdotL = max(dot(N, L), 0.001); 
+    float NdotV = max(dot(N, V), 0.001);
+    float VdotH = max(dot(V,H),0.001);
+    float NdotH = max(dot(N,H),0.001);
+
+    float NDF = DistributionGGX(NdotH, rough);   
+    float G   = GeometrySmith(NdotL,NdotV, rough); 
+    vec3 F = fresnelSchlick(F0, VdotH);
+
+    vec3 numerator    = NDF * G * F; 
+    float denominator = (4.0 * NdotL * NdotV);
+    vec3 BRDF = numerator / vec3(denominator,denominator,denominator);
+    return BRDF;
+}
+
+vec3 getNormal(vec3 p) {
+    float dx = (texture3D(gSDF,p + vec3(0.01, 0, 0)).x - texture3D(gSDF,p).x) / 0.01;
+    float dy = (texture3D(gSDF,p + vec3(0, 0.01, 0)).x - texture3D(gSDF,p).x) / 0.01;
+    float dz = (texture3D(gSDF,p + vec3(0, 0, 0.01)).x - texture3D(gSDF,p).x) / 0.01;
+    return normalize(vec3(dx, dy, dz));
+}
+
+shared float Lox;
+shared float Loy;
+shared float Loz;
+
+void main(){
+
+    
+    ivec2 uvIndex = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 gridIndexOffset= ivec3(gl_LocalInvocationID.xyz-2U);
+    vec2 uv=vec2(uvIndex)/vec2(1600,900);
+    vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
+    vec3 N=texture2D(gNormalDepth,uv).xyz;
+    
+    //validate gSDF
+    // vec3 uvw=WorldPosToUVW(worldPos);
+    // uvw.x=1-uvw.x;
+    // uvw.z=1-uvw.z;
+    // vec3 normal=getNormal(uvw);
+    // imageStore(outputImage,uvIndex,vec4(N,1));return;
+    //
+    
+    vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
+    if(length(N)<0.99)
+        return;
+    vec3 V=normalize(CameraPos-worldPos); 
+
+    // if(gridIndexOffset.x==0U&&gridIndexOffset.y==0U&&gridIndexOffset.z==0U){
+    //     Lox=0;
+    //     Loy=0;
+    //     Loz=0;
+    // }
+    // memoryBarrier();
+
+    ivec3 gridIndexLocal=WorldPosToGridIndex(worldPos);
+    uint linearGridIndex=LinearGridIndex(gridIndexLocal);
+    gridCanSparseIndex[linearGridIndex]=1;
+    //test info
+    // GridLightInfo info=infos[linearGridIndex];
+    // vec3 colo=info.Flux;
+    // imageStore(outputImage,uvIndex,vec4(colo,1));return;
+    //
+
+    const float sqrt12=3.4641;
+    vec3 Lo=vec3(0);
+    int totol=0;
+    
+    for(int x=-1;x<=1;++x){
+        for(int y=-1;y<=1;++y){
+            for(int z=-1;z<=1;++z){
+                ivec3 gridIndexOffset= ivec3(x,y,z);
+                ivec3 gridIndex=gridIndexOffset+gridIndexLocal;
+                if(gridIndex.x<0||gridIndex.y<0||gridIndex.z<0||
+                    gridIndex.x>31||gridIndex.y>31||gridIndex.z>31)
+                continue;
+                uint linearGridIndex=LinearGridIndex(gridIndex);
+                GridLightInfo info=infos[linearGridIndex];
+
+                vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+                float attenuation=1-length(worldPos-info.ImportancePosition)/gridSize.x/sqrt12;
+                vec3 Li=info.Flux*attenuation;
+                float NdotL=max(0,dot(N,-info.ImportanceDirection));
+                vec3 Loxyz=calcMicroFacedBRDF(N,-info.ImportanceDirection,V,uv)*Li*NdotL;
+                Lo+=max(Loxyz,0);
+                totol++;
+            }
+        }
+    }
+
+    // gridIndexLocal+=gridIndexOffset;
+    // if((gridIndexLocal.x>=0&&gridIndexLocal.y>=0&&gridIndexLocal.z>=0&&
+    //     gridIndexLocal.x<=31&&gridIndexLocal.y<=31&&gridIndexLocal.z<=31))
+    // {
+    //     uint linearGridIndex=LinearGridIndex(gridIndexLocal);
+    //     GridLightInfo info=infos[linearGridIndex];
+
+    //     vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+    //     float attenuation=1-length(worldPos-info.ImportancePosition)/gridSize.x/sqrt12;
+    //     vec3 Li=info.Flux*attenuation;
+    //     float NdotL=max(0,dot(N,-info.ImportanceDirection));
+    //     vec3 Loi=calcMicroFacedBRDF(N,-info.ImportanceDirection,V,uv)*Li*NdotL;
+    //     Lox+=Loi.x;
+    //     Loy+=Loi.y;
+    //     Loz+=Loi.z;
+    // }           
+    
+    // memoryBarrier();
+
+    // vec3 Lo=vec3(Lox,Loy,Loz);
+    // if(gridIndexOffset.x==0U&&gridIndexOffset.y==0U&&gridIndexOffset.z==0U){
+        vec3 col=imageLoad(outputImage,uvIndex).xyz+Lo/27.0;
+        imageStore(outputImage,uvIndex,vec4(col,1));
+    //}
+}

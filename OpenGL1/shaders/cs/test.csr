@@ -16,7 +16,7 @@ uniform vec3 offset;
 uniform float f;
 void main() {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-    vec3 p0=texture2D(sadimage,(pos.xy)/vec2(1600,900)).xyz;
+    vec3 p0=texture2D(RSM,(pos.xy)/vec2(1600,900)).xyz;
     vec4 color = vec4(0.0,0.0,0.0,1.0);
     
 //此处可以做一些操作，颜色值改变之类的，我这边示例只做了个提取绿色通道图像

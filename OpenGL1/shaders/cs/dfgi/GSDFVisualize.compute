@@ -1,0 +1,65 @@
+
+#version 460 core
+layout(local_size_x = 1, local_size_y = 1) in;
+
+uniform sampler3D GlobalSDF;
+uniform vec3 GlobalSDFBoxMin;
+uniform vec3 GlobalSDFBoxMax;
+uniform vec3 
+
+struct DFGIRay{
+    vec3 direction;
+    vec3 hitPosition;
+    vec3 flux;
+
+    uint refCount;
+};
+
+layout(std140 , binding=0) uniform CameraMats{
+    mat4 model;       //0
+    mat4 view;        //64
+    mat4 projection;  //128
+    mat4 mvp;         //192
+    mat4 lastMvp;     //256
+    vec3 CameraPos;   //320
+    vec2 Offset;      //336  352 
+};
+
+vec3 WorldPosToUVW(vec3 worldPos){
+    return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
+}
+
+bool UVWIsValid(vec3 uvw){
+    return uvw.x>=0.0&&uvw.x<=1.0
+        &&uvw.y>=0.0&&uvw.y<=1.0
+        &&uvw.z>=0.0&&uvw.z<=1.0;
+}
+
+const int MAX_TRACE_STEPS = 128;
+const float EPS = 0.1;
+
+void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
+    vec3 currPosition=start;
+    for(int i=0;i<MAX_TRACE_STEPS;++i){
+        vec3 uvw=WorldPosToUVW(currPosition);
+        if(UVWIsValid(uvw)){
+            float sdfValue=texture3D(GlobalSDF,uvw).x;
+            if(sdfValue<EPS){
+                ray.hitPosition=currPosition;
+                ray.refCount++;
+            }
+            else{
+                currPosition+=direction*sdfValue;
+            }
+        }
+        else{
+            return;
+        }
+    }
+
+}
+
+
+void main(){
+
+}

@@ -422,7 +422,7 @@ public:
 		defferedShader = s; 
 	}
 	
-	unsigned GetGBuffer(unsigned i) const { if (i >= 0 && i < GBUFFER_SIZE) return gColorBuffers[i].id; return 0; }
+	Texture2D& GetGBuffer(unsigned i) const {  return const_cast<Texture2D&>(gColorBuffers[i]);}
 
 	void openSSDO() &  {
 		if(!ssdoOn)
