@@ -1,7 +1,6 @@
 
 
 #ifndef DEBUG_TOOL_H
-#ifdef _DEBUG
 #define DEBUG_TOOL_H
 #include"frameBuffer.hpp"
 #include"stb.hpp"
@@ -16,6 +15,7 @@ inline void GetSupportExtensions() {
 	glGetIntegerv(GL_NUM_EXTENSIONS, &n);
 	for (i = 0; i < n; i++) {
 		std::string extension = (char*)glGetStringi(GL_EXTENSIONS, i);
+		std::cout << extension << "\n";
 		g_supportExtensions.push_back(extension);
 	}
 }
@@ -52,8 +52,6 @@ inline const GLubyte* GetGLRenderer() {
 inline const GLubyte* GetGLVersion() {
 	return glGetString(GL_VERSION);
 }
-
-#endif // DEBUG
 
 
 

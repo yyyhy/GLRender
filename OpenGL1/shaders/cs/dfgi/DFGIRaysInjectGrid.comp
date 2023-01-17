@@ -41,7 +41,7 @@ vec3 GridIndexToWorldPos(ivec3 gridIndex){
 }
 
 void main(){
-    ivec3 gridIndex = ivec3(gl_GlobalInvocationID.xyz);
+    ivec3 gridIndex = ivec3(gl_WorkGroupID.xyz);
     vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
     uint linearGridIndex=LinearGridIndex(gridIndex);
     uint offset=linearGridIndex*16;
@@ -66,10 +66,12 @@ void main(){
     // info.ImportanceDirection=direction;
     // info.ImportancePosition=position;
 
+const float MIX_FACTOR=0.01;
+
     GridLightInfo originInfo=infos[linearGridIndex];
-    info.Flux=0.1*flux+0.9*originInfo.Flux;
-    info.ImportanceDirection=normalize(0.1*direction+0.9*originInfo.ImportanceDirection);
-    info.ImportancePosition=0.1*position+0.9*originInfo.ImportancePosition;
+    info.Flux=mix(originInfo.Flux,flux,MIX_FACTOR);
+    info.ImportanceDirection=normalize(mix(originInfo.ImportanceDirection,direction,MIX_FACTOR));
+    info.ImportancePosition=mix(originInfo.ImportancePosition,position,MIX_FACTOR);
 
     infos[linearGridIndex]=info;
 }

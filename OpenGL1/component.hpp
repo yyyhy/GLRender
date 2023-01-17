@@ -36,9 +36,7 @@ public:
 
     bool IsEnable() const { return enable; }
 
-#ifdef _DEBUG
     std::string name;
-#endif // _DEBUG
 
     Object* object;
     bool enable=true;

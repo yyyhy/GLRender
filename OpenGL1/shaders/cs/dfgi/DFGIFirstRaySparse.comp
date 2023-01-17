@@ -142,8 +142,8 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 
 void main() {
     uint sampleIndex=gl_LocalInvocationID.x;
-    vec2 Xi=Hammersley(sampleIndex-1U,16);
-    ivec2 uvIndex = ivec2(gl_GlobalInvocationID.xy+SampleOffset)*DOWN_SAMPLE;
+    vec2 Xi=Hammersley(sampleIndex,16);
+    ivec2 uvIndex = ivec2(gl_WorkGroupID.xy+SampleOffset)*DOWN_SAMPLE;
     vec2 uv=uvIndex/vec2(1600,900);
     //uv+=Xi*DOWN_SAMPLE*DOWN_SAMPLE/vec2(1600,900);
 
@@ -177,8 +177,8 @@ void main() {
             ray.direction=L;
             ivec3 gridIndex=WorldPosToGridIndex(ray.hitPosition);
             uint linearIndex=LinearGridIndex(gridIndex);
-            uint rayCount=gridRayCounter[linearIndex];
-            gridRayCounter[linearIndex]=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
+            uint rayCount=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
+            gridRayCounter[linearIndex]%=GRID_MAX_CONTAINS_RAY;
             uint rayIndex=linearIndex*GRID_MAX_CONTAINS_RAY+rayCount;
             rays[rayIndex]=ray;
         }

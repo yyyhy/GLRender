@@ -12,12 +12,13 @@ void DFGI::excute()
 
 	DFGIFirstRaySparseCS.SetBuffer(0, DFGIRaysBuffer);
 	DFGIFirstRaySparseCS.SetBuffer(1, DFGIRayCounterBuffer);
+	DFGIFirstRaySparseCS.SetTexture("GlobalSDF", gSDF);
 
 	for (int i = 0; i < 4; ++i) {
-		DFGIFirstRaySparseCS.SetTexture("GlobalSDF", gSDF);
-		DFGIFirstRaySparseCS.SetTexture("RSMAlbedoFlag", RSMAlbedoFlag[0]);
-		DFGIFirstRaySparseCS.SetTexture("RSMNormalRoughness", RSMNormalRoughness[0]);
-		DFGIFirstRaySparseCS.SetTexture("RSMPositionMetallic", RSMPositionMetallic[0]);
+		
+		DFGIFirstRaySparseCS.SetTexture("RSMAlbedoFlag", RSMAlbedoFlag[i]);
+		DFGIFirstRaySparseCS.SetTexture("RSMNormalRoughness", RSMNormalRoughness[i]);
+		DFGIFirstRaySparseCS.SetTexture("RSMPositionMetallic", RSMPositionMetallic[i]);
 
 		DFGIFirstRaySparseCS.Dispath(width / 16, height / 16, 1);
 	}
@@ -35,6 +36,9 @@ void DFGI::excute()
 	
 	//
 	DFGIApplyCS.Use();
+	DFGIApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
+	DFGIApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
+	DFGIApplyCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
 	DFGIApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
 	DFGIApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
 	DFGIApplyCS.SetTexture("gNormalDepth", gNormalDepth);

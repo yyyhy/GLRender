@@ -76,7 +76,7 @@ void Texture2D::Construct(unsigned w, unsigned h, unsigned iFormat, unsigned for
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture3D::Texture3D(float* data, int w, int h, int d, unsigned channel):Texture(GL_TEXTURE_3D),d(d)
+Texture3D::Texture3D(float* data, int w, int h, int d, unsigned iFormat,unsigned format):Texture(GL_TEXTURE_3D),d(d)
 {
     this->w = w;
     this->h = h;
@@ -90,9 +90,7 @@ Texture3D::Texture3D(float* data, int w, int h, int d, unsigned channel):Texture
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glGenerateMipmap(GL_TEXTURE_3D);
-
-    glTexImage3D(GL_TEXTURE_3D, 0, channel, w, h, d, 0, channel, GL_FLOAT, data);
+    glTexImage3D(GL_TEXTURE_3D, 0, iFormat, w, h, d, 0, format, GL_FLOAT, data);
     glBindTexture(GL_TEXTURE_3D, 0);
 }
 

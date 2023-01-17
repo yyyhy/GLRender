@@ -57,7 +57,7 @@ struct Texture3D: public Texture{
     unsigned d;
     Bounds3 box;
     Texture3D():d(0){}
-    Texture3D(float* data, int w, int h, int d,unsigned channel);
+    Texture3D(float* data, int w, int h, int d,unsigned,unsigned);
     Texture3D(int w, int h, int d, unsigned channel);
 };
 

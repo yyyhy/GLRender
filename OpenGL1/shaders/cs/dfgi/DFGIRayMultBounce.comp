@@ -36,14 +36,14 @@ layout(std430, binding = 3) buffer DFGIGridCanSparse{
 layout(binding=4,rgba32f) uniform image2D outputImage;
 
 const int GRID_MAX_CONTAINS_RAY=16;
-const int RAY_MAX_REFCOUNT=3;
+const int RAY_MAX_REFCOUNT=8;
 uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
 uniform sampler2D gAlbedoMetallic;
 uniform sampler3D GlobalSDF;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
-uniform vec3 SceneGridsResolution=vec3(32);
+uniform vec3 SceneGridsResolution;
 
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
@@ -150,7 +150,7 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 
 
 void main(){
-    ivec3 gridIndex = ivec3(gl_GlobalInvocationID.xyz);
+    ivec3 gridIndex = ivec3(gl_WorkGroupID.xyz);
     uint linearGridIndex=LinearGridIndex(gridIndex);
     uint rayIndex=gl_LocalInvocationID.x;
     uint sampleIndex=gl_LocalInvocationID.y;
@@ -170,7 +170,7 @@ void main(){
             
             vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
             vec3 N=texture2D(gNormalDepth,uv).xyz;
-            vec2 Xi=Hammersley(sampleIndex-1U,16);
+            vec2 Xi=Hammersley(sampleIndex,16);
 
             if(length(N)>0.99){
                 vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
@@ -192,8 +192,8 @@ void main(){
                         ray.direction=L;
                         ivec3 gridIndex=WorldPosToGridIndex(ray.hitPosition);
                         uint linearIndex=LinearGridIndex(gridIndex);
-                        uint rayCount=gridRayCounter[linearIndex];
-                        gridRayCounter[linearIndex]=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
+                        uint rayCount=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
+                        gridRayCounter[linearIndex]%=GRID_MAX_CONTAINS_RAY;
                         uint rayIndex=linearIndex*GRID_MAX_CONTAINS_RAY+rayCount;
                         rays[rayIndex]=ray;
                     }
@@ -204,9 +204,7 @@ void main(){
 
 
         }
-        else{
-            imageStore(outputImage,ivec2(gridIndex.xy*10+gl_LocalInvocationID.xy),vec4(10,1,1,1));
-        }
+        
 
     }
 

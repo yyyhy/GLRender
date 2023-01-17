@@ -64,7 +64,7 @@ int main()
     printf("OpenGL Vender£º%s\n", GetGLVender());
     printf("GPU£º%s\n", GetGLRenderer());
     printf("OpenGL Version£º%s\n", GetGLVersion());
-    
+
     //glPatchParameteri(GL_PATCH_VERTICES, 3);
     /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
     glfwTerminate();
@@ -87,21 +87,25 @@ int main()
     DFGI* dfgi = new DFGI(1600, 900);
     auto sponzaObj= CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
+    //auto sphereObj1 = CreateObject("objs/sphere.obj");
     auto doorObj = CreateObject("objs/door.FBX");
     render.SetDefferedShader(defferedShader);
     sponzaObj->buildBVH();
     //sphereObj->buildBVH();
+    //sphereObj1->buildBVH();
     //doorObj->buildBVH();
 
 
     sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0,0));
+    //sphereObj1->GetComponent<Transform>()->Translate(glm::vec3(0, 4, 0));
     //sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
     //sphereObj->AddComponent<Test>();
     doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
-    doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
+    //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
     scene.AddObject(sponzaObj);
     //scene.AddObject(sphereObj);
+    //scene.AddObject(sphereObj1);
     //scene.AddObject(doorObj);
 
     auto cameraObj=CreateObject();
@@ -177,6 +181,7 @@ int main()
 
     sponzaObj->SetShader(-1, gBufferShader, Deffered);
     sphereObj->SetShader(-1, gBufferShader2, Deffered);
+    //sphereObj1->SetShader(-1, gBufferShader2, Deffered);
     doorObj->SetShader(-1, gBufferShader2, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
 
@@ -184,10 +189,11 @@ int main()
     defferedShader->SetTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
     
     scene.buildBVH();
-    Texture3D t3D = scene.GenerateGlobalSDF(16);
-    dfgi->GlobalSDFBoxMax = scene.GetSceneBoundMax();
-    dfgi->GlobalSDFBoxMin = scene.GetSceneBoundMin();
-    dfgi->gSDF = t3D;
+    auto gene = scene.GetGlobalSDFGenerator({ 32,32,32 });
+    dfgi->gSDF = gene.GenerateSDF();
+    dfgi->GlobalSDFBoxMax = gene.SDFMax;
+    dfgi->GlobalSDFBoxMin = gene.SDFMin;
+    
 
     {
         
@@ -249,7 +255,7 @@ int main()
     //sponzaObj->LoadLightMapData();
 
     //return 0;
-    render.OpenTAA();
+    //render.OpenTAA();
     render.AddPostProcess(dfgi);
     float dir = -0.1;
     RENDER_MAIN_LOOP(window)

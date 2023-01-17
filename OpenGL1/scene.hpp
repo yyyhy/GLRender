@@ -173,9 +173,9 @@ public:
 		return box.pMin;
 	}
 
-	Texture3D GenerateGlobalSDF(unsigned resolution) {
-		SDF s(resolution);
-		return s.GenerateSDF(bvh);
+	SDF GetGlobalSDFGenerator(glm::vec3 resolution) {
+		SDF s(bvh,resolution);
+		return s;
 	}
 
 	const std::vector<Photon>& getPhotons() const { return photonMappingEngine->getPhotons(); }
