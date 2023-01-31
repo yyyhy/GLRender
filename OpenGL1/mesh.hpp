@@ -281,8 +281,8 @@ public:
 			ptrs.push_back(&triangles[i]);
 
 		bvh = new BVH(ptrs);
-		std::cout << box.pMin.x << " " << box.pMin.y << " " << box.pMin.z << " ; " <<
-			box.pMax.x << " " << box.pMax.y << " " << box.pMax.z << "\n";
+		/*std::cout << box.pMin.x << " " << box.pMin.y << " " << box.pMin.z << " ; " <<
+			box.pMax.x << " " << box.pMax.y << " " << box.pMax.z << "\n";*/
 	}
 
 	friend class Scene;

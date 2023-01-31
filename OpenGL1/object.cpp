@@ -123,6 +123,11 @@ void Object::draw(Shader* s) const&
         i->draw(s);
 }
 
+void Object::draw(int index, Shader* s) const&
+{
+    meshes.at(index)->draw(s);
+}
+
 void Object::drawGBuffer() const&
 {
     if (!createFinish)

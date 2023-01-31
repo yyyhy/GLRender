@@ -85,6 +85,8 @@ public:
 
     void draw(Shader* s) const&;
 
+    void draw(int index, Shader* s)const&;
+
     void drawGBuffer() const&;
 
     void drawInstance(unsigned) const&;
@@ -154,10 +156,14 @@ public:
     }
 
     void buildBVH() {
+        int idx = 0;
         for (auto& m : meshes) {
             Vector3f posOffset = GetComponent<Transform>()->GetPosition();
             m->buildBVH();
+            std::cout << "object bvh generate: " << idx << "/" << meshes.size()<<"\r";
+            idx++;
         }
+        std::cout << "\n";
     }
 
     bool isStatic;

@@ -1,6 +1,7 @@
 #version 450 core
 #extension GL_EXT_shader_atomic_float : enable
-
+#extension GL_EXT_transform_feedback : enable
+#pragma debug(on)
 #define size 3
 
 layout(local_size_x = size, local_size_y = size, local_size_z=size) in;
@@ -21,7 +22,7 @@ layout(std140 , binding=0) uniform CameraProperty{
     vec2 Offset;      //336  272 
 };
 
-layout(binding=1,rgba32f) uniform image2D outputImage;
+layout(binding=1,rgba32f) uniform image2D DFGIResult;
 uniform sampler3D gSDF;
 uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
@@ -117,6 +118,7 @@ vec3 getNormal(vec3 p) {
 shared int Lox;
 shared int Loy;
 shared int Loz;
+shared uint cnt;
 
 bool UVWIsValid(vec3 uvw){
     return uvw.x>=0.0&&uvw.x<=1.0
@@ -129,11 +131,14 @@ void main(){
     
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
     ivec3 gridIndexOffset= ivec3(gl_LocalInvocationID.xyz-1U);
-    vec2 uv=vec2(uvIndex)/vec2(1600,900);
+    vec2 uv=vec2(uvIndex)/vec2(800,450);
     vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
     vec3 N=texture2D(gNormalDepth,uv).xyz;
-    if(length(N)<0.98)
+    if(N.x==0&&N.y==0&&N.z==0){
+        imageStore(DFGIResult,uvIndex,vec4(0));
         return;
+    }
+        
     //validate gSDF
     // vec3 uvw=WorldPosToUVW(worldPos);
     // if(!UVWIsValid(uvw))
@@ -152,6 +157,7 @@ void main(){
         Lox=0;
         Loy=0;
         Loz=0;
+        cnt=0;
     }
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
@@ -164,31 +170,6 @@ void main(){
     // imageStore(outputImage,uvIndex,vec4(colo,1));return;
     //
     const float sqrt12=3.4641;
-    
-    // vec3 Lo=vec3(0);
-    // int totol=0;
-    
-    // for(int x=-1;x<=1;++x){
-    //     for(int y=-1;y<=1;++y){
-    //         for(int z=-1;z<=1;++z){
-    //             ivec3 gridIndexOffset= ivec3(x,y,z);
-    //             ivec3 gridIndex=gridIndexOffset+gridIndexLocal;
-    //             if(gridIndex.x<0||gridIndex.y<0||gridIndex.z<0||
-    //                 gridIndex.x>31||gridIndex.y>31||gridIndex.z>31)
-    //             continue;
-    //             uint linearGridIndex=LinearGridIndex(gridIndex);
-    //             GridLightInfo info=infos[linearGridIndex];
-
-    //             vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
-    //             float attenuation=1-length(worldPos-info.ImportancePosition)/gridSize.x/sqrt12;
-    //             vec3 Li=info.Flux*attenuation;
-    //             float NdotL=max(0,dot(N,-info.ImportanceDirection));
-    //             vec3 Loxyz=calcMicroFacedBRDF(N,-info.ImportanceDirection,V,uv)*Li*NdotL;
-    //             Lo+=max(Loxyz,0);
-    //             totol++;
-    //         }
-    //     }
-    // }
 
     gridIndexLocal+=gridIndexOffset;
     if((gridIndexLocal.x>=0&&gridIndexLocal.y>=0&&gridIndexLocal.z>=0&&
@@ -202,19 +183,18 @@ void main(){
         vec3 Li=info.Flux*attenuation;
         float NdotL=max(0,dot(N,-info.ImportanceDirection));
         vec3 Loi=calcMicroFacedBRDF(N,-info.ImportanceDirection,V,uv)*Li*NdotL;
-        // Lox+=Loi.x;
-        // Loy+=Loi.y;
-        // Loz+=Loi.z;
-        atomicAdd(Lox,int(Loi.x*1024));
-        atomicAdd(Loy,int(Loi.y*1024));
-        atomicAdd(Loz,int(Loi.z*1024));
+ 
+        atomicAdd(Lox,int(Loi.x*4024));
+        atomicAdd(Loy,int(Loi.y*4024));
+        atomicAdd(Loz,int(Loi.z*4024));
+        atomicAdd(cnt,1U);
     }           
      
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
-    vec3 Lo=vec3(Lox,Loy,Loz)/1024;
+    
     if(gridIndexOffset.x==0U&&gridIndexOffset.y==0U&&gridIndexOffset.z==0U){
-        vec3 col=imageLoad(outputImage,uvIndex).xyz+Lo/27.0;
-        imageStore(outputImage,uvIndex,vec4(col,1));
+        vec3 Lo=vec3(Lox,Loy,Loz)/4024/float(cnt);
+        imageStore(DFGIResult,uvIndex,vec4(Lo,1));
     }
 }

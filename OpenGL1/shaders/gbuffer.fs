@@ -16,6 +16,7 @@ in vec3 LightMapCol;
 in vec3 LightMapDir;
 in vec4 preScreenPos;
 in vec4 currScreenPos;
+uniform vec3 baseColor=vec3(0);
 
 uniform sampler2D albedoMap;
 uniform sampler2D metallicMap;
@@ -41,7 +42,7 @@ void main()
     float r=texture2D(roughnessMap,TexCoords).x;
     gPositionRoughness = vec4(FragPos,roughInvert? 1-r:r);
     
-    gAlbedoMetallic.rgb = texture(albedoMap, TexCoords).rgb;
+    gAlbedoMetallic.xyz = (texture2D(albedoMap, TexCoords).xyz+baseColor);
     
     gAlbedoMetallic.w = texture(metallicMap, TexCoords).x;
     gLightMap=vec4(LightMapCol,1);
@@ -50,10 +51,16 @@ void main()
     gLightMapDir=vec4(LightMapDir,texture2D(wetMap,TexCoords,0).x);
 
     vec3 normal=texture2D(normalMap,TexCoords,0).xyz;
-    normal=normal*2.0-1.0;
-    mat3 TBN=mat3(Tangent,Bitangent,Normal);
-    //normalize(TBN*normal)
-    gNormalDepth=vec4(normalize(TBN*normal),LinearizeDepth(gl_FragCoord.z));
+    if(normal.z>0.01){
+        normal=normal*2.0-1.0;
+        mat3 TBN=mat3(Tangent,Bitangent,Normal);
+        //normalize(TBN*normal)
+        gNormalDepth=vec4(normalize(TBN*normal),LinearizeDepth(gl_FragCoord.z));
+    }
+    else{
+        gNormalDepth=vec4(Normal,LinearizeDepth(gl_FragCoord.z));
+    }
+    
     vec2 currPos=(currScreenPos.xy/currScreenPos.w)*0.5+0.5;
     vec2 prePos=(preScreenPos.xy/preScreenPos.w)*0.5+0.5;
     gVelo=currPos-prePos;

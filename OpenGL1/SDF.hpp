@@ -49,7 +49,7 @@ public:
 					data[p] = sdfValue*inside;
 					if (sdfValue == 99999)
 						data[p] = 0;
-					std::cout << "sdf... " << x * resolution.y * resolution.z + y * resolution.x + z << "/" << resolution.x * resolution.y * resolution.z << "\r";
+					std::cout << "sdf generate: " << x * resolution.y * resolution.z + y * resolution.x + z << "/" << resolution.x * resolution.y * resolution.z << "\r";
 				}
 			}
 		}

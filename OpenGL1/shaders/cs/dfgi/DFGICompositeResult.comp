@@ -1,0 +1,15 @@
+#version 450 core
+#pragma debug(on)
+
+layout(local_size_x = 1, local_size_y = 1) in;
+
+uniform sampler2D DFGIResult;
+layout(binding=0,rgba32f) uniform image2D outputImage;
+
+void main(){
+    ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
+    vec2 uv=uvIndex/vec2(1600,900);
+
+    vec3 Lo=imageLoad(outputImage,uvIndex).xyz+texture2D(DFGIResult,uv).xyz;
+    imageStore(outputImage,uvIndex,vec4(Lo,1));
+}

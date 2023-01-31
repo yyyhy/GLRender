@@ -1,0 +1,33 @@
+#version 450 core
+#extension GL_EXT_shader_atomic_float : enable
+
+layout(local_size_x = 16, local_size_y = 1) in;
+struct DFGIRay{
+    vec3 direction;
+    vec3 hitPosition;
+    vec3 flux;
+
+    uint refCount;
+    uint liveCount;
+};
+
+
+layout(std430, binding = 0) buffer DFGIRaysBuffer{
+    DFGIRay rays[];
+};
+
+uniform vec3 SceneGridsResolution;
+const int GRID_MAX_CONTAINS_RAY=16;
+
+uint LinearGridIndex(ivec3 gridIndex){
+    return uint(gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
+} 
+
+void main(){
+    ivec3 gridIndex = ivec3(gl_WorkGroupID.xyz);
+    uint linearGridIndex=LinearGridIndex(gridIndex);
+    uint rayIndex=gl_LocalInvocationID.x;
+
+    if(rays[linearGridIndex*GRID_MAX_CONTAINS_RAY+rayIndex].liveCount>0)
+        rays[linearGridIndex*GRID_MAX_CONTAINS_RAY+rayIndex].liveCount=rays[linearGridIndex*GRID_MAX_CONTAINS_RAY+rayIndex].liveCount-1;
+}

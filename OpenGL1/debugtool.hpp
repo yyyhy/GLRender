@@ -5,6 +5,7 @@
 #include"frameBuffer.hpp"
 #include"stb.hpp"
 
+
 // static API
 
 static std::vector<std::string> g_supportExtensions;
@@ -32,11 +33,11 @@ inline bool CheckExtension(const std::string& extensionName) {
 }
 
 inline void SaveFrameBuffer(const FrameBuffer& fbo) {
-	unsigned char* imageData = new unsigned char[fbo.w * fbo.h * 4] { 255 };
+	unsigned char* imageData = new unsigned char[fbo.w * fbo.h * 3] { 255 };
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo.frameBuffer);
 	glReadPixels(0, 0, fbo.w, fbo.h, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)imageData);
 	std::string file = "baking/capture.png";
-	stbi_write_png(file.c_str(), fbo.w, fbo.h, 4, imageData, 0);
+	stbi_write_png(file.c_str(), fbo.w, fbo.h, 3, imageData, 0);
 	stbi_flip_vertically_on_write(1);
 	delete[] imageData;
 }
@@ -53,6 +54,11 @@ inline const GLubyte* GetGLVersion() {
 	return glGetString(GL_VERSION);
 }
 
-
+//inline void OutputMessage(const std::string mes) {
+//	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN);
+//	std::cout << "Message: ";
+//	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+//	std::cout << mes;
+//}
 
 #endif

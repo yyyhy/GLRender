@@ -103,7 +103,7 @@ public:
 	}
 
 	void buildBVH() {
-		printf(" - Generating scene's BVH...\n\n");
+		printf("Generate scene BVH...\n\n");
 		std::vector<Shape*> meshs;
 		for (auto& i : objects) {
 			for (int j = 0; j < i->GetMeshLength(); j++) {
@@ -112,6 +112,7 @@ public:
 			}
 		}
 		this->bvh = new BVH(meshs);
+		printf("scene BVH ok\n");
 	}
 	
 	void mappingPhotons(Light* l, int maxPhotons= PHOTON_MOUNT) {

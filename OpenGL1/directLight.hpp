@@ -36,7 +36,7 @@ private:
 
 	Texture2D* RSMTextureBuffers;
 
-	const unsigned RSM_SIZE = 4;
+	const unsigned RSM_SIZE = 5;
 public:
 
 	DirectLight():Light(RSM_W / 4, RSM_H / 4, CSM_MAX_LEVEL),direction(glm::vec3(0.f,-1.f,0.f)),radius(50){

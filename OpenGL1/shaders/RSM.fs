@@ -7,6 +7,7 @@ layout (location = 0) out vec4 RSMDepth;
 layout (location = 1) out vec4 RSMAlbedoFlag;
 layout (location = 2) out vec4 RSMNormalRoughness;
 layout (location = 3) out vec4 RSMPositionMetallic;
+layout (location = 4) out vec4 RSMTangent;
 
 in vec2 TexCoords;
 in vec3 FragPos;
@@ -49,10 +50,18 @@ void main()
 
     float rough=texture2D(roughnessMap,TexCoords).x;
     vec3 normal=texture2D(normalMap,TexCoords,0).xyz;
-    normal=normal*2.0-1.0;
-    mat3 TBN=mat3(Tangent,Bitangent,Normal);
-    RSMNormalRoughness=vec4(TBN*normal,rough);
+    if(normal.z>0.01){
+        normal=normal*2.0-1.0;
+        mat3 TBN=mat3(Tangent,Bitangent,Normal);
+        RSMNormalRoughness=vec4(normalize(TBN*normal),rough);
+    }
+    else{
+        RSMNormalRoughness=vec4(normalize(Normal),rough);
+    }
+    
 
     float mettalic=texture(metallicMap, TexCoords).x;
     RSMPositionMetallic=vec4(FragPos,mettalic);
+
+    RSMTangent.xyz=Tangent;
 }

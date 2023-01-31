@@ -11,7 +11,8 @@ struct DFGIRay
 	glm::vec3 direction; char tmp0[4];
 	glm::vec3 hitPosition; char tmp1[4];
 	glm::vec3 flux; 
-	unsigned refCount; 
+	unsigned refCount;
+	unsigned liveCount; char tmp2[12];
 };
 
 struct DFGIGridLightInfo

@@ -25,6 +25,7 @@
 #include"computeShader.hpp"
 #include"DFGI.hpp"
 
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -63,14 +64,29 @@ int main()
 
     printf("OpenGL Vender£º%s\n", GetGLVender());
     printf("GPU£º%s\n", GetGLRenderer());
-    printf("OpenGL Version£º%s\n", GetGLVersion());
-
+    printf("OpenGL Version£º%s\n\n", GetGLVersion());
+    //GetSupportExtensions();
     //glPatchParameteri(GL_PATCH_VERTICES, 3);
     /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
     glfwTerminate();
     _CrtDumpMemoryLeaks();
     return 0;*/
     
+    /*glm::vec3 V = glm::normalize(glm::vec3(1, 1, 0));
+    auto Xi = Hammersley(0, 16);
+    glm::vec3 N = glm::normalize(glm::vec3(2.2,1,-4));
+    auto H = ImportanceSampleGGX(Xi, N, 0.8);
+    std::cout << Xi.x << " " << Xi.y << "\n";
+    std::cout << V.x << " " << V.y << " " << V.z << "\n";
+    std::cout << H.x << " " << H.y << " " << H.z << "\n";
+    auto L= glm::normalize(2.0f * glm::dot<float>(V, H) * H - V);
+    std::cout << L.x << " " << L.y << " " << L.z << "\n";
+    std::cout << glm::dot(N, L) << "\n";
+    return 0;*/
+
+    system("color 02");
+    
+
     Render render;
     Scene scene;
     scene.SetSkyBox({ "sky/right.jpg",
@@ -81,17 +97,23 @@ int main()
         "sky/back.jpg"
         });
 
-    std::shared_ptr<Shader> gBufferShader = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShader2 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderGlossy = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderSpecler = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderDiffuse = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderDiffuse2 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderDiffuse3 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
     DFGI* dfgi = new DFGI(1600, 900);
     auto sponzaObj= CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
     //auto sphereObj1 = CreateObject("objs/sphere.obj");
     auto doorObj = CreateObject("objs/door.FBX");
+    auto sceneObj = CreateObject("objs/scene/bedroom.obj");
     render.SetDefferedShader(defferedShader);
-    sponzaObj->buildBVH();
+    //sponzaObj->buildBVH();
     //sphereObj->buildBVH();
+    sceneObj->buildBVH();
     //sphereObj1->buildBVH();
     //doorObj->buildBVH();
 
@@ -103,8 +125,9 @@ int main()
     doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
     //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
-    scene.AddObject(sponzaObj);
+    //scene.AddObject(sponzaObj);
     //scene.AddObject(sphereObj);
+    scene.AddObject(sceneObj);
     //scene.AddObject(sphereObj1);
     //scene.AddObject(doorObj);
 
@@ -115,17 +138,20 @@ int main()
     scene.AddObject(cameraObj);
 
     auto objL = CreateObject();
-    DirectLight *l=new DirectLight(Spectrum(250/255.f, 240/255.f, 253/255.f),300000.f,glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)),true);
+    DirectLight *l=new DirectLight(Spectrum(250/255.f, 240/255.f, 253/255.f),300000.f,glm::normalize(glm::vec3(0.6f, -1.0f, 0.3f)),true);
     objL->AddComponent(l);
     for (int i = 0; i < 4; ++i) {
         dfgi->RSMAlbedoFlag[i] = l->GetRSM(i, 1);
         dfgi->RSMNormalRoughness[i] = l->GetRSM(i, 2);
         dfgi->RSMPositionMetallic[i] = l->GetRSM(i, 3);
+        dfgi->RSMTangent[i] = l->GetRSM(i, 4);
     }
     dfgi->LightFlux = l->GetRayPower();
     dfgi->gAlbedoMetallic = render.GetGBuffer(2);
     dfgi->gPositionRoughness = render.GetGBuffer(0);
     dfgi->gNormalDepth = render.GetGBuffer(1);
+    dfgi->gTangent = render.GetGBuffer(3);
+    dfgi->LightDirection = l->GetDirection();
     //l->isStatic = true;
     /*SpotLight* sl = new SpotLight(512,512,Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
     objL->AddComponent(sl);
@@ -170,19 +196,44 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
    
-    gBufferShader->SetTexture("albedoMap", "objs/tex/albedo.png");
-    gBufferShader->SetTexture("normalMap", "objs/tex/normal.png");
-    gBufferShader->SetTexture("roughnessMap", "objs/tex/roughness.png");
-    gBufferShader->SetTexture("metallicMap", "objs/tex/metallic.png");
+    gBufferShaderGlossy->SetTexture("albedoMap", "objs/tex/albedo.png");
+    gBufferShaderGlossy->SetTexture("normalMap", "objs/tex/normal.png");
+    gBufferShaderGlossy->SetTexture("roughnessMap", "objs/tex/roughness.png");
+    gBufferShaderGlossy->SetTexture("metallicMap", "objs/tex/metallic.png");
     
-    gBufferShader2->SetTexture("albedoMap", "objs/tex/marble/albedo.jpg");
-    gBufferShader2->SetTexture("normalMap", "objs/tex/marble/normal.jpg");
-    gBufferShader2->SetTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
+    gBufferShaderSpecler->SetTexture("albedoMap", "objs/tex/marble/albedo.jpg");
+    gBufferShaderSpecler->SetTexture("normalMap", "objs/tex/marble/normal.jpg");
+    gBufferShaderSpecler->SetTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
 
-    sponzaObj->SetShader(-1, gBufferShader, Deffered);
-    sphereObj->SetShader(-1, gBufferShader2, Deffered);
+    gBufferShaderDiffuse->SetTexture("albedoMap", "objs/tex/brick/albedo.jpg");
+    gBufferShaderDiffuse->SetTexture("normalMap", "objs/tex/brick/normal.jpg");
+    gBufferShaderDiffuse->SetTexture("roughnessMap", "objs/tex/brick/roughness.jpg");
+
+    gBufferShaderDiffuse3->SetTexture("albedoMap", "objs/tex/grass/albedo.jpg");
+    gBufferShaderDiffuse3->SetTexture("normalMap", "objs/tex/grass/normal.jpg");
+    gBufferShaderDiffuse3->SetTexture("roughnessMap", "objs/tex/grass/roughness.jpg");
+    
+    gBufferShaderDiffuse4->SetTexture("albedoMap", "objs/tex/red/albedo.png");
+    gBufferShaderDiffuse4->SetTexture("normalMap", "objs/tex/red/normal.png");
+    gBufferShaderDiffuse4->SetTexture("roughnessMap", "objs/tex/red/roughness.png");
+
+    gBufferShaderDiffuse2->SetTexture("albedoMap", "objs/tex/white.png");
+    //gBufferShaderDiffuse2->SetTexture("normalMap", "objs/tex/normal.png");
+    gBufferShaderDiffuse2->SetTexture("roughnessMap", "objs/tex/white.png");
+    gBufferShaderDiffuse2->use();
+    gBufferShaderDiffuse2->setVec3("baseColor", glm::vec3(-1,-1,5));
+
+    //sponzaObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
+    //sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
+    sceneObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
+    sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
+    sceneObj->SetShader(2, gBufferShaderSpecler, Deffered);
+    //sceneObj->SetShader(0, gBufferShaderDiffuse4, Deffered);
+    for(int i=3;i<25;++i)
+        sceneObj->SetShader(i, gBufferShaderDiffuse3, Deffered);
+    //sceneObj->SetShader(22, gBufferShaderGlossy, Deffered);
     //sphereObj1->SetShader(-1, gBufferShader2, Deffered);
-    doorObj->SetShader(-1, gBufferShader2, Deffered);
+    //doorObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
 
     defferedShader->SetTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
@@ -255,7 +306,7 @@ int main()
     //sponzaObj->LoadLightMapData();
 
     //return 0;
-    //render.OpenTAA();
+    render.OpenTAA();
     render.AddPostProcess(dfgi);
     float dir = -0.1;
     RENDER_MAIN_LOOP(window)
@@ -277,7 +328,7 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
             l->SaveRSM(2, 1);
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-            dfgi->Debug();
+            render.Capture();
         globalTimer.updateTime(glfwGetTime());
         scene.Update();
         render(&scene);

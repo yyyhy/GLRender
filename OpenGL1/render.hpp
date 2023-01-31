@@ -71,19 +71,23 @@ private:
 					l->GetFrameBuffer(i).Bind();
 					glClearColor(0, 0, 0, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					
 					for (auto& o : scene->objects) {
 						rsmShader->setMat4("trans", (*o->GetComponent<Transform>())());
 
-						auto shader = o->GetShader(0, Deffered);
-						if (shader != nullptr) {
-							Texture& albedoMap = shader->GetTexture("albedoMap");
-							rsmShader->SetTexture("albedoMap", albedoMap);
-							Texture& normalMap = shader->GetTexture("normalMap");
-							rsmShader->SetTexture("normalMap", normalMap);
-							Texture& roughnessMap = shader->GetTexture("roughnessMap");
-							rsmShader->SetTexture("roughnessMap", roughnessMap);
+						for (int i = 0; i < o->GetMeshLength(); ++i) {
+							auto shader = o->GetShader(i, Deffered);
+							if (shader != nullptr) {
+								Texture& albedoMap = shader->GetTexture("albedoMap");
+								rsmShader->SetTexture("albedoMap", albedoMap);
+								Texture& normalMap = shader->GetTexture("normalMap");
+								rsmShader->SetTexture("normalMap", normalMap);
+								Texture& roughnessMap = shader->GetTexture("roughnessMap");
+								rsmShader->SetTexture("roughnessMap", roughnessMap);
+							}
+							o->draw(i,l->rsmShader.get());
 						}
-						o->draw(l->rsmShader.get());
+						
 					}
 				}
 
@@ -454,7 +458,7 @@ public:
 		taaShader->SetTexture("gNormalDepth", GetGBuffer(1));
 		AddPostProcess(taa);
 	}
-#ifdef _DEBUG
+
 	void Capture() {
 		SaveFrameBuffer(postProcess.back()->GetOutFrameBuffer());
 	}
@@ -475,7 +479,7 @@ public:
 			++p;
 		SaveFrameBuffer((*p)->GetOutFrameBuffer());
 	}
-#endif // _DEBUG
+
 
 };
 
