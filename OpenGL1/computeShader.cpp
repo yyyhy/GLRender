@@ -19,6 +19,11 @@ void ComputeShader::SetFloat(const std::string& name, float v) const&
 	glUniform1f(glGetUniformLocation(id, name.c_str()), v);
 }
 
+void ComputeShader::SetBool(const std::string& name, bool value) const&
+{
+	glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+}
+
 void ComputeShader::SetTexture(const std::string& name, const Texture& tex) &{
 	textures[name] = tex;
 }
@@ -51,7 +56,7 @@ void ComputeShader::SetBuffer(int index, const ComputeBuffer& ssbo) const&
 void ComputeShader::SetBindingImage(int index, const Texture& tex) const&
 {
 	glUseProgram(id);
-	glBindImageTexture(index, tex.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	glBindImageTexture(index, tex.id, 0, tex.type==GL_TEXTURE_3D? GL_TRUE:GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
 
 void ComputeShader::Dispath(int x, int y, int z) const& {

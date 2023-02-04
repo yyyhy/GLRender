@@ -10,6 +10,7 @@ void DFGI::excute()
 		DFFGIInitBufferCS.Dispath(RSMSampleResolution.x, RSMSampleResolution.y, 1);
 		RegenerateCounter = 0;
 		CurrRSMSampleIndex = { -1,0 };
+		std::cout << "Regenerate:\n ";
 	}
 
 	//
@@ -21,7 +22,8 @@ void DFGI::excute()
 				CurrRSMSampleIndex.y++;
 				CurrRSMSampleIndex.x = 0;
 				if (CurrRSMSampleIndex.y >= RSMSampleResolution.y) {
-					RegenerateCounter = 1;
+					CurrRSMSampleIndex = { -1,0 };
+					/*RegenerateCounter = 1;
 					weight = (unsigned*)DFGIWeightBuffer.ReadData();
 					unsigned totol = 0;
 					weightTable.clear();
@@ -37,14 +39,13 @@ void DFGI::excute()
 					totolWeight = totol;
 					dis = std::uniform_int_distribution<int>(0, totolWeight);
 					engine = std::default_random_engine(time(0));
+					std::cout << "IS generate: \n ";*/
 				}
 			}
 		}
 		if (RegenerateCounter != 0) {
 			int random = dis(engine);
-			auto it = std::find_if(weightTable.begin(), weightTable.end(), [&](const std::pair<RangePair, glm::vec2>& p) {
-				return p.first.left <= random && p.first.right > random;
-			});
+			auto it = weightTable.find(random);
 			CurrRSMSampleIndex = it->second;
 		}
 
@@ -77,31 +78,75 @@ void DFGI::excute()
 	}
 	
 	//
+#ifdef  USE_SH
+	DFGIPackSHCS.Use();
+	DFGIPackSHCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
+	DFGIPackSHCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
+	DFGIPackSHCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
+	DFGIPackSHCS.SetBuffer(0, DFGIRaysBuffer);
+	DFGIPackSHCS.SetBuffer(1, DFGISHBuffer);
+	DFGIPackSHCS.Dispath(32, 32, 32);
+#else
 	DFGIRaysInjectGridCS.Use();
 	DFGIRaysInjectGridCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
 	DFGIRaysInjectGridCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
 	DFGIRaysInjectGridCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
 	DFGIRaysInjectGridCS.SetBuffer(0, DFGIRaysBuffer);
+#ifdef RESULT_STORE_IN_TEX3D
+	DFGIRaysInjectGridCS.SetBindingImage(1, DFGIGridFlux);
+	DFGIRaysInjectGridCS.SetBindingImage(2, DFGIGridDirection);
+	DFGIRaysInjectGridCS.SetBindingImage(3, DFGIGridPosition);
+#else
 	DFGIRaysInjectGridCS.SetBuffer(1, DFGIGridLightInfosBuffer);
-	DFGIRaysInjectGridCS.SetBuffer(2, DFGIRayCounterBuffer);
+#endif 
 	DFGIRaysInjectGridCS.Dispath(32, 32, 32);
+#endif //  USE_SH
 
-	
-	//
+	//default quanlity
+#ifdef USE_SH
+	DFGISHApplyCS.Use();
+	DFGISHApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
+	DFGISHApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
+	DFGISHApplyCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
+	DFGISHApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
+	DFGISHApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
+	DFGISHApplyCS.SetTexture("gNormalDepth", gNormalDepth);
+	DFGISHApplyCS.SetBindingImage(1, DFGIResult);
+	DFGISHApplyCS.SetBuffer(2, DFGISHBuffer);
+	DFGISHApplyCS.SetBuffer(3, DFGIGridCanSparseBuffer);
+	if (MultBounceCounter >= MultBounceFrequency)
+		DFGISHApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
+	else
+		DFGISHApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
+	DFGISHApplyCS.Dispath(width / DFGI_DOWN_SAMPLE, height / DFGI_DOWN_SAMPLE, 1);
+#else
 	DFGIApplyCS.Use();
 	DFGIApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
 	DFGIApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
 	DFGIApplyCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
-	DFGIApplyCS.SetTexture("inputImage", GetInTexBuffer());
 	DFGIApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
 	DFGIApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
 	DFGIApplyCS.SetTexture("gNormalDepth", gNormalDepth);
-	DFGIApplyCS.SetTexture("gSDF", gSDF);
-	DFGIApplyCS.SetBindingImage(1, DFGIResult);
+#ifdef RESULT_STORE_IN_TEX3D
+	DFGIApplyCS.SetTexture("DFGIGridFlux", DFGIGridFlux);
+	DFGIApplyCS.SetTexture("DFGIGridImportanceDirection", DFGIGridDirection);
+	DFGIApplyCS.SetTexture("DFGIGridImportancePosition", DFGIGridPosition);
+#else
 	DFGIApplyCS.SetBuffer(2, DFGIGridLightInfosBuffer);
+#endif
+	DFGIApplyCS.SetBindingImage(1, DFGIResult);
+#ifdef RESULT_STORE_IN_TEX3D
+	DFGIApplyCS.SetBuffer(2, DFGIGridCanSparseBuffer);
+#else
 	DFGIApplyCS.SetBuffer(3, DFGIGridCanSparseBuffer);
+#endif
+	if (MultBounceCounter >= MultBounceFrequency)
+		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
+	else
+		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
 	DFGIApplyCS.SetVec2("offset", sampleOffset);
-	DFGIApplyCS.Dispath(width/ DFGI_DOWN_SAMPLE, height/ DFGI_DOWN_SAMPLE, 1);
+	DFGIApplyCS.Dispath(width / DFGI_DOWN_SAMPLE, height / DFGI_DOWN_SAMPLE, 1);
+#endif // USE_SH
 
 	//
 	DFGIBlurGBufferCS.Use();
@@ -138,7 +183,7 @@ void DFGI::excute()
 	DFGIRayLiveDownCS.Use();
 	DFGIRayLiveDownCS.SetVec3("SceneGridsResolution", glm::vec3(32, 32, 32));
 	DFGIRayLiveDownCS.SetBuffer(0, DFGIRaysBuffer);
-	//DFGIRayLiveDownCS.Dispath(32, 32, 32);
+	DFGIRayLiveDownCS.Dispath(32, 32, 32);
 
 	sampleOffset = sampleOffset + glm::vec2(1,0);
 	if (sampleOffset.x > 15) {

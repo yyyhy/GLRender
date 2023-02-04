@@ -67,6 +67,7 @@ public:
 	void SetTexture(const std::string&, unsigned id)&;
 	void SetInt(const std::string&, int) const&;
 	void SetFloat(const std::string&, float) const&;
+	void SetBool(const std::string&, bool) const&;
 	void SetVec4(const std::string&, const glm::vec4&) const&;
 	void SetVec3(const std::string&, const glm::vec3&) const&;
 	void SetVec2(const std::string&, const glm::vec2&) const&;

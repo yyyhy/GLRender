@@ -1,7 +1,6 @@
 
 #version 460 core
 layout(local_size_x = 1, local_size_y = 1) in;
-#extension GL_EXT_transform_feedback : enable
 #pragma debug(on)
 
 struct DFGIRay{
@@ -26,15 +25,20 @@ layout(std430, binding = 0) buffer DFGIRaysBuffer{
 // scene cellize
 // 32 * 32 * 32 Grids, each grid contians 16 ray
 // Downsample factor is 16 by default
+#define RESULT_STORE_IN_TEX3D
+
+#ifdef RESULT_STORE_IN_TEX3D
+layout(binding=1,rgba32f) uniform image3D DFGIGridFlux;
+layout(binding=2,rgba32f) uniform image3D DFGIGridImportanceDirection;
+layout(binding=3,rgba32f) uniform image3D DFGIGridImportancePosition;
+#else
 layout(std430, binding = 1) buffer DFGIGridLightInfos{
     GridLightInfo infos[];
 };
+#endif
 
-layout(std430, binding = 2) buffer DFGIRayCounterBuffer{
-    uint gridRayCounter[];
-};
 
-const int MAX_RAY_LIVE_COUNT=64;
+const int MAX_RAY_LIVE_COUNT=256;
 uniform vec3 SceneGridsResolution;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
@@ -77,17 +81,29 @@ void main(){
         position/=cnt;
     }
     
-    GridLightInfo info;
+    
     // info.Flux=flux;
     // info.ImportanceDirection=direction;
     // info.ImportancePosition=position;
+    const float MIX_FACTOR=0.01;
 
-const float MIX_FACTOR=0.01;
+#ifdef RESULT_STORE_IN_TEX3D
+    vec4 originFlux=imageLoad(DFGIGridFlux,gridIndex);
+    vec4 originImportanceDirection=imageLoad(DFGIGridImportanceDirection,gridIndex);
+    vec4 originImportancePosition=imageLoad(DFGIGridImportancePosition,gridIndex);
 
+    imageStore(DFGIGridFlux,gridIndex,mix(originFlux,vec4(flux,0),MIX_FACTOR));
+    imageStore(DFGIGridImportanceDirection,gridIndex,normalize(mix(originImportanceDirection,vec4(direction,0),MIX_FACTOR)));
+    imageStore(DFGIGridImportancePosition,gridIndex,mix(originImportancePosition,vec4(position,0),MIX_FACTOR));
+
+#else
+    GridLightInfo info;
     GridLightInfo originInfo=infos[linearGridIndex];
     info.Flux=mix(originInfo.Flux,flux,MIX_FACTOR);
     info.ImportanceDirection=normalize(mix(originInfo.ImportanceDirection,direction,MIX_FACTOR));
     info.ImportancePosition=mix(originInfo.ImportancePosition,position,MIX_FACTOR);
 
     infos[linearGridIndex]=info;
+
+#endif
 }

@@ -185,7 +185,8 @@ void main() {
     vec3 V=-LightDirection;
     vec3 L=normalize(2.0 * dot(V, H) * H - V);
     float NdotL=max(dot(N,V),0.0);
-    
+    vec3 flux=LightFlux*albedo*NdotL/PI;
+
     if(NdotL>0.0){
         DFGIRay ray;     
         ray.refCount=0;
@@ -195,7 +196,7 @@ void main() {
             uint rsmIndex=LinearRSMSampleIndex(CurrRSMSampleIndex);
             atomicAdd(weight[rsmIndex],1U);
             
-            ray.flux=LightFlux*albedo*NdotL/PI;
+            ray.flux=flux;
             ray.direction=L;
             ray.liveCount=MAX_RAY_LIVE_COUNT;
             ivec3 gridIndex=WorldPosToGridIndex(ray.hitPosition);
@@ -203,7 +204,10 @@ void main() {
             uint rayCount=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
             gridRayCounter[linearIndex]%=GRID_MAX_CONTAINS_RAY;
             uint rayIndex=linearIndex*GRID_MAX_CONTAINS_RAY+rayCount;
-            rays[rayIndex]=ray;
+
+            //if(length(ray.flux)>length(rays[rayIndex].flux*rays[rayIndex].liveCount/MAX_RAY_LIVE_COUNT)){
+                rays[rayIndex]=ray;
+            //} 
         }
     }
 }

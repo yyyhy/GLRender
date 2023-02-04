@@ -46,9 +46,6 @@
     <Filter Include="头文件\gc">
       <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\ltc">
-      <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\brdf">
       <UniqueIdentifier>{ff73a5e4-313a-4d6d-b9b5-23f625b4a4bb}</UniqueIdentifier>
     </Filter>
@@ -63,6 +60,9 @@
     </Filter>
     <Filter Include="头文件\rtgi\dfgi">
       <UniqueIdentifier>{ae529aab-e658-4485-b1c5-81a397a1f9bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\rtgi\ltc">
+      <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -225,7 +225,7 @@
       <Filter>头文件\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="ltc.hpp">
-      <Filter>头文件\ltc</Filter>
+      <Filter>头文件\rtgi\ltc</Filter>
     </ClInclude>
     <ClInclude Include="brdf.hpp">
       <Filter>头文件\brdf</Filter>
@@ -234,7 +234,7 @@
       <Filter>头文件\math</Filter>
     </ClInclude>
     <ClInclude Include="fitLTC.hpp">
-      <Filter>头文件\ltc</Filter>
+      <Filter>头文件\rtgi\ltc</Filter>
     </ClInclude>
     <ClInclude Include="sphereLight.hpp">
       <Filter>头文件\component\light</Filter>

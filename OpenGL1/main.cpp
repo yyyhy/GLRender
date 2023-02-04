@@ -71,22 +71,22 @@ int main()
     glfwTerminate();
     _CrtDumpMemoryLeaks();
     return 0;*/
-    
-    /*glm::vec3 V = glm::normalize(glm::vec3(1, 1, 0));
-    auto Xi = Hammersley(0, 16);
-    glm::vec3 N = glm::normalize(glm::vec3(2.2,1,-4));
-    auto H = ImportanceSampleGGX(Xi, N, 0.8);
-    std::cout << Xi.x << " " << Xi.y << "\n";
-    std::cout << V.x << " " << V.y << " " << V.z << "\n";
-    std::cout << H.x << " " << H.y << " " << H.z << "\n";
-    auto L= glm::normalize(2.0f * glm::dot<float>(V, H) * H - V);
-    std::cout << L.x << " " << L.y << " " << L.z << "\n";
-    std::cout << glm::dot(N, L) << "\n";
-    return 0;*/
 
+    glm::vec3 dirr = glm::normalize(glm::vec3(1,-1,0.4));
+    float cosTheta = dirr.z;
+    float sinTheta = sqrt(1 - cosTheta * cosTheta);
+    float cosPhi = dirr.x / sinTheta;
+    float sinPhi = dirr.y / sinTheta;
+    double theta = acos(cosTheta);
+    double phi = acos(cosPhi);
+    if (sinPhi < 0) {
+        phi = 2 * PI - phi;
+    }
+    theta = 0.5;
+    phi = 2.2;
+    std::cout << float(SH(2, 2, theta, phi)) << "\n";
     system("color 02");
     
-
     Render render;
     Scene scene;
     scene.SetSkyBox({ "sky/right.jpg",
@@ -182,7 +182,7 @@ int main()
     
 
     auto probeObj = CreateObject();
-    probeObj->GetComponent<Transform>()->Translate(0, 5.2, 5);
+    probeObj->GetComponent<Transform>()->Translate(0, 2, 0);
     auto probe = probeObj->AddComponent<ReflectProbe>();
     scene.AddObject(probeObj);
     auto probeObj2 = CreateObject();
@@ -223,8 +223,8 @@ int main()
     gBufferShaderDiffuse2->use();
     gBufferShaderDiffuse2->setVec3("baseColor", glm::vec3(-1,-1,5));
 
-    //sponzaObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
-    //sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
+    sponzaObj->SetShader(-1, gBufferShaderGlossy, Deffered);
+    sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     sceneObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
     sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
     sceneObj->SetShader(2, gBufferShaderSpecler, Deffered);
@@ -248,17 +248,17 @@ int main()
 
     {
         
-       // probe->SetDefferedShader(defferedShader);
+       //probe->SetDefferedShader(defferedShader);
        // probe2->SetDefferedShader(defferedShader);
        // probe3->SetDefferedShader(defferedShader);
-       // probe->GenerateCubemap(&scene);
+       //probe->GenerateCubemap(&scene);
        // probe2->GenerateCubemap(&scene);
        // probe3->GenerateCubemap(&scene);
        //// scene.SetSkyBox(probe3->GetCubeMap().id);
-       // defferedShader->use();
-       // defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
-       // defferedShader->setBool("reflectCube[0].exist", true);
-       // defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());
+       /*defferedShader->use();
+        defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
+        defferedShader->setBool("reflectCube[0].exist", true);
+        defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());*/
        // defferedShader->setCubeMap("reflectCube[1].reflectCube", probe2->GetCubeMap().id);
        // defferedShader->setBool("reflectCube[1].exist", true);
        // defferedShader->setVec3("reflectCube[1].pos", probe2->object->GetComponent<Transform>()->GetPosition());
@@ -308,16 +308,16 @@ int main()
     //return 0;
     render.OpenTAA();
     render.AddPostProcess(dfgi);
-    float dir = -0.1;
+    float delta = -500;
     RENDER_MAIN_LOOP(window)
     {
-        /*dfgi->LightFlux = l->GetRayPower();
-        auto spc = l->GetSpectrum();
-        spc.x += dir;
-        if (spc.x < 0.1 || spc.x>2)
-            dir = -dir;
+        /*auto flux = l->GetFlux();
+        if (flux < 10000)
+            delta = 500;
+        if (flux > 300000)
+            delta = -500;
+        l->SetIntensity(flux + delta);*/
         
-        l->SetSpectrum(spc);*/
         processInput(window);
         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             render.openSSDO();

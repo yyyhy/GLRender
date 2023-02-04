@@ -51,14 +51,56 @@ inline glm::vec3 ImportanceSampleGGX(const glm::vec2& Xi, const glm::vec3& N, fl
 
 }
 
-float sh_0_0(float thi, float phi) {
-	return 0.5 * sqrt(INV_PI);
+inline double P(int l, int m, double x)
+{
+    // evaluate an Associated Legendre Polynomial P(l,m,x) at x
+    double pmm = 1.0;
+    if (m > 0) {
+        double somx2 = std::sqrt((1.0 - x) * (1.0 + x));
+        double fact = 1.0;
+        for (int i = 1; i <= m; i++) {
+            pmm *= (-fact) * somx2;
+            fact += 2.0;
+        }
+    }
+    if (l == m) return pmm;
+    double pmmp1 = x * (2.0 * m + 1.0) * pmm;
+    if (l == m + 1) return pmmp1;
+    double pll = 0.0;
+    for (int ll = m + 2; ll <= l; ++ll) {
+        pll = ((2.0 * ll - 1.0) * x * pmmp1 - (ll + m - 1.0) * pmm) / (ll - m);
+        pmm = pmmp1;
+        pmmp1 = pll;
+    }
+    return pll;
 }
 
-float sh_1_n1(float thi, float phi) {
-	float x = sin(thi) * cos(phi);
-	float y = sin(thi) * sin(phi);
-	return 0.5 * sqrt(1.5 * INV_PI) * (x - y);
+inline int factorial(int v) {
+    int res = 1;
+    while (v > 1)
+    {
+        res *= (v--);
+    }
+    return res;
+}
+
+inline double K(int l, int m)
+{
+    // renormalisation constant for SH function
+    double temp = ((2.0 * l + 1.0) * factorial(l - m)) / (4.0 * PI * factorial(l + m));
+    return sqrt(temp);
+}
+inline double SH(int l, int m, double theta, double phi)
+{
+    // return a point sample of a Spherical Harmonic basis function
+    // l is the band, range [0..N]
+    // m in the range [-l..l]
+    // theta in the range [0..Pi]
+    // phi in the range [0..2*Pi]
+    const double sqrt2 = sqrt(2.0);
+    if (m == 0) return K(l, 0) * P(l, m, cos(theta));
+    else if (m > 0) return sqrt2 * K(l, m) * cos(m * phi) * P(l, m, cos(theta));
+    else return sqrt2 * K(l, -m) * sin(-m * phi) * P(l, -m, cos(theta));
 }
 
 

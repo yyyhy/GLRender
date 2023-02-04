@@ -6,20 +6,13 @@
 #include"cPostProcess.hpp"
 #include"computeShader.hpp"
 #include"DFGIRayStruct.hpp"
+#include"light.hpp"
 #include<random>
 
 const static int DFGI_DOWN_SAMPLE = 2;
 
-struct RangePair
-{
-	unsigned left, right;
-	bool operator>(const RangePair& p) const{
-		return right>left&&left >= p.right&&p.right>p.left;
-	}
-	bool operator<(const RangePair& p) const {
-		return p.right > p.left && p.left >= right && right > left;
-	}
-};
+#define RESULT_STORE_IN_TEX3D
+//#define USE_SH
 
 class DFGI : public PostProcess{
 public:
@@ -40,13 +33,24 @@ public:
 			BlurGBuffer(w,h,GL_RGBA32F,GL_RGBA),
 			DFGIRayLiveDownCS("shaders/cs/dfgi/DFGIRayLiveDown.comp"),
 			DFFGIInitBufferCS("shaders/cs/dfgi/DFGIInitBuffer.comp"),
-			DFGIWeightBuffer(sizeof(unsigned), 16*9),
-			weight(nullptr){
+			DFGIWeightBuffer(sizeof(unsigned), 32* 32),
+			weight(nullptr),
+			DFGIHighQuanlityApplyCS("shaders/cs/dfgi/DFGIHighQuanlityApply.comp"),
+			DFGIPackSHCS("shaders/cs/dfgi/DFGIPackSH.comp"),
+			DFGISHBuffer(sizeof(DFGISH),32*32*32),
+			DFGISHApplyCS("shaders/cs/dfgi/DFGISHApply.comp")
+#ifdef RESULT_STORE_IN_TEX3D
+			,DFGIGridFlux(32, 32, 32, GL_RGBA32F, GL_RGBA),
+			DFGIGridDirection(32, 32, 32, GL_RGBA32F, GL_RGBA),
+			DFGIGridPosition(32, 32, 32, GL_RGBA32F, GL_RGBA)
+#endif // RESULT_STORE_IN_TEX3D
+{
 		DFGIRaysBuffer.SetData(new DFGIRay[32 * 32 * 32 * 16]);
 		DFGIRayCounterBuffer.SetData(new unsigned[32 * 32 * 32] {0});
 		DFGIGridLightInfosBuffer.SetData(new DFGIGridLightInfo[32 * 32 * 32]);
 		DFGIGridCanSparseBuffer.SetData(new unsigned[32 * 32 * 32] {0});
 		DFGIWeightBuffer.SetData(new unsigned[RSMSampleResolution.x * RSMSampleResolution.y] {0});
+		DFGISHBuffer.SetData(new DFGISH[32 * 32 * 32]);
 		FirstSparseCounter = FirstSparseFrequency;
 		MultBounceCounter = MultBounceFrequency;
 		RegenerateCounter = RegenerateWeightFrequency;
@@ -85,8 +89,8 @@ public:
 	unsigned FirstSparseFrequency = 1;
 	unsigned FirstSparseCounter=0;
 	glm::vec2 CurrRSMSampleIndex;
-	const glm::vec2 RSMSampleBrickSize = { 100,100 };
-	const glm::vec2 RSMSampleResolution = { 16,9 };
+	const glm::vec2 RSMSampleBrickSize = { 80,80 };
+	const glm::vec2 RSMSampleResolution = { RSM_W/RSMSampleBrickSize.x/4, RSM_H / RSMSampleBrickSize.y / 4 };
 	std::uniform_int_distribution<int> dis;
 	std::default_random_engine engine;
 
@@ -94,8 +98,18 @@ public:
 	ComputeShader DFGIRaysInjectGridCS;
 	ComputeBuffer DFGIGridLightInfosBuffer;
 	unsigned* weight;
-	unsigned totolWeight;
+	unsigned totolWeight=0;
 	std::map<RangePair, glm::vec2> weightTable;
+
+#ifdef RESULT_STORE_IN_TEX3D
+	Texture3D DFGIGridFlux;
+	Texture3D DFGIGridDirection;
+	Texture3D DFGIGridPosition;
+#endif
+
+	//SH grid
+	ComputeShader DFGIPackSHCS;
+	ComputeBuffer DFGISHBuffer;
 
 	//Apply DFGI
 	ComputeShader DFGIApplyCS;
@@ -105,6 +119,12 @@ public:
 	Texture2D DFGIResult;
 	ComputeBuffer DFGIGridCanSparseBuffer;
 	
+	//Or high quanlity apply
+	ComputeShader DFGIHighQuanlityApplyCS;
+
+	//Or sh apply
+	ComputeShader DFGISHApplyCS;
+
 	//MultBounce
 	ComputeShader DFGIRayMultBounceCS;
 	Texture2D gTangent;

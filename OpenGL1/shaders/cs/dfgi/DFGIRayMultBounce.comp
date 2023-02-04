@@ -3,7 +3,7 @@
 #extension GL_EXT_transform_feedback : enable
 #pragma debug(on)
 
-const int PerpixelSparseRays=32;
+const int PerpixelSparseRays=16;
 const int PerGridContainsRays=16;
 
 layout(local_size_x = PerGridContainsRays, local_size_y = PerpixelSparseRays, local_size_z=1) in;
@@ -42,7 +42,7 @@ layout(std430, binding = 3) buffer DFGIGridCanSparse{
 layout(binding=4,rgba32f) uniform image2D outputImage;
 
 const int GRID_MAX_CONTAINS_RAY=16;
-const int RAY_MAX_REFCOUNT=2;
+const int RAY_MAX_REFCOUNT=1;
 const int MAX_RAY_LIVE_COUNT=256;
 uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
@@ -83,11 +83,12 @@ const float EPS = 0.3;
 void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
     //ray.refCount=1;
     vec3 currPosition=start;
+    ivec3 originGridIndex=WorldPosToGridIndex(start);
     for(int i=0;i<MAX_TRACE_STEPS;++i){
         vec3 uvw=WorldPosToUVW(currPosition);
         if(UVWIsValid(uvw)){
             float sdfValue=texture3D(GlobalSDF,uvw).x;
-            if(sdfValue<EPS&&i>0){
+            if(sdfValue<EPS&&i>0&&originGridIndex!=WorldPosToGridIndex(currPosition)){
                 ray.hitPosition=currPosition;
                 ray.refCount=1;
                 return;
@@ -188,7 +189,7 @@ void main(){
                 float roughness=texture2D(gPositionRoughness,uv).w;
 
                 vec3 H=ImportanceSampleGGX(Xi,N,tangent,roughness);
-                vec3 V=N;
+                vec3 V=-originRay.direction;
                 vec3 L=normalize(2.0 * dot(V, H) * H - V);
                 float NdotL=max(dot(N,V),0.0);
 
@@ -196,7 +197,7 @@ void main(){
                     DFGIRay ray;     
                     ray.refCount=0;
                     ray.hitPosition=vec3(0,0,0);
-                    TraceGlobalSDF(worldPos+L*(EPS*2),L,ray);
+                    TraceGlobalSDF(worldPos+L*(EPS*1.1),L,ray);
                     if(ray.refCount!=0){
                         ray.refCount=originRay.refCount+1;
                         ray.flux=originRay.flux*albedo*NdotL/PI;
@@ -208,13 +209,15 @@ void main(){
                             uint rayCount=atomicAdd(gridRayCounter[linearIndex],1)%GRID_MAX_CONTAINS_RAY;
                             gridRayCounter[linearIndex]%=GRID_MAX_CONTAINS_RAY;
                             uint rayIndex=linearIndex*GRID_MAX_CONTAINS_RAY+rayCount;
-                            rays[rayIndex]=ray;
+                            if(length(ray.flux)>length(rays[rayIndex].flux*rays[rayIndex].liveCount/MAX_RAY_LIVE_COUNT)){
+                                rays[rayIndex]=ray;
+                            }
                         }
                         
                     }
                 }
                 else{
-                    imageStore(outputImage,ivec2(gridIndex.xy*10+gl_LocalInvocationID.xy),vec4(2,0,0,1));
+                    //imageStore(outputImage,ivec2(gridIndex.xy*10+gl_LocalInvocationID.xy),vec4(2,0,0,1));
                 }
             }
             

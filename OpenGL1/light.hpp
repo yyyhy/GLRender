@@ -76,6 +76,10 @@ public:
 		flux = inte;
 	}
 
+	float GetFlux() const {
+		return flux;
+	}
+
 	std::shared_ptr<Shader> rsmShader;
 	bool isStatic;
 };
