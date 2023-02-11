@@ -232,6 +232,7 @@
     <ClInclude Include="sssss.hpp" />
     <ClInclude Include="stb.hpp" />
     <ClInclude Include="taa.hpp" />
+    <ClInclude Include="task.hpp" />
     <ClInclude Include="test.hpp" />
     <ClInclude Include="texture.hpp" />
     <ClInclude Include="timer.h" />

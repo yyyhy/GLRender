@@ -16,7 +16,7 @@ in vec3 LightMapCol;
 in vec3 LightMapDir;
 in vec4 preScreenPos;
 in vec4 currScreenPos;
-uniform vec3 baseColor=vec3(0);
+uniform vec3 baseColor;
 
 uniform sampler2D albedoMap;
 uniform sampler2D metallicMap;
@@ -44,7 +44,7 @@ void main()
     
     gAlbedoMetallic.xyz = (texture2D(albedoMap, TexCoords).xyz+baseColor);
     
-    gAlbedoMetallic.w = texture(metallicMap, TexCoords).x;
+    gAlbedoMetallic.w = texture2D(metallicMap, TexCoords).x;
     gLightMap=vec4(LightMapCol,1);
     gTangentFlag=vec4(normalize(Tangent),1);
 

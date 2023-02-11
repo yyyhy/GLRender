@@ -2,8 +2,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int SHLevel=9;
-const int PerGridContainsRays=16;
+const int SHLevel=4;
 
 layout(local_size_x = SHLevel, local_size_y = 1) in;
 
@@ -29,6 +28,7 @@ layout(std430, binding = 1) buffer DFGISHBuffer{
 };
 
 const int MAX_RAY_LIVE_COUNT=64;
+uniform int GridContainsRays;
 uniform vec3 SceneGridsResolution;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
@@ -106,31 +106,40 @@ void main(){
     ivec3 gridIndex = ivec3(gl_WorkGroupID.xyz);
     vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
     uint linearGridIndex=LinearGridIndex(gridIndex);
-    uint offset=linearGridIndex*16;
+    
 
     uint shIndex=gl_LocalInvocationID.x;
     vec3 ci=vec3(0);
     ivec2 shlm=shTable[shIndex];
 
-    for(int i=0;i<16;++i){
-        DFGIRay ray=rays[offset+i];
-        if(ray.refCount<1)
-            continue;
-        vec3 dir=-ray.direction;
-        float cosTheta=dir.z;
-        float sinTheta=sqrt(1-cosTheta*cosTheta);
-        float cosPhi=dir.x/sinTheta;
-        float sinPhi=dir.y/sinTheta;
-        float theta=acos(cosTheta);
-        float phi=acos(cosPhi);
-        if(sinPhi<0){
-            phi=2*PI-phi;
+    for(int x=-1;x<2;++x){
+        for(int y=-1;x<2;++x){
+            for(int z=-1;x<2;++x){
+                uint offset=LinearGridIndex(gridIndex+ivec3(x,y,z))*GridContainsRays;
+
+                for(int i=0;i<GridContainsRays;++i){
+                    DFGIRay ray=rays[offset+i];
+                    if(ray.refCount<1)
+                        continue;
+                    vec3 dir=-ray.direction;
+                    float cosTheta=dir.z;
+                    float sinTheta=sqrt(1-cosTheta*cosTheta);
+                    float cosPhi=dir.x/sinTheta;
+                    float sinPhi=dir.y/sinTheta;
+                    float theta=acos(cosTheta);
+                    float phi=acos(cosPhi);
+                    if(sinPhi<0){
+                        phi=2*PI-phi;
+                    }
+                    vec3 flux=ray.flux; 
+                    float shValue=SH(shlm.x,shlm.y,theta,phi);
+                    ci+=vec3((shValue)*flux);
+                    
+                }
+            }
         }
-        vec3 flux=ray.flux; 
-        float shValue=SH(shlm.x,shlm.y,theta,phi);
-        ci+=vec3((shValue)*flux);
-        
     }
+    
 
     sh[linearGridIndex].shCi[shIndex]=vec4(ci,0);
 

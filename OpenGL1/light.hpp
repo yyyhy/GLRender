@@ -9,8 +9,8 @@
 typedef glm::vec3 Spectrum;
 #define WHITE Spectrum(1.f,1.f,1.f)
 
-#define RSM_W 5096
-#define RSM_H 5096
+#define RSM_W 4096
+#define RSM_H 4096
 
 
 

@@ -1,10 +1,12 @@
 #version 450 core
 #extension GL_EXT_shader_atomic_float : enable
-#extension GL_EXT_transform_feedback : enable
 #pragma debug(on)
-const int size=16;
 
-layout(local_size_x = size, local_size_y = 1, local_size_z=1) in;
+const int GridMaxContiansRays=64;
+const int NeighborSampleY=1;
+const int NeighborSampleZ=1;
+
+layout(local_size_x = GridMaxContiansRays, local_size_y = NeighborSampleY, local_size_z=NeighborSampleZ) in;
 
 struct DFGIRay{
     vec3 direction;
@@ -30,6 +32,7 @@ uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
 uniform sampler2D gAlbedoMetallic;
 uniform vec3 SceneGridsResolution;
+uniform int GridContainsRays;
 uniform vec3 GlobalSDFBoxMin; //vec3(-17.4,-1.7,-7.8);
 uniform vec3 GlobalSDFBoxMax; //vec3(17.4,15.6,7.8);
 uniform bool NeedMarkGridCanMultBounce;
@@ -114,7 +117,7 @@ vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
 shared int Lox;
 shared int Loy;
 shared int Loz;
-shared uint cnt;
+shared int cnt;
 
 bool UVWIsValid(vec3 uvw){
     return uvw.x>=0.0&&uvw.x<=1.0
@@ -125,47 +128,56 @@ bool UVWIsValid(vec3 uvw){
 void main(){
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
     uint rayOffset=gl_LocalInvocationID.x;
-    vec2 uv=vec2(uvIndex)/vec2(800,450);
-    vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
-    vec3 N=texture2D(gNormalDepth,uv).xyz;
-    if(N.x==0&&N.y==0&&N.z==0){
-        imageStore(DFGIResult,uvIndex,vec4(0));
-        return;
+    ivec3 girdOffset=ivec3(0,gl_LocalInvocationID.yz-ivec2(NeighborSampleY/2,NeighborSampleZ/2));
+    if(rayOffset<GridContainsRays){
+        vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
+        vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
+        vec3 N=texture2D(gNormalDepth,uv).xyz;
+        if(N.x==0&&N.y==0&&N.z==0){
+            imageStore(DFGIResult,uvIndex,vec4(0));
+            return;
+        }
+
+        vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
+        vec3 V=normalize(CameraPos-worldPos); 
+
+        if(rayOffset.x==0&&girdOffset.y==0&&girdOffset.z==0){
+            Lox=0;
+            Loy=0;
+            Loz=0;
+            cnt=0;
+        }
+        groupMemoryBarrier(); memoryBarrierShared(); barrier();
+
+        ivec3 gridIndex=WorldPosToGridIndex(worldPos)+girdOffset;
+        uint linearGridIndex=LinearGridIndex(gridIndex);
+        if(NeedMarkGridCanMultBounce)
+            gridCanSparseIndex[linearGridIndex]=1;
+        
+        uint rayIndex=linearGridIndex*GridContainsRays+rayOffset;
+        DFGIRay ray=rays[rayIndex];
+        vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+        float NdotL=max(0,dot(N,-ray.direction));
+        if(NdotL>0.0){
+            //float attenuation=max(1-length(worldPos-ray.hitPosition)/max(gridSize.x,max(gridSize.y,gridSize.z)),0.01);
+            vec3 Li=ray.flux;
+            vec3 Loi=calcMicroFacedBRDF(N,-ray.direction,V,uv)*Li*NdotL;
+
+            atomicAdd(Lox,int(Loi.x*4024));
+            atomicAdd(Loy,int(Loi.y*4024));
+            atomicAdd(Loz,int(Loi.z*4024));
+            atomicAdd(cnt,1);
+
+            groupMemoryBarrier(); memoryBarrierShared(); barrier();
+        }
     }
 
-    vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
-    vec3 V=normalize(CameraPos-worldPos); 
-
-    if(rayOffset.x==0){
-        Lox=0;
-        Loy=0;
-        Loz=0;
-        cnt=0;
-    }
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
-    ivec3 gridIndex=WorldPosToGridIndex(worldPos);
-    uint linearGridIndex=LinearGridIndex(gridIndex);
-    if(NeedMarkGridCanMultBounce)
-        gridCanSparseIndex[linearGridIndex]=1;
-    
-    uint rayIndex=linearGridIndex*16+rayOffset;
-    DFGIRay ray=rays[rayIndex];
-    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
-    float attenuation=1-length(worldPos-ray.hitPosition)/gridSize.x;
-    vec3 Li=ray.flux*attenuation;
-    float NdotL=max(0,dot(N,-ray.direction));
-    vec3 Loi=calcMicroFacedBRDF(N,-ray.direction,V,uv)*Li*NdotL;
-
-    atomicAdd(Lox,int(Loi.x*4024));
-    atomicAdd(Loy,int(Loi.y*4024));
-    atomicAdd(Loz,int(Loi.z*4024));
-    atomicAdd(cnt,1U);
-    groupMemoryBarrier(); memoryBarrierShared(); barrier();
-
-    if(rayOffset.x==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/4024/float(cnt);
+    if(rayOffset.x==0&&girdOffset.y==0&&girdOffset.z==0){
+        vec3 Lo=vec3(Lox,Loy,Loz)/4024*2*PI/GridContainsRays*2/NeighborSampleY/NeighborSampleZ;
         vec3 col=imageLoad(DFGIResult,uvIndex).xyz;
-        imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,0.05),1));
+        imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,1),1));
     }
+    
 }

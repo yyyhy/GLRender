@@ -140,7 +140,7 @@ void main(){
     
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
     ivec3 gridIndexOffset= ivec3(gl_LocalInvocationID.xyz-1U);
-    vec2 uv=vec2(uvIndex)/vec2(800,450);
+    vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
     vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
     vec3 N=texture2D(gNormalDepth,uv).xyz;
     if(N.x==0&&N.y==0&&N.z==0){

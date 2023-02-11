@@ -4,7 +4,7 @@
 #pragma debug(on)
 
 const int SHLevel=1;
-const int SHSample=4;
+const int SHSample=8;
 layout(local_size_x = SHLevel, local_size_y = SHSample, local_size_z=1) in;
 
 layout(std140 , binding=0) uniform CameraProperty{
@@ -233,7 +233,7 @@ void main(){
     uint ciIndex=gl_LocalInvocationID.x;
     uint sampleIndex=gl_LocalInvocationID.y;
 
-    vec2 uv=vec2(uvIndex)/vec2(800,450);
+    vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
     vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
     float roughness=texture2D(gPositionRoughness,uv).w;
     vec3 N=texture2D(gNormalDepth,uv).xyz;
@@ -261,7 +261,7 @@ void main(){
     vec4 ci=shi.shCi[ciIndex];
     ivec2 shlm=shTable[ciIndex];
     vec2 Xi=Hammersley(sampleIndex,SHSample);
-    vec3 H=ImportanceSampleGGX(Xi,N,roughness);
+    vec3 H=ImportanceSampleGGX(Xi,N,1);
     vec3 L=normalize(2.0 * dot(V, H) * H - V);
     float NdotL=max(dot(N,L),0.0);
     if(NdotL>0){
@@ -277,7 +277,7 @@ void main(){
         }
 
         vec3 Li=vec3(0);
-        for(int i=0;i<9;++i)
+        for(int i=0;i<4;++i)
             Li+=vec3(shi.shCi[i]*SH(shTable[i].x,shTable[i].y,theta,phi));
         vec3 Loi=calcMicroFacedBRDF(N,L,V,uv)*Li*NdotL;
         atomicAdd(Lox,int(Loi.x*4024));
@@ -289,7 +289,7 @@ void main(){
 
     
     if(ciIndex==0&&sampleIndex==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/4024;
+        vec3 Lo=vec3(Lox,Loy,Loz)/4024*2*PI/SHSample;
         vec3 col=imageLoad(DFGIResult,uvIndex).xyz;
         imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,1),1));
     }

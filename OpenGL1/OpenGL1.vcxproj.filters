@@ -19,29 +19,11 @@
     <Filter Include="头文件\base">
       <UniqueIdentifier>{149b9462-0afc-4623-96fa-89f0dd2f0f2c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\component">
-      <UniqueIdentifier>{d36fb53e-8748-4414-94a3-926bb037bd28}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\component\light">
-      <UniqueIdentifier>{e7f2ef61-2d9f-4037-a9ea-b9f06ad301f3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\postprocess">
-      <UniqueIdentifier>{ea0c9ee3-e126-469e-96dd-8383fd7b79e0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\raytracing">
-      <UniqueIdentifier>{24d96ead-43dc-4502-9ccc-1a0d5dca1a4b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\shapes">
       <UniqueIdentifier>{e9b16a06-0006-40e7-a6e0-f555ec609693}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\rendering">
       <UniqueIdentifier>{5111e0e5-6e88-40b5-a0e4-2563250daf56}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\math">
-      <UniqueIdentifier>{cead9f0a-62e5-49fd-aae9-23dc87c45a99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\component\other">
-      <UniqueIdentifier>{df8dbda0-6ce5-4d85-9d39-dd8712dbe669}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\gc">
       <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
@@ -64,6 +46,27 @@
     <Filter Include="头文件\rtgi\ltc">
       <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core\component">
+      <UniqueIdentifier>{d36fb53e-8748-4414-94a3-926bb037bd28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\component\light">
+      <UniqueIdentifier>{e7f2ef61-2d9f-4037-a9ea-b9f06ad301f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\component\other">
+      <UniqueIdentifier>{df8dbda0-6ce5-4d85-9d39-dd8712dbe669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\math">
+      <UniqueIdentifier>{cead9f0a-62e5-49fd-aae9-23dc87c45a99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\postprocess">
+      <UniqueIdentifier>{ea0c9ee3-e126-469e-96dd-8383fd7b79e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\raytracing">
+      <UniqueIdentifier>{24d96ead-43dc-4502-9ccc-1a0d5dca1a4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\raytracing\photonmapping">
+      <UniqueIdentifier>{efefd8c3-8e73-4feb-89ab-fee70da8848a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -73,10 +76,10 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cPostProcess.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClCompile>
     <ClCompile Include="BVH.cpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClCompile>
     <ClCompile Include="mesh.cpp">
       <Filter>头文件\shapes</Filter>
@@ -111,13 +114,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="light.hpp">
-      <Filter>头文件\component\light</Filter>
+      <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="pointLight.hpp">
-      <Filter>头文件\component\light</Filter>
+      <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="directLight.hpp">
-      <Filter>头文件\component\light</Filter>
+      <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="assimp.hpp">
       <Filter>头文件\base</Filter>
@@ -132,61 +135,55 @@
       <Filter>头文件\base</Filter>
     </ClInclude>
     <ClInclude Include="component.hpp">
-      <Filter>头文件\component</Filter>
+      <Filter>头文件\core\component</Filter>
     </ClInclude>
     <ClInclude Include="camera.hpp">
-      <Filter>头文件\component</Filter>
+      <Filter>头文件\core\component</Filter>
     </ClInclude>
     <ClInclude Include="transform.hpp">
-      <Filter>头文件\component</Filter>
+      <Filter>头文件\core\component</Filter>
     </ClInclude>
     <ClInclude Include="test.hpp">
-      <Filter>头文件\component\other</Filter>
+      <Filter>头文件\core\component\other</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CameraController.hpp">
-      <Filter>头文件\component\other</Filter>
+      <Filter>头文件\core\component\other</Filter>
     </ClInclude>
     <ClInclude Include="reflectProbe.hpp">
-      <Filter>头文件\component</Filter>
+      <Filter>头文件\core\component</Filter>
     </ClInclude>
     <ClInclude Include="ssao.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="blit.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="ssdo.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="bidirection_filter.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="ssgi.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="sssss.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="BVH.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="intersection.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="bound.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="ray.hpp">
-      <Filter>头文件\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="photon.hpp">
-      <Filter>头文件\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="photon_mapping.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="mesh.hpp">
       <Filter>头文件\shapes</Filter>
@@ -204,10 +201,10 @@
       <Filter>头文件\rendering</Filter>
     </ClInclude>
     <ClInclude Include="spotLight.hpp">
-      <Filter>头文件\component\light</Filter>
+      <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="sh.hpp">
-      <Filter>头文件\math</Filter>
+      <Filter>头文件\core\math</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">
       <Filter>头文件</Filter>
@@ -219,10 +216,10 @@
       <Filter>头文件\gc</Filter>
     </ClInclude>
     <ClInclude Include="lightFlicker.hpp">
-      <Filter>头文件\component\other</Filter>
+      <Filter>头文件\core\component\other</Filter>
     </ClInclude>
     <ClInclude Include="taa.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="ltc.hpp">
       <Filter>头文件\rtgi\ltc</Filter>
@@ -231,22 +228,22 @@
       <Filter>头文件\brdf</Filter>
     </ClInclude>
     <ClInclude Include="nelder_mead.hpp">
-      <Filter>头文件\math</Filter>
+      <Filter>头文件\core\math</Filter>
     </ClInclude>
     <ClInclude Include="fitLTC.hpp">
       <Filter>头文件\rtgi\ltc</Filter>
     </ClInclude>
     <ClInclude Include="sphereLight.hpp">
-      <Filter>头文件\component\light</Filter>
+      <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="kd_tree.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="AccelStructure.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="bloom.hpp">
-      <Filter>头文件\postprocess</Filter>
+      <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="SceneManager.hpp">
       <Filter>头文件\core\managers</Filter>
@@ -258,7 +255,7 @@
       <Filter>头文件\base</Filter>
     </ClInclude>
     <ClInclude Include="SDF.hpp">
-      <Filter>头文件\raytracing</Filter>
+      <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="frameBuffer.hpp">
       <Filter>头文件\core</Filter>
@@ -298,6 +295,15 @@
     </ClInclude>
     <ClInclude Include="ComputeBuffer.hpp">
       <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="task.hpp">
+      <Filter>头文件\core</Filter>
+    </ClInclude>
+    <ClInclude Include="photon.hpp">
+      <Filter>头文件\core\raytracing\photonmapping</Filter>
+    </ClInclude>
+    <ClInclude Include="photon_mapping.hpp">
+      <Filter>头文件\core\raytracing\photonmapping</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

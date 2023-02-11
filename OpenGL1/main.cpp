@@ -72,19 +72,6 @@ int main()
     _CrtDumpMemoryLeaks();
     return 0;*/
 
-    glm::vec3 dirr = glm::normalize(glm::vec3(1,-1,0.4));
-    float cosTheta = dirr.z;
-    float sinTheta = sqrt(1 - cosTheta * cosTheta);
-    float cosPhi = dirr.x / sinTheta;
-    float sinPhi = dirr.y / sinTheta;
-    double theta = acos(cosTheta);
-    double phi = acos(cosPhi);
-    if (sinPhi < 0) {
-        phi = 2 * PI - phi;
-    }
-    theta = 0.5;
-    phi = 2.2;
-    std::cout << float(SH(2, 2, theta, phi)) << "\n";
     system("color 02");
     
     Render render;
@@ -105,15 +92,18 @@ int main()
     std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
     DFGI* dfgi = new DFGI(1600, 900);
+    
     auto sponzaObj= CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
     //auto sphereObj1 = CreateObject("objs/sphere.obj");
     auto doorObj = CreateObject("objs/door.FBX");
     auto sceneObj = CreateObject("objs/scene/bedroom.obj");
+    //auto bigObj = CreateObject("objs/scene/file.obj");
     render.SetDefferedShader(defferedShader);
     //sponzaObj->buildBVH();
     //sphereObj->buildBVH();
     sceneObj->buildBVH();
+    //bigObj->buildBVH();
     //sphereObj1->buildBVH();
     //doorObj->buildBVH();
 
@@ -128,6 +118,7 @@ int main()
     //scene.AddObject(sponzaObj);
     //scene.AddObject(sphereObj);
     scene.AddObject(sceneObj);
+    //scene.AddObject(bigObj);
     //scene.AddObject(sphereObj1);
     //scene.AddObject(doorObj);
 
@@ -138,7 +129,7 @@ int main()
     scene.AddObject(cameraObj);
 
     auto objL = CreateObject();
-    DirectLight *l=new DirectLight(Spectrum(250/255.f, 240/255.f, 253/255.f),300000.f,glm::normalize(glm::vec3(0.6f, -1.0f, 0.3f)),true);
+    DirectLight *l=new DirectLight(Spectrum(250/255.f, 240/255.f, 253/255.f),200000.f,glm::normalize(glm::vec3(0.8f, -1.0f, -0.3f)),true);
     objL->AddComponent(l);
     for (int i = 0; i < 4; ++i) {
         dfgi->RSMAlbedoFlag[i] = l->GetRSM(i, 1);
@@ -209,6 +200,12 @@ int main()
     gBufferShaderDiffuse->SetTexture("normalMap", "objs/tex/brick/normal.jpg");
     gBufferShaderDiffuse->SetTexture("roughnessMap", "objs/tex/brick/roughness.jpg");
 
+    gBufferShaderDiffuse2->SetTexture("albedoMap", "objs/tex/white.png");
+    //gBufferShaderDiffuse2->SetTexture("normalMap", "objs/tex/normal.png");
+    gBufferShaderDiffuse2->SetTexture("roughnessMap", "objs/tex/white.png");
+    gBufferShaderDiffuse2->use();
+    //gBufferShaderDiffuse2->setVec3("baseColor", glm::vec3(-1,-1,5));
+
     gBufferShaderDiffuse3->SetTexture("albedoMap", "objs/tex/grass/albedo.jpg");
     gBufferShaderDiffuse3->SetTexture("normalMap", "objs/tex/grass/normal.jpg");
     gBufferShaderDiffuse3->SetTexture("roughnessMap", "objs/tex/grass/roughness.jpg");
@@ -216,12 +213,6 @@ int main()
     gBufferShaderDiffuse4->SetTexture("albedoMap", "objs/tex/red/albedo.png");
     gBufferShaderDiffuse4->SetTexture("normalMap", "objs/tex/red/normal.png");
     gBufferShaderDiffuse4->SetTexture("roughnessMap", "objs/tex/red/roughness.png");
-
-    gBufferShaderDiffuse2->SetTexture("albedoMap", "objs/tex/white.png");
-    //gBufferShaderDiffuse2->SetTexture("normalMap", "objs/tex/normal.png");
-    gBufferShaderDiffuse2->SetTexture("roughnessMap", "objs/tex/white.png");
-    gBufferShaderDiffuse2->use();
-    gBufferShaderDiffuse2->setVec3("baseColor", glm::vec3(-1,-1,5));
 
     sponzaObj->SetShader(-1, gBufferShaderGlossy, Deffered);
     sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
@@ -236,11 +227,12 @@ int main()
     //doorObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
 
+    //bigObj->SetShader(-1, gBufferShaderDiffuse2, Deffered);
     defferedShader->SetTexture("uEavgLut", "baking/KullaConty/Eavg_LUT.png");
     defferedShader->SetTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
     
     scene.buildBVH();
-    auto gene = scene.GetGlobalSDFGenerator({ 32,32,32 });
+    auto gene = scene.GetGlobalSDFGenerator({ 64,64,64 });
     dfgi->gSDF = gene.GenerateSDF();
     dfgi->GlobalSDFBoxMax = gene.SDFMax;
     dfgi->GlobalSDFBoxMin = gene.SDFMin;
@@ -255,7 +247,7 @@ int main()
        // probe2->GenerateCubemap(&scene);
        // probe3->GenerateCubemap(&scene);
        //// scene.SetSkyBox(probe3->GetCubeMap().id);
-       /*defferedShader->use();
+      /* defferedShader->use();
         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
         defferedShader->setBool("reflectCube[0].exist", true);
         defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());*/
@@ -325,10 +317,11 @@ int main()
             render.openSSAO();
         if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
             render.openSSGI();
-        if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-            l->SaveRSM(2, 1);
         if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
             render.Capture();
+        if(glfwGetKey(window,GLFW_KEY_C)==GLFW_PRESS)
+            for (int i = 3; i < 25; ++i)
+                sceneObj->SetShader(i, gBufferShaderDiffuse4, Deffered);
         globalTimer.updateTime(glfwGetTime());
         scene.Update();
         render(&scene);

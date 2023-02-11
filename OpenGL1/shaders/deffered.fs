@@ -542,6 +542,7 @@ void main()
     float dis=999;
     vec3 ibl=vec3(0);
     float totolFactor=0;
+    const float IBLScale=0.2;
     for(int i=0;i<4;i++){
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));
@@ -557,7 +558,7 @@ void main()
         }
     }
     if(ibl.x>0&&ibl.y>0&&ibl.z>0)
-    Lo+=ibl/totolFactor;
+        Lo+=ibl/totolFactor*IBLScale;
     
     if(spotLight.exist){
         vec3 l2o=normalize(vWorldPos-spotLight.pos);
