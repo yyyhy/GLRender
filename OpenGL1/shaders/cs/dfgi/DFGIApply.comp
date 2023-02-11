@@ -179,8 +179,8 @@ void main(){
         vec3 uvwOffset=WorldPosToUVW(gridSize+GlobalSDFBoxMin)*gridIndexOffset;
         
         vec3 uvw=WorldPosToUVW(worldPos)+uvwOffset;
-        vec3 dir=texture3D(DFGIGridImportanceDirection,uvw).xyz;
-        vec3 Li=texture3D(DFGIGridFlux,uvw).xyz;
+        vec3 dir=texture(DFGIGridImportanceDirection,uvw).xyz;
+        vec3 Li=texture(DFGIGridFlux,uvw).xyz;
         float NdotL=max(0,dot(N,-dir));
         vec3 Loi=calcMicroFacedBRDF(N,-dir,V,uv)*Li*NdotL;
 #else

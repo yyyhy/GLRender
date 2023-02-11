@@ -50,7 +50,7 @@ public:
 		if (!success)
 		{
 			glGetShaderInfoLog(cs, 1024, NULL, infoLog);
-			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << "cs" << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << "cs: " <<path<< "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
 			return;
 		}
 

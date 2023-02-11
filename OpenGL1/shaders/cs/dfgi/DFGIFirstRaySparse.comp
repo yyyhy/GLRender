@@ -88,10 +88,10 @@ void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
     for(int i=0;i<MAX_TRACE_STEPS;++i){
         vec3 uvw=WorldPosToUVW(currPosition);
         if(UVWIsValid(uvw)){
-            float sdfValue=texture3D(GlobalSDF,uvw).x;
+            float sdfValue=texture(GlobalSDF,uvw).x;
             vec3 nextPosition=currPosition+direction*sdfValue;
             vec3 nextUVW=WorldPosToUVW(nextPosition);
-            float nextSDFValue=texture3D(GlobalSDF,nextUVW).x;
+            float nextSDFValue=texture(GlobalSDF,nextUVW).x;
             if(sdfValue<EPS&&i>0&&originGridIndex!=WorldPosToGridIndex(currPosition)&&sdfValue>=nextSDFValue){
                 ray.hitPosition=currPosition;
                 ray.refCount=1;

@@ -232,7 +232,7 @@ int main()
     defferedShader->SetTexture("uBRDFLut", "baking/KullaConty/E_LUT.png");
     
     scene.buildBVH();
-    auto gene = scene.GetGlobalSDFGenerator({ 64,64,64 });
+    auto gene = scene.GetGlobalSDFGenerator({ 32,32,32 });
     dfgi->gSDF = gene.GenerateSDF();
     dfgi->GlobalSDFBoxMax = gene.SDFMax;
     dfgi->GlobalSDFBoxMin = gene.SDFMin;

@@ -12,7 +12,7 @@
 const static int DFGIIngegrateDownSample = 2;
 const static glm::vec3 SceneGridsResolution = { 32,32,32 };
 const static int SceneGrids = SceneGridsResolution.x*SceneGridsResolution.y*SceneGridsResolution.z;
-const static int GridContainsRays = 36;
+const static int GridContainsRays = 16;
 
 const static glm::vec2 RSMSampleBrickSize = { 512,512 };
 const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4, RSM_H / RSMSampleBrickSize.y / 4 };
@@ -22,7 +22,7 @@ const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4,
 #define RESULT_STORE_IN_TEX3D
 #define HIGH_QUANLITY_APPLY
 //#define USE_SH
-#define MULT_BOUNCE_ON
+//#define MULT_BOUNCE_ON
 
 class DFGI : public PostProcess{
 public:
