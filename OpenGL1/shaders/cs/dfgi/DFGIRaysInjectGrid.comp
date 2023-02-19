@@ -90,7 +90,7 @@ void main(){
         position/=totolPower;
     }
     
-    
+    //direction=vec3(-1,0,0);
     // info.Flux=flux;
     // info.ImportanceDirection=direction;
     // info.ImportancePosition=position;

@@ -5,8 +5,8 @@
 
 Texture2D::Texture2D(const std::string& path) :Texture(GL_TEXTURE_2D)
 {
-	int w, h,channel;
-	albedo = stbi_load(path.c_str(), &w, &h, &channel, 0);
+    int w, h, channel;
+    albedo = stbi_load(path.c_str(), &w, &h, &channel, 0);
     unsigned TEX;
     glGenTextures(1, &TEX);
     glBindTexture(GL_TEXTURE_2D, TEX);
@@ -25,8 +25,8 @@ Texture2D::Texture2D(const std::string& path) :Texture(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture2D::Texture2D(unsigned w, unsigned h, unsigned iFormat, unsigned format, 
-    unsigned MinFilter,unsigned MagFilter,unsigned WrapS,unsigned WrapT,
+Texture2D::Texture2D(unsigned w, unsigned h, unsigned iFormat, unsigned format,
+    unsigned MinFilter, unsigned MagFilter, unsigned WrapS, unsigned WrapT,
     bool GenMip) :Texture(GL_TEXTURE_2D)
 {
     this->w = w;
@@ -36,16 +36,16 @@ Texture2D::Texture2D(unsigned w, unsigned h, unsigned iFormat, unsigned format,
     glTexImage2D(GL_TEXTURE_2D, 0, iFormat, w, h, 0, format, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
-    if(GenMip)
+    if (GenMip)
         glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Texture2D::~Texture2D()
 {
-   
+
 }
 
 void Texture2D::Release()
@@ -56,7 +56,7 @@ void Texture2D::Release()
 
 void Texture2D::Construct(unsigned w, unsigned h, unsigned iFormat, unsigned format,
     unsigned MinFilter, unsigned MagFilter, unsigned WrapS, unsigned WrapT,
-    bool GenMip){
+    bool GenMip) {
     if (id != INVALID_TEXTURE_ID) {
         std::cout << "Can't construct a valid texture\n";
         return;
@@ -76,7 +76,7 @@ void Texture2D::Construct(unsigned w, unsigned h, unsigned iFormat, unsigned for
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture3D::Texture3D(float* data, int w, int h, int d, unsigned iFormat,unsigned format):Texture(GL_TEXTURE_3D)
+Texture3D::Texture3D(float* data, int w, int h, int d, unsigned iFormat, unsigned format) :Texture(GL_TEXTURE_3D)
 {
     this->w = w;
     this->h = h;
@@ -94,7 +94,7 @@ Texture3D::Texture3D(float* data, int w, int h, int d, unsigned iFormat,unsigned
     glBindTexture(GL_TEXTURE_3D, 0);
 }
 
-Texture3D::Texture3D(int w, int h, int d, unsigned iFormat, unsigned format):Texture(GL_TEXTURE_3D)
+Texture3D::Texture3D(int w, int h, int d, unsigned iFormat, unsigned format) :Texture(GL_TEXTURE_3D)
 {
     this->w = w;
     this->h = h;
@@ -114,20 +114,20 @@ Texture3D::Texture3D(int w, int h, int d, unsigned iFormat, unsigned format):Tex
 
 Texture::~Texture()
 {
-    
+
 }
 
 void Texture::Release()
 {
-    
+
 }
 
-FrameBuffer::FrameBuffer():w(0),h(0),attachOffset(0),depthRBO(0),frameBuffer(INVALID_FRAMEBUFFER_ID)
+FrameBuffer::FrameBuffer() :w(0), h(0), attachOffset(0), depthRBO(0), frameBuffer(INVALID_FRAMEBUFFER_ID)
 {
-    
+
 }
 
-FrameBuffer::FrameBuffer(unsigned w, unsigned h, bool addDepthRBO):attachOffset(0),depthRBO(0),w(w),h(h)
+FrameBuffer::FrameBuffer(unsigned w, unsigned h, bool addDepthRBO) :attachOffset(0), depthRBO(0), w(w), h(h)
 {
     if (w > 0 && h > 0) {
         glGenFramebuffers(1, &frameBuffer);
@@ -148,7 +148,7 @@ FrameBuffer::FrameBuffer(unsigned w, unsigned h, bool addDepthRBO):attachOffset(
         frameBuffer = 0;
 }
 
-void FrameBuffer::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
+void FrameBuffer::Construct(unsigned w, unsigned h, bool addDepthRBO) {
     if (frameBuffer != INVALID_FRAMEBUFFER_ID) {
         std::cerr << "Can't construct a valid framebuffer\n";
         return;
@@ -176,7 +176,7 @@ void FrameBuffer::Construct(unsigned w, unsigned h, bool addDepthRBO ) {
 
 FrameBuffer::~FrameBuffer()
 {
-    if (frameBuffer != 0&&frameBuffer!=INVALID_FRAMEBUFFER_ID) {
+    if (frameBuffer != 0 && frameBuffer != INVALID_FRAMEBUFFER_ID) {
         glDeleteFramebuffers(1, &frameBuffer);
     }
     if (depthRBO != 0) {
@@ -186,7 +186,7 @@ FrameBuffer::~FrameBuffer()
 
 FrameBuffer& FrameBuffer::operator=(const FrameBuffer& fbo)
 {
-    
+
     frameBuffer = fbo.frameBuffer;
     depthRBO = fbo.depthRBO;
     attachOffset = fbo.attachOffset;
@@ -196,24 +196,24 @@ FrameBuffer& FrameBuffer::operator=(const FrameBuffer& fbo)
     return *this;
 }
 
-void FrameBuffer::AttachTexture(Texture* t,unsigned cnt)
+void FrameBuffer::AttachTexture(Texture* t, unsigned cnt)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     GLuint* arrays = new GLuint[cnt];
     for (int i = 0; i < cnt; ++i) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (attachOffset+i), t[i].type, t[i].id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (attachOffset + i), t[i].type, t[i].id, 0);
         arrays[i] = GL_COLOR_ATTACHMENT0 + (attachOffset + i);
         textures.push_back(&t[i]);
     }
-    
+
     attachOffset += cnt;
-    if(cnt>1)
+    if (cnt > 1)
         glDrawBuffers(attachOffset, arrays);
 }
 
 Texture* FrameBuffer::GetTexture(unsigned index) const
 {
-    if(index>=textures.size())
+    if (index >= textures.size())
         return nullptr;
 
     return textures[index];
@@ -225,9 +225,9 @@ void FrameBuffer::Bind() const
     glViewport(0, 0, w, h);
 }
 
-TextureCube::TextureCube(int w, int h,unsigned iFormat, unsigned format,
+TextureCube::TextureCube(int w, int h, unsigned iFormat, unsigned format,
     unsigned MinFilter, unsigned MagFilter, unsigned WrapS, unsigned WrapT, unsigned WrapR,
-    bool GenMip):Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+    bool GenMip) :Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_X)
 {
     this->w = w;
     this->h = h;
@@ -245,7 +245,7 @@ TextureCube::TextureCube(int w, int h,unsigned iFormat, unsigned format,
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, WrapT);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, WrapR);
 
-    if(GenMip)
+    if (GenMip)
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 }
 
@@ -257,5 +257,5 @@ void TextureCube::Release()
 
 TextureCube::~TextureCube()
 {
-    
+
 }

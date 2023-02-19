@@ -19,7 +19,7 @@ Bounds3 Triangle::getBounds() { return Union(Bounds3(v0.Position, v1.Position), 
 
 Intersection Triangle::getIntersection(Ray ray)
 {
-	Intersection inter=Intersection();
+	Intersection inter = Intersection();
 
 	if (glm::dot(ray.direction, normal) > 0)
 		return inter;
@@ -44,11 +44,11 @@ Intersection Triangle::getIntersection(Ray ray)
 	inter.distance = t_tmp;
 	inter.obj = this;
 	inter.normal = (1 - u - v) * v0.Normal + u * v1.Normal + v * v2.Normal;
-		//this->normal;
+	//this->normal;
 	inter.happened = true;
-	inter.tcoords = (1 - u - v) * (v0.TexCoords-glm::floor(v0.TexCoords))
-					+ u * (v1.TexCoords - glm::floor(v1.TexCoords)) + 
-					v * (v2.TexCoords - glm::floor(v2.TexCoords));
+	inter.tcoords = (1 - u - v) * (v0.TexCoords - glm::floor(v0.TexCoords))
+		+ u * (v1.TexCoords - glm::floor(v1.TexCoords)) +
+		v * (v2.TexCoords - glm::floor(v2.TexCoords));
 	return inter;
 }
 
@@ -56,11 +56,11 @@ Vector3d Triangle::evalDiffuseColor(const Vector2d& uv) const
 {
 	unsigned u = uv.x * albedo->w;
 	unsigned v = uv.y * albedo->h;
-	Vector3i pos = { 4 * (albedo->w * v + u) ,4 * (albedo->w * v + u)+1 ,4 * (albedo->w * v + u)+2 };
+	Vector3i pos = { 4 * (albedo->w * v + u) ,4 * (albedo->w * v + u) + 1 ,4 * (albedo->w * v + u) + 2 };
 	Vector3d col = { albedo->albedo[pos.x],
 					albedo->albedo[pos.y],
 					albedo->albedo[pos.z]
-						};
+	};
 	return col / 255.;
 }
 
@@ -94,23 +94,23 @@ void MeshTriangle::setupMesh()
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 	//light map
-	
+
 	//---------------
-	
-	auto min= Vector3d{ std::numeric_limits<float>::infinity(),
+
+	auto min = Vector3d{ std::numeric_limits<float>::infinity(),
 						std::numeric_limits<float>::infinity(),
 						std::numeric_limits<float>::infinity() };
-	auto max = Vector3d{-std::numeric_limits<float>::infinity(),
+	auto max = Vector3d{ -std::numeric_limits<float>::infinity(),
 						-std::numeric_limits<float>::infinity(),
 						-std::numeric_limits<float>::infinity() };
 	area = 0;
 	for (uint32_t i = 0; i < indices.size() / 3; i++) {
-		auto v0 = vertices[indices[i * 3    ]];
+		auto v0 = vertices[indices[i * 3]];
 		auto v1 = vertices[indices[i * 3 + 1]];
 		auto v2 = vertices[indices[i * 3 + 2]];
 		min = Min(min, Min(v2.Position, Min(v0.Position, v1.Position)));
 		max = Max(max, Max(v2.Position, Max(v0.Position, v1.Position)));
-		triangles.emplace_back(v0, v1, v2,&albedo);
+		triangles.emplace_back(v0, v1, v2, &albedo);
 		area += triangles[i].area;
 	}
 
@@ -129,7 +129,7 @@ MeshTriangle::MeshTriangle() {
 
 MeshTriangle::MeshTriangle(const MeshTriangle& o) :vertices(o.vertices), indices(o.indices), albedo(o.albedo) {
 	setupMesh();
-	
+
 };
 
 MeshTriangle::MeshTriangle(MeshTriangle&& o) noexcept :vertices(o.vertices), indices(o.indices), albedo(o.albedo) {
@@ -144,7 +144,7 @@ MeshTriangle::~MeshTriangle() {
 	std::cout << VAO << " mesh lose\n";
 #endif // _DEBUG
 
-	
+
 }
 
 MeshTriangle& MeshTriangle::operator=(MeshTriangle& o)
@@ -161,7 +161,7 @@ MeshTriangle& MeshTriangle::operator=(MeshTriangle&& o) noexcept
 {
 	o.indices.swap(o.indices);
 	o.vertices.swap(o.vertices);
-	o.albedo=o.albedo;
+	o.albedo = o.albedo;
 	o.clear();
 
 	return *this;

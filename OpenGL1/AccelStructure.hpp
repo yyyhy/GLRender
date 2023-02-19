@@ -3,6 +3,7 @@
 
 #ifndef ACCEL_STRUCTURE_H
 #define ACCEL_STRUCTURE_H
+#include"intersection.hpp"
 
 class AccelStructrue {
 public:

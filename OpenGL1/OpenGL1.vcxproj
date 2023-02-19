@@ -168,7 +168,9 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="cPostProcess.hpp" />
+    <ClCompile Include="SDF.cpp" />
     <ClCompile Include="texture.cpp" />
+    <ClCompile Include="threads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -176,6 +178,7 @@
   <ItemGroup>
     <ClInclude Include="AccelStructure.hpp" />
     <ClInclude Include="assimp.hpp" />
+    <ClInclude Include="basicThread.hpp" />
     <ClInclude Include="bidirection_filter.hpp" />
     <ClInclude Include="blit.hpp" />
     <ClInclude Include="bloom.hpp" />
@@ -232,7 +235,7 @@
     <ClInclude Include="sssss.hpp" />
     <ClInclude Include="stb.hpp" />
     <ClInclude Include="taa.hpp" />
-    <ClInclude Include="task.hpp" />
+    <ClInclude Include="threads.hpp" />
     <ClInclude Include="test.hpp" />
     <ClInclude Include="texture.hpp" />
     <ClInclude Include="timer.h" />

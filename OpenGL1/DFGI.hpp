@@ -22,7 +22,7 @@ const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4,
 #define RESULT_STORE_IN_TEX3D
 #define HIGH_QUANLITY_APPLY
 //#define USE_SH
-//#define MULT_BOUNCE_ON
+#define MULT_BOUNCE_ON
 
 class DFGI : public PostProcess{
 public:
@@ -63,7 +63,7 @@ public:
 		FirstSparseCounter = FirstSparseFrequency;
 		MultBounceCounter = MultBounceFrequency;
 		RegenerateCounter = RegenerateWeightFrequency;
-		std::cout << "DFGI init\n";
+		std::cout <<"\nRayStructSize" << sizeof(DFGIRay) << "    DFGI init\n";
 	}
 
 	void excute() override;

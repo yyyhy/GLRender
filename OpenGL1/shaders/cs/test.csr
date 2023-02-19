@@ -19,7 +19,7 @@ void main() {
     vec3 p0=texture2D(RSM,(pos.xy)/vec2(1600,900)).xyz;
     vec4 color = vec4(0.0,0.0,0.0,1.0);
     
-//姝ゅ鍙互鍋氫竴浜涙搷浣滐紝棰滆壊鍊兼敼鍙樹箣绫荤殑锛屾垜杩欒竟绀轰緥鍙仛浜嗕釜鎻愬彇缁胯壊閫氶亾鍥惧儚
+//此处可以做一些操作，颜色值改变之类的，我这边示例只做了个提取绿色通道图像
     color.xyz=p0;
     imageStore( out_image,
                 ivec2(gl_GlobalInvocationID.xy),

@@ -29,7 +29,7 @@ public:
 		delete bvh;
 	}
 
-	Scene() :skyBuffer(0),bvh(nullptr) {
+	Scene() :skyBuffer(0), bvh(nullptr) {
 		sky = new Shader("shaders/sky.vs", "shaders/sky.fs");
 		sky->setInt("skybox", 0);
 		glGenVertexArrays(1, &skyVAO);
@@ -114,12 +114,12 @@ public:
 		this->bvh = new BVH(meshs);
 		printf("scene BVH ok\n");
 	}
-	
-	void mappingPhotons(Light* l, int maxPhotons= PHOTON_MOUNT) {
-		photonMappingEngine->mappingPhotons(bvh, l,maxPhotons);
+
+	void mappingPhotons(Light* l, int maxPhotons = PHOTON_MOUNT) {
+		photonMappingEngine->mappingPhotons(bvh, l, maxPhotons);
 	}
 
-	void printPhotons() const{
+	void printPhotons() const {
 		photonMappingEngine->print();
 	}
 
@@ -131,19 +131,19 @@ public:
 		photonMappingEngine->readFile(path);
 	}
 
-	void genLightMap(Object* o,int index,const std::string& path) {
+	void genLightMap(Object* o, int index, const std::string& path) {
 		if (index == -1) {
 			for (unsigned i = 0; i < o->meshes.size(); ++i) {
 				photonMappingEngine->genLightMap(o->meshes[i]->vertices, path + std::to_string(i) + ".txt");
 				//pm.startGenLightMap(o->meshs[i]->vertices, "./baking/lightMap/bk" + std::to_string(i) + ".txt");
 			}
-				
+
 			return;
 		}
 		if (index >= o->meshes.size())
 			return;
 		auto m = o->meshes.at(index);
-		if(m!=NULL)
+		if (m != NULL)
 			photonMappingEngine->genLightMap(m->vertices, path + std::to_string(index) + ".txt");
 	}
 
@@ -152,7 +152,7 @@ public:
 			buildBVH();
 		if (index == -1) {
 			for (unsigned i = 0; i < o->meshes.size(); ++i) {
-				photonMappingEngine->genLightMap(bvh,o->meshes[i]->vertices, path + std::to_string(i) + ".txt");
+				photonMappingEngine->genLightMap(bvh, o->meshes[i]->vertices, path + std::to_string(i) + ".txt");
 			}
 
 			return;
@@ -175,7 +175,7 @@ public:
 	}
 
 	SDF GetGlobalSDFGenerator(glm::vec3 resolution) {
-		SDF s(bvh,resolution);
+		SDF s(bvh, resolution);
 		return s;
 	}
 

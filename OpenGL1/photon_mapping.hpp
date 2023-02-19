@@ -19,8 +19,8 @@
 class PhotonMapping;
 PhotonMapping* pm;
 #define PHOTON_MOUNT 5096*20
-template<class T> using photon_queue = std::priority_queue<T, std::vector<T>, 
-											std::function<bool(const T&, const T&)>>;
+template<class T> using photon_queue = std::priority_queue<T, std::vector<T>,
+	std::function<bool(const T&, const T&)>>;
 
 std::thread* startGenLightMap(std::vector<Vertex>& vertices, const std::string& outfile
 	, int begin, int len, PhotonMapping* pm);
@@ -30,7 +30,7 @@ inline std::vector<Vector3f> sampleVectors(unsigned size = 1024) {
 	std::default_random_engine engine;
 	std::uniform_real_distribution<float> real(0.0, 1.0);
 	for (unsigned i = 0; i < size; ++i) {
-		Vector3f sample = { real(engine) * 2.0 - 1, real(engine) * 2.0 - 1, real(engine)*2.0-1 };
+		Vector3f sample = { real(engine) * 2.0 - 1, real(engine) * 2.0 - 1, real(engine) * 2.0 - 1 };
 		sample = glm::normalize(sample);
 		vs.push_back(sample);
 	}
@@ -50,20 +50,20 @@ public:
 		return pm;
 	}
 
-	void mappingPhotons(AccelStructrue* accStructure, Light* l,unsigned mount) {
+	void mappingPhotons(AccelStructrue* accStructure, Light* l, unsigned mount) {
 		auto box = accStructure->GetBounds();
-		std::cout << "Photon area:\n " <<"x: "<< box.pMin.x << " -  " << box.pMax.x<<"\n"
-					<< "y: " << box.pMin.y << " -  " << box.pMax.y << "\n"
-					<< "z: " << box.pMin.z << " -  " << box.pMax.z << "\n";
+		std::cout << "Photon area:\n " << "x: " << box.pMin.x << " -  " << box.pMax.x << "\n"
+			<< "y: " << box.pMin.y << " -  " << box.pMax.y << "\n"
+			<< "z: " << box.pMin.z << " -  " << box.pMax.z << "\n";
 		auto samples = sampleVectors();
 		std::default_random_engine engine(time(NULL));
 		std::uniform_real_distribution<float> dis(0.0, 1.0);
-		
+
 		unsigned index = 0;
 		std::cout << "\n";
 		int rec = 0;
 		for (unsigned i = 0; i < mount; i++) {
-			std::cout << "\r" <<"mapping photons... :"<< i << "/" << mount<<" receive: "<<rec ;
+			std::cout << "\r" << "mapping photons... :" << i << "/" << mount << " receive: " << rec;
 			auto photon = l->samplePhoton();
 			Ray r(photon.positon, photon.dir);
 			auto inter = accStructure->Intersect(r);
@@ -71,7 +71,7 @@ public:
 			while (inter.happened) {
 				photon.positon = inter.coords;
 				auto f = dis(engine);
-				if ((f < 0.3f&&depth>0)||depth>4) {
+				if ((f < 0.3f && depth>0) || depth > 4) {
 					rec++;
 					photon.times = depth;
 					photons.push_back(std::move(photon));
@@ -82,25 +82,25 @@ public:
 						break;
 					}
 					double NdotL = std::max(0.f, glm::dot<float>(glm::normalize(inter.normal), -photon.dir));
-					photon.color *= inter.obj->evalDiffuseColor(inter.tcoords)/
-									glm::pi<double>() * NdotL;
-					Vector3f out = samples[(index++)%1024];
+					photon.color *= inter.obj->evalDiffuseColor(inter.tcoords) /
+						glm::pi<double>() * NdotL;
+					Vector3f out = samples[(index++) % 1024];
 					if (dotProduct(out, inter.normal) < 0) {
 						out = -out;
 					}
 					photon.dir = glm::normalize(out);
-					r = Ray(photon.positon+photon.dir*0.05f, photon.dir);
+					r = Ray(photon.positon + photon.dir * 0.05f, photon.dir);
 					inter = accStructure->Intersect(r);
 				}
 				++depth;
 			}
 		}
-		std::cout <<"\n recieve phtotons: "<<rec<<"\n";
+		std::cout << "\n recieve phtotons: " << rec << "\n";
 	}
 
-	void print() const{
+	void print() const {
 		for (auto& i : photons) {
-			std::cout << i.positon.x<<" " << i.positon.y << " " << i.positon.z << "\n";
+			std::cout << i.positon.x << " " << i.positon.y << " " << i.positon.z << "\n";
 		}
 	}
 
@@ -109,19 +109,19 @@ public:
 		s.open(path);
 		for (auto& p : photons) {
 			s << p.positon.x << "," << p.positon.y << "," << p.positon.z << ","
-				<< p.color.x << "," << p.color.y << "," << p.color.z<<","
-				<< p.dir.x << "," << p.dir.y << "," << p.dir.z<<","<<p.times<<"\n";
+				<< p.color.x << "," << p.color.y << "," << p.color.z << ","
+				<< p.dir.x << "," << p.dir.y << "," << p.dir.z << "," << p.times << "\n";
 		}
 		s.close();
 	}
 
-	void readFile(const std::string& path){
+	void readFile(const std::string& path) {
 		std::ifstream s;
 		std::string data;
 		std::string dataItem;
 		Photon p;
 		s.open(path);
-		while (std::getline(s,data)) {
+		while (std::getline(s, data)) {
 			std::istringstream sin(data);
 			for (int i = 0; i < 10; i++) {
 				std::getline(sin, dataItem, ',');
@@ -168,7 +168,7 @@ public:
 		s.close();
 	}
 
-	void genLightMapS(std::vector<Vertex>& vertices,const std::string& outfile,int& begin,int& len){
+	void genLightMapS(std::vector<Vertex>& vertices, const std::string& outfile, int& begin, int& len) {
 		/*int size = vertices.size();
 		std::cout <<"\nv size: " <<vertices.size()<<"\n";
 		std::fstream fs(outfile);
@@ -197,7 +197,7 @@ public:
 				}
 				index++;
 			}
-			
+
 			return;
 		}
 		else
@@ -213,18 +213,18 @@ public:
 		for (int i = tmpBegin; i < vertices.size() && i < tmpBegin + tmpLen; ++i) {
 			box = Union(box, vertices[i].Position);
 		}
-		
+
 		box.pMax *= 2;
 		box.pMin *= 2;
 		std::vector<Photon> photonsTmp;
-		
-		for (auto &p : photons) {
+
+		for (auto& p : photons) {
 			Photon ph(p);
 			photonsTmp.push_back(ph);
 		}
-		std::cout << tmpBegin << " " << tmpLen << " "<<photonsTmp.size()<<"\n";
-		
-		for (int i = tmpBegin; i < vertices.size()&&i< tmpBegin + tmpLen;i++) {
+		std::cout << tmpBegin << " " << tmpLen << " " << photonsTmp.size() << "\n";
+
+		for (int i = tmpBegin; i < vertices.size() && i < tmpBegin + tmpLen; i++) {
 			//std::cout << "\r" << "render lightmap... :" << i << "/" << vertices.size();
 			Vertex v = vertices.at(i);
 			photon_queue<Photon> queue([v](const Photon& photonA, const Photon& photonB) {
@@ -232,15 +232,15 @@ public:
 				float distB = glm::distance(v.Position, photonB.positon);
 				float ndl = glm::dot(v.Normal, -photonA.dir);
 				return distA < distB;
-			});
+				});
 			for (auto& p : photonsTmp)
 				queue.push(p);
 			float dis = 0;
 			Vector3f color(0, 0, 0);
-			Vector3f dir(0,0,0);
+			Vector3f dir(0, 0, 0);
 			float maxDis = 1;
 			float cnt = 0.01;
-			for (int i = photonsTmp.size()-1; i >= photonsTmp.size()-100&&i>=0; --i) {
+			for (int i = photonsTmp.size() - 1; i >= photonsTmp.size() - 100 && i >= 0; --i) {
 				auto& p = queue.top();
 				dis = std::sqrt(dotProduct(p.positon - v.Position, p.positon - v.Position));
 				maxDis = std::max(maxDis, dis);
@@ -249,9 +249,9 @@ public:
 				queue.pop();
 				cnt++;
 			}
-			vertices.at(i).IndLight = color / maxDis/glm::pi<float>();
+			vertices.at(i).IndLight = color / maxDis / glm::pi<float>();
 			vertices.at(i).IndLightDir = dir / cnt;
-			
+
 		}
 		std::cout << tmpBegin << " end\n";
 	}
@@ -296,10 +296,10 @@ public:
 		int maxThreads = 6;
 		int size = vertices.size();
 		int len = size / maxThreads;
-		int begin=0;
+		int begin = 0;
 		std::vector<std::thread*> threads;
 		for (int i = 0; i < maxThreads; ++i) {
-			auto t=startGenLightMap(vertices, outfile, begin,i== maxThreads - 1? size:len, this);
+			auto t = startGenLightMap(vertices, outfile, begin, i == maxThreads - 1 ? size : len, this);
 			threads.push_back(t);
 			for (int j = 0; j < 1000000; ++j);
 			begin += len;
@@ -352,39 +352,39 @@ public:
 			return;
 		}
 		std::cout << "\n";
-		for (int j = 0; j < vertices.size();j++) {
+		for (int j = 0; j < vertices.size(); j++) {
 			auto& v = vertices[j];
-			
+
 			Vector3f irradiance;
 			Vector3f irdir;
 			float cnt = 0;
 			for (int i = 0; i < photons.size() && cnt < 16; i++) {
-				std::cout << "\r" << "gen light map IR:  " << j << "/" << vertices.size()<<" "<<cnt;
+				std::cout << "\r" << "gen light map IR:  " << j << "/" << vertices.size() << " " << cnt;
 				auto p = photons[i];
 				auto pos = p.positon;
 				auto dir = glm::normalize(v.Position - p.positon);
 				auto L = p.positon - v.Position;
 				if (glm::dot(v.Normal, L) < 0)
 					continue;
-				Ray r(pos+dir*0.05f, dir);
+				Ray r(pos + dir * 0.05f, dir);
 				auto inter = stuct->Intersect(r);
 				if (inter.happened) {
 					auto interPos = inter.coords;
-					
+
 					auto offset = interPos - v.Position;
 					float dis = glm::length(offset);
 					if (dis > 0.1)
 						continue;
 					irradiance += p.color * glm::dot(v.Normal, glm::normalize(L))
-						/glm::pi<float>()/std::powf(glm::length(L),2);
+						/ glm::pi<float>() / std::powf(glm::length(L), 2);
 					irdir += -L;
 				}
 				cnt++;
 			}
 			v.IndLight = irradiance;
-			if(cnt>0)
+			if (cnt > 0)
 				v.IndLightDir = irdir / cnt;
-			
+
 		}
 
 		for (int i = 0; i < vertices.size(); i++) {
@@ -399,9 +399,9 @@ public:
 };
 
 std::thread* startGenLightMap(std::vector<Vertex>& vertices, const std::string& outfile
-	,int begin,int len,PhotonMapping *pm) {
-	std::thread *t=new std::thread(&PhotonMapping::genLightMapS, pm,std::ref(vertices), 
-		std::ref(outfile),std::ref(begin), std::ref(len));
+	, int begin, int len, PhotonMapping* pm) {
+	std::thread* t = new std::thread(&PhotonMapping::genLightMapS, pm, std::ref(vertices),
+		std::ref(outfile), std::ref(begin), std::ref(len));
 	return t;
 }
 

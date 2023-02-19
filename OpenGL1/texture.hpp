@@ -17,7 +17,7 @@ struct Texture {
     const unsigned char* albedo;
     unsigned type;
     std::string name;
-    Texture(unsigned t = GL_TEXTURE_2D,const std::string& name="") :type(t), id(0),name(name) {}
+    Texture(unsigned t = GL_TEXTURE_2D, const std::string& name = "") :type(t), id(0), name(name) {}
     virtual ~Texture();
     virtual void Release();
     void swap(Texture&& t) {
@@ -38,10 +38,10 @@ const std::shared_ptr<Texture> spTargetOuputTexture = std::make_shared<Texture>(
 struct Texture2D :public Texture {
     Texture2D() :Texture() { id = INVALID_TEXTURE_ID; }
     Texture2D(const std::string& path);
-    Texture2D(unsigned w, unsigned h, unsigned iFormat,unsigned format, 
+    Texture2D(unsigned w, unsigned h, unsigned iFormat, unsigned format,
         unsigned MinFilter = GL_LINEAR, unsigned MagFilter = GL_LINEAR,
-        unsigned WrapS=GL_REPEAT,unsigned WrapT=GL_REPEAT,
-        bool GenMip=true);
+        unsigned WrapS = GL_REPEAT, unsigned WrapT = GL_REPEAT,
+        bool GenMip = true);
 
     ~Texture2D();
 
@@ -53,20 +53,20 @@ struct Texture2D :public Texture {
         bool GenMip = true);
 };
 
-struct Texture3D: public Texture{
+struct Texture3D : public Texture {
     unsigned d;
     Bounds3 box;
-    Texture3D():d(0){}
-    Texture3D(float* data, int w, int h, int d,unsigned,unsigned);
+    Texture3D() :d(0) {}
+    Texture3D(float* data, int w, int h, int d, unsigned, unsigned);
     Texture3D(int w, int h, int d, unsigned, unsigned);
 };
 
-struct TextureCube:public Texture
+struct TextureCube :public Texture
 {
-    TextureCube(int w, int h,unsigned iFormat, unsigned format,
+    TextureCube(int w, int h, unsigned iFormat, unsigned format,
         unsigned MinFilter = GL_LINEAR, unsigned MagFilter = GL_LINEAR,
-        unsigned WrapS= GL_CLAMP_TO_EDGE,unsigned WrapT= GL_CLAMP_TO_EDGE
-        ,unsigned WrapR= GL_CLAMP_TO_EDGE,bool GenMip = true);
+        unsigned WrapS = GL_CLAMP_TO_EDGE, unsigned WrapT = GL_CLAMP_TO_EDGE
+        , unsigned WrapR = GL_CLAMP_TO_EDGE, bool GenMip = true);
 
     void Release() override;
 

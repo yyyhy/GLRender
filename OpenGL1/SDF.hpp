@@ -2,6 +2,25 @@
 #include"texture.hpp"
 #include"AccelStructure.hpp"
 #include"BVH.hpp"
+#include"basicThread.hpp"
+#include<iostream>
+
+class GenerateSDFTask : public Task {
+private:
+	float* data;
+	AccelStructrue* acc;
+	Vector3f start;
+	Vector3f diag;
+	Vector3i startIndex;
+	Vector3i endIndex;
+	Vector3f resolution;
+
+public:
+	GenerateSDFTask(float* data,AccelStructrue* acc,Vector3f s,Vector3f d,Vector3i si,Vector3i ei,Vector3f r);
+
+	virtual void DoTask() override;
+};
+
 
 class SDF {
 
@@ -23,36 +42,22 @@ public:
 
 	Texture3D GenerateSDF() {
 		float* data=new float[resolution.x * resolution.y * resolution.z];
-		for (unsigned x = 0; x < resolution.x; ++x) {
-			for (unsigned y = 0; y < resolution.y; ++y) {
-				for (unsigned z = 0; z < resolution.z; ++z) {
-					
-					Vector3f pos = start + diag * Vector3f(( x + 0.5 ) / resolution.x, (y + 0.5) / resolution.y, 
-						(z + 0.5) / resolution.z);
+		BasicThreadsPool pool(6);
+		
+		for (unsigned x = 0; x < resolution.x; x+=4) {
+			for (unsigned y = 0; y < resolution.y; y+=4) {
+				for (unsigned z = 0; z < resolution.z; z+=4) {
+					auto task = std::make_shared<GenerateSDFTask>(data, 
+										acc, start, diag, Vector3i(x, y, z), 
+										Vector3i(x + 4, y + 4, z + 4), resolution);
 
-					float pi = glm::pi<float>();
-					unsigned t = 16;
-					float sdfValue = 99999;
-					int inside = -1;
-					for (float the = 0; the < pi; the += pi / t) {
-						for (float phi = 0; phi < 2 * pi; phi += 2 * pi / t) {
-							Vector3f dir(sin(the) * cos(phi),  sin(the) * sin(phi), cos(the));
-							Ray r(pos,dir);
-							auto inter = acc->Intersect(r);
-							sdfValue = std::abs(sdfValue) > std::abs(inter.distance) && inter.happened ? std::abs(inter.distance) : std::abs(sdfValue);
-							if (!inter.happened)
-								inside = 1; 
-							
-						}
-					}
-					int p = z * resolution.x * resolution.y + y * resolution.x + x;
-					data[p] = sdfValue*inside;
-					if (sdfValue == 99999)
-						data[p] = 0;
-					std::cout << "sdf generate: " << x * resolution.y * resolution.z + y * resolution.x + z << "/" << resolution.x * resolution.y * resolution.z << "\r";
+					pool.AddTask(task);
 				}
 			}
 		}
+
+		pool.Run();
+		pool.Join();
 		auto t3D= Texture3D(data, resolution.x, resolution.y, resolution.z, GL_R16F,GL_RED);
 		t3D.box = Bounds3(start, start + diag);
 		delete[] data;

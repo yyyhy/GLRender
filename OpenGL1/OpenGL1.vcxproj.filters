@@ -67,6 +67,9 @@
     <Filter Include="头文件\core\raytracing\photonmapping">
       <UniqueIdentifier>{efefd8c3-8e73-4feb-89ab-fee70da8848a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core\threads">
+      <UniqueIdentifier>{1545581c-a07f-4f02-a9f5-aa3b6c7eb301}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -96,17 +99,23 @@
     <ClCompile Include="brdf.cpp">
       <Filter>头文件\brdf</Filter>
     </ClCompile>
-    <ClCompile Include="texture.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="threads.cpp">
+      <Filter>头文件\core\threads</Filter>
     </ClCompile>
-    <ClCompile Include="computeShader.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="SDF.cpp">
+      <Filter>头文件\core\raytracing</Filter>
     </ClCompile>
     <ClCompile Include="DFGI.cpp">
-      <Filter>源文件</Filter>
+      <Filter>头文件\rtgi\dfgi</Filter>
     </ClCompile>
     <ClCompile Include="ComputeBuffer.cpp">
-      <Filter>源文件</Filter>
+      <Filter>头文件\core</Filter>
+    </ClCompile>
+    <ClCompile Include="computeShader.cpp">
+      <Filter>头文件\core</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>头文件\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -296,14 +305,17 @@
     <ClInclude Include="ComputeBuffer.hpp">
       <Filter>头文件\core</Filter>
     </ClInclude>
-    <ClInclude Include="task.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
     <ClInclude Include="photon.hpp">
       <Filter>头文件\core\raytracing\photonmapping</Filter>
     </ClInclude>
     <ClInclude Include="photon_mapping.hpp">
       <Filter>头文件\core\raytracing\photonmapping</Filter>
+    </ClInclude>
+    <ClInclude Include="threads.hpp">
+      <Filter>头文件\core\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="basicThread.hpp">
+      <Filter>头文件\core\threads</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

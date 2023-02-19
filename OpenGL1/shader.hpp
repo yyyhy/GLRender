@@ -14,25 +14,25 @@
 #include"texture.hpp"
 
 enum RenderType {
-    Opaque=0,Transparent=1,
+    Opaque = 0, Transparent = 1,
 };
 
 enum CullType {
-    FRONT=GL_FRONT,BACK=GL_BACK,BOTH=GL_FRONT_AND_BACK,
+    FRONT = GL_FRONT, BACK = GL_BACK, BOTH = GL_FRONT_AND_BACK,
 };
 
 enum ShadowType
 {
-    RSM=0,PCF=1,PCSS=2
+    RSM = 0, PCF = 1, PCSS = 2
 };
 
 enum RenderPass {
-    Forward=0,Deffered=1
+    Forward = 0, Deffered = 1
 };
 
 
 
-class Shader{
+class Shader {
 private:
     unsigned int ID;
     RenderType renderType;
@@ -42,17 +42,17 @@ private:
     std::map<std::string, Texture> textures;
     std::map<std::string, int> cubeMaps;
 public:
-    
 
-    Shader(const char* vertexPath, const char* fragmentPath, 
-        const char* geometryPath = nullptr,std::vector<std::string>* preComplieCmd=NULL)
+
+    Shader(const char* vertexPath, const char* fragmentPath,
+        const char* geometryPath = nullptr, std::vector<std::string>* preComplieCmd = NULL)
     {
         renderType = RenderType::Opaque;
         cullType = CullType::BACK;
         shadowType = ShadowType::RSM;
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
-        
+
         std::string fragmentCode;
         std::string geometryCode;
         std::ifstream vShaderFile;
@@ -89,7 +89,7 @@ public:
         }
         catch (std::ifstream::failure& e)
         {
-            std::cout <<e.what()<< "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+            std::cout << e.what() << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
         }
         if (preComplieCmd) {
             for (auto& i : *preComplieCmd) {
@@ -145,12 +145,12 @@ public:
         setCubeMap("reflectCube[3].reflectCube", 0);
         setBool("reflectCube[3].exist", false);
     }
-    
+
     ~Shader() {
 #ifdef _DEBUG
         std::cout << ID << " shader lose\n";
 #endif // DEBUG
-        
+
     }
     // activate the shader
     // ------------------------------------------------------------------------
@@ -158,7 +158,7 @@ public:
     {
         glUseProgram(ID);
     }
-    
+
     // utility uniform functions
     // ------------------------------------------------------------------------
     void setBool(const std::string& name, bool value) const
@@ -243,7 +243,7 @@ public:
         stageChange = true;
     }
 
-    void SetTexture(const std::string& name, int id, bool is3D=false) {
+    void SetTexture(const std::string& name, int id, bool is3D = false) {
         Texture t;
         t.name = name;
         t.id = id;
@@ -287,7 +287,7 @@ public:
             return;
         }*/
         int index = 0;
-        for (auto i = textures.begin(); i != textures.end();i++,index++) {
+        for (auto i = textures.begin(); i != textures.end(); i++, index++) {
             setInt(i->first, index);
             glActiveTexture(GL_TEXTURE0 + index);
             glBindTexture(i->second.type, i->second.id);

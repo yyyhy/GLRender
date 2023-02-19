@@ -159,7 +159,7 @@ void DFGI::excute()
 		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
 	else
 		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
-	DFGIApplyCS.Dispath(width / DFGI_DOWN_SAMPLE, height / DFGI_DOWN_SAMPLE, 1);
+	DFGIApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 #else
 	DFGIHighQuanlityApplyCS.Use();
 	DFGIHighQuanlityApplyCS.SetInt("GridContainsRays", GridContainsRays);

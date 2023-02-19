@@ -50,11 +50,11 @@ private:
 	sp_shader defferedShader;
 	sp_shader taaShader;
 	sp_shader blitShader;
-	glm::mat4 lastCameraMVP=glm::mat4(0);
+	glm::mat4 lastCameraMVP = glm::mat4(0);
 	unsigned i = 0, n = 4;
 
 	std::list<PostProcess*> postProcess;
-	
+
 	bool firstGenShadowMaps = true;
 	void GenShadowMaps(Scene* scene) {
 		/*glCullFace(GL_FRONT);*/
@@ -71,7 +71,7 @@ private:
 					l->GetFrameBuffer(i).Bind();
 					glClearColor(0, 0, 0, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					
+
 					for (auto& o : scene->objects) {
 						rsmShader->setMat4("trans", (*o->GetComponent<Transform>())());
 
@@ -85,9 +85,9 @@ private:
 								Texture& roughnessMap = shader->GetTexture("roughnessMap");
 								rsmShader->SetTexture("roughnessMap", roughnessMap);
 							}
-							o->draw(i,l->rsmShader.get());
+							o->draw(i, l->rsmShader.get());
 						}
-						
+
 					}
 				}
 
@@ -129,7 +129,7 @@ private:
 			glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_UBO_POINT, CameraPropertyUbo);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
-		
+
 		if (RenderSettingsUbo == 0) {
 			glGenBuffers(1, &RenderSettingsUbo);
 			glBindBuffer(GL_UNIFORM_BUFFER, RenderSettingsUbo);
@@ -137,7 +137,7 @@ private:
 			glBindBufferBase(GL_UNIFORM_BUFFER, RENDER_UBO_POINT, RenderSettingsUbo);
 			glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(RenderWidth, RenderHeight)));
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		}	
+		}
 	}
 
 	glm::mat4 ApplyCameraProperties(Camera* c) {
@@ -161,7 +161,7 @@ private:
 		return mvp;
 	}
 
-	void ApplyLightProperties(std::shared_ptr<Shader> s,Scene* scene) {
+	void ApplyLightProperties(std::shared_ptr<Shader> s, Scene* scene) {
 		for (int i = 0; i < scene->lights.size(); i++) {
 			auto l = scene->lights[i];
 			if (l != NULL) {
@@ -178,10 +178,10 @@ private:
 		(*last)->SetOutFrameBuffer(&targetBuffer);
 		(*last)->SetOutTexBuffer(targetBuffer.GetTexture(0));
 		(*p)->SetInTexBuffer(*BackFrameBuffer.GetTexture(0));
-		for (p; p!=postProcess.end();++p) {
+		for (p; p != postProcess.end(); ++p) {
 
 			(*p)->excute();
-			
+
 			auto next = p;
 			++next;
 			if (next == postProcess.end())
@@ -204,21 +204,21 @@ private:
 			if (transform == nullptr)
 				continue;
 			for (int j = 0; j < i->GetMeshLength(); j++) {
-				auto shader = i->GetShader(j,Deffered);
+				auto shader = i->GetShader(j, Deffered);
 				if (shader != nullptr) {
 					shader->use();
 					shader->setMat4("preTrans", transform->lastTransform);
 					shader->setMat4("trans", (*transform)());
-					
+
 				}
-				
+
 			}
 			i->drawGBuffer();
 		}
 	}
 
 	void initSSDO() {
-		auto ssdo = new SSDO(RenderWidth,RenderHeight);
+		auto ssdo = new SSDO(RenderWidth, RenderHeight);
 		auto ssdoShader = ssdo->mainShader;
 		ssdoShader->SetTexture("gPositionRoughness", GetGBuffer(0));
 		ssdoShader->SetTexture("gNormalDepth", GetGBuffer(1));
@@ -265,7 +265,7 @@ private:
 	void updateCurrTBuffer() {
 		taaShader->use();
 		taaShader->setMat4("lastCameraMVP", lastCameraMVP);
-	
+
 	}
 
 	void BindGBuffer() const {
@@ -275,7 +275,7 @@ private:
 		}
 	}
 
-	void BindRenderSettings() const{
+	void BindRenderSettings() const {
 		glBindBuffer(GL_UNIFORM_BUFFER, RenderSettingsUbo);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 16, glm::value_ptr(glm::vec2(RenderWidth, RenderHeight)));
 	}
@@ -296,21 +296,21 @@ private:
 #endif // _DEBUG
 
 public:
-	Render(unsigned width=SCR_WIDTH,unsigned height=SCR_HEIGHT) :
-		RenderWidth(width),RenderHeight(height),
-		BackFrameBuffer(width,height,true),gFrameBuffer(width,height,true),
+	Render(unsigned width = SCR_WIDTH, unsigned height = SCR_HEIGHT) :
+		RenderWidth(width), RenderHeight(height),
+		BackFrameBuffer(width, height, true), gFrameBuffer(width, height, true),
 		BackColorBuffer(width, height, GL_RGBA32F, GL_RGBA) {
-		GenUbos(); 
+		GenUbos();
 		BackFrameBuffer.AttachTexture(&BackColorBuffer);
 
 		for (int i = 0; i < GBUFFER_SIZE; ++i) {
 			gColorBuffers[i] = Texture2D(width, height, GL_RGBA32F, GL_RGBA);
 		}
 		gFrameBuffer.AttachTexture(gColorBuffers, GBUFFER_SIZE);
-			
+
 		auto blit = new Blit(RenderWidth, RenderHeight);
-		
-		AddPostProcess(blit);				
+
+		AddPostProcess(blit);
 
 		RenderManagerInstance.RegisterRender(this);
 	}
@@ -326,8 +326,8 @@ public:
 		}
 	}
 
-	void operator()(Scene* scene, const FrameBuffer& targetBuffer = TargetOutputFrameBuffer, bool applySky=true) {
-		
+	void operator()(Scene* scene, const FrameBuffer& targetBuffer = TargetOutputFrameBuffer, bool applySky = true) {
+
 		if (mainCamera == NULL)
 			return;
 		auto camaraTransform = mainCamera->object->GetComponent<Transform>();
@@ -342,14 +342,14 @@ public:
 			firstCall = false;
 		}
 		GenShadowMaps(scene);
-		auto mvp=ApplyCameraProperties(mainCamera);
+		auto mvp = ApplyCameraProperties(mainCamera);
 
 		RenderGbuffer(scene);
-			
+
 		BackFrameBuffer.Bind();
 		glClearColor(0.7, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		if (defferedShader != NULL) {
 			defferedShader->use();
 			ApplyLightProperties(defferedShader, scene);
@@ -386,14 +386,14 @@ public:
 					i->draw(j);
 				}
 			}
-		}	
+		}
 
 		//draw sky
-		if (scene->sky != NULL&&applySky) {
+		if (scene->sky != NULL && applySky) {
 			scene->sky->use();
 			scene->sky->setMat4("projection", mainCamera->GetProjection());
 			scene->sky->setMat4("view", mainCamera->GetView());
-			glDepthFunc(GL_LEQUAL); 
+			glDepthFunc(GL_LEQUAL);
 			glBindVertexArray(scene->skyVAO);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, scene->skyBuffer);
@@ -412,7 +412,7 @@ public:
 	unsigned GetFrameBuffer() const { return BackFrameBuffer.frameBuffer; }
 
 	void AddPostProcess(PostProcess* p) {
-		
+
 		if (postProcess.size() > 0) {
 			p->GenFrameBuffer();
 		}
@@ -422,23 +422,23 @@ public:
 		postProcess.push_front(p);
 	}
 
-	void SetDefferedShader(std::shared_ptr<Shader> s) { 
-		defferedShader = s; 
+	void SetDefferedShader(std::shared_ptr<Shader> s) {
+		defferedShader = s;
 	}
-	
-	Texture2D& GetGBuffer(unsigned i) const {  return const_cast<Texture2D&>(gColorBuffers[i]);}
 
-	void openSSDO() &  {
-		if(!ssdoOn)
+	Texture2D& GetGBuffer(unsigned i) const { return const_cast<Texture2D&>(gColorBuffers[i]); }
+
+	void openSSDO()& {
+		if (!ssdoOn)
 			initSSDO();
 	}
 
-	void openSSAO() &  {
-		if(!ssaoOn)
+	void openSSAO()& {
+		if (!ssaoOn)
 			initSSAO();
 	}
 
-	void openAntiNoise() &  {
+	void openAntiNoise()& {
 		if (!antiNoiseOn)
 			initAntiNoise();
 	}
