@@ -16,15 +16,6 @@
     <Filter Include="源文件\shader">
       <UniqueIdentifier>{d45294e6-3d5a-4ba6-8650-8d3ee04e4db2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\base">
-      <UniqueIdentifier>{149b9462-0afc-4623-96fa-89f0dd2f0f2c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\shapes">
-      <UniqueIdentifier>{e9b16a06-0006-40e7-a6e0-f555ec609693}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\rendering">
-      <UniqueIdentifier>{5111e0e5-6e88-40b5-a0e4-2563250daf56}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\gc">
       <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
     </Filter>
@@ -70,6 +61,15 @@
     <Filter Include="头文件\core\threads">
       <UniqueIdentifier>{1545581c-a07f-4f02-a9f5-aa3b6c7eb301}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core\shapes">
+      <UniqueIdentifier>{e9b16a06-0006-40e7-a6e0-f555ec609693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\third">
+      <UniqueIdentifier>{149b9462-0afc-4623-96fa-89f0dd2f0f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\rendering">
+      <UniqueIdentifier>{5111e0e5-6e88-40b5-a0e4-2563250daf56}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -85,10 +85,10 @@
       <Filter>头文件\core\raytracing</Filter>
     </ClCompile>
     <ClCompile Include="mesh.cpp">
-      <Filter>头文件\shapes</Filter>
+      <Filter>头文件\core\shapes</Filter>
     </ClCompile>
     <ClCompile Include="object.cpp">
-      <Filter>头文件\shapes</Filter>
+      <Filter>头文件\core\shapes</Filter>
     </ClCompile>
     <ClCompile Include="gc.cpp">
       <Filter>头文件\gc</Filter>
@@ -132,16 +132,16 @@
       <Filter>头文件\core\component\light</Filter>
     </ClInclude>
     <ClInclude Include="assimp.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="glm.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="opengl.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="stb.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="component.hpp">
       <Filter>头文件\core\component</Filter>
@@ -195,19 +195,19 @@
       <Filter>头文件\core\raytracing</Filter>
     </ClInclude>
     <ClInclude Include="mesh.hpp">
-      <Filter>头文件\shapes</Filter>
+      <Filter>头文件\core\shapes</Filter>
     </ClInclude>
     <ClInclude Include="object.hpp">
-      <Filter>头文件\shapes</Filter>
+      <Filter>头文件\core\shapes</Filter>
     </ClInclude>
     <ClInclude Include="shape.hpp">
-      <Filter>头文件\shapes</Filter>
+      <Filter>头文件\core\shapes</Filter>
     </ClInclude>
     <ClInclude Include="scene.hpp">
-      <Filter>头文件\rendering</Filter>
+      <Filter>头文件\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="render.hpp">
-      <Filter>头文件\rendering</Filter>
+      <Filter>头文件\core\rendering</Filter>
     </ClInclude>
     <ClInclude Include="spotLight.hpp">
       <Filter>头文件\core\component\light</Filter>
@@ -258,10 +258,10 @@
       <Filter>头文件\core\managers</Filter>
     </ClInclude>
     <ClInclude Include="input.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="settings.hpp">
-      <Filter>头文件\base</Filter>
+      <Filter>头文件\third</Filter>
     </ClInclude>
     <ClInclude Include="SDF.hpp">
       <Filter>头文件\core\raytracing</Filter>

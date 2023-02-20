@@ -10,7 +10,6 @@ void DFGI::excute()
 		DFFGIInitBufferCS.Dispath(RSMSampleResolution.x, RSMSampleResolution.y, 1);
 		RegenerateCounter = 0;
 		CurrRSMSampleIndex = { -1,0 };
-		std::cout << "Regenerate:\n ";
 	}
 
 	//

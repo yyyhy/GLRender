@@ -15,6 +15,11 @@ TaskState Task::GetState() const
 	return state;
 }
 
+void Task::WaitUntilTaskIsFinish()
+{
+	while (state != Finish);
+}
+
 void Task::SetState(TaskState s)
 {
 	state = s;
@@ -22,6 +27,11 @@ void Task::SetState(TaskState s)
 
 Task::~Task()
 {
+}
+
+void Task::operator()()
+{
+	DoTask();
 }
 
 VirtualThread::VirtualThread() :doingTaskThread(nullptr),forceClose(false) {
@@ -32,7 +42,7 @@ VirtualThread::~VirtualThread() {
 
 }
 
-std::queue<std::shared_ptr<Task>>& VirtualThread::GetRestWaitingTasks(){
+inline std::queue<std::shared_ptr<Task>>& VirtualThread::GetRestWaitingTasks(){
 	return doingTasksQueue;
 }
 
@@ -40,7 +50,7 @@ VirtualThreadsPool::~VirtualThreadsPool() {
 
 }
 
-BasicThread::BasicThread() :VirtualThread(), end(false)/*, checkThread(new std::thread(Check, &waitingTasks, &doingTasksQueue, &end, &this->forceClose)) */{
+BasicThread::BasicThread() :end(false)/*, checkThread(new std::thread(Check, &waitingTasks, &doingTasksQueue, &end, &this->forceClose)) */{
 
 }
 
@@ -48,22 +58,24 @@ BasicThread::~BasicThread() {
 	ForceClose();
 }
 
-unsigned BasicThread::ThreadPressure() {
+inline unsigned BasicThread::ThreadPressure() {
 	return /*waitingTasks.size() + */doingTasksQueue.size();
 }
 
-void BasicThread::Run() {
+inline void BasicThread::Run() {
 	doingTaskThread = new std::thread(DoTask, &doingTasksQueue, &end,&this->forceClose);
 }
 
-bool BasicThread::AddTask(std::shared_ptr<Task> task) {
-	/*if (doingTasksQueue.size() >= MAX_TASK_SIZE||end)
-		return false;*/
+inline std::future<void> BasicThread::AddTask(std::shared_ptr<Task> task) {
+	
+	std::function<void()> func = std::bind((&Task::DoTask),  task.get());
+	auto package = std::make_shared<std::packaged_task<void()>>(func);
 	doingTasksQueue.push(task);
-	return true;
+	return package->get_future();
 }
 
-void BasicThread::Join() {
+
+inline void BasicThread::Join() {
 	end = true;
 	/*if(checkThread->joinable())
 		checkThread->join();*/
@@ -71,7 +83,7 @@ void BasicThread::Join() {
 		doingTaskThread->join();
 }
 
-void BasicThread::ForceClose() {
+inline void BasicThread::ForceClose() {
 	forceClose = true;
 	Join();
 	if (doingTasksQueue.size() > 0) {
@@ -89,13 +101,13 @@ void BasicThread::ForceClose() {
 		std::cout<< waitingTasks.size() << "Tasks is still doing\n";*/
 }
 
-void BasicThread::Wait()
+inline void BasicThread::Wait()
 {
 	std::unique_lock<std::mutex> lock(m_conditional_mutex);
 	m_conditional_lock.wait(lock);
 }
 
-std::thread::id BasicThread::GetThreadID()
+inline std::thread::id BasicThread::GetThreadID()
 {
 	return doingTaskThread->get_id();
 }
@@ -110,26 +122,28 @@ BasicThreadsPool::~BasicThreadsPool()
 	ForceClose();
 }
 
-unsigned BasicThreadsPool::ThreadPressure()
+inline unsigned BasicThreadsPool::ThreadPressure()
 {
 	return 0;
 }
 
-bool BasicThreadsPool::AddTask(std::shared_ptr<Task> task) {
-	bool success=threadsPool[currThreadIndex]->AddTask(task);
+inline std::future<void> BasicThreadsPool::AddTask(std::shared_ptr<Task> task) {
+	auto success=threadsPool[currThreadIndex]->AddTask(task);
 	currThreadIndex++;
 	currThreadIndex %= threadsPool.size();
 	return success;
 }
 
-void BasicThreadsPool::Run(){
+
+
+inline void BasicThreadsPool::Run(){
 	for(auto var : threadsPool)
 	{
 		var->Run();
 	}
 }
 
-void BasicThreadsPool::Join()
+inline void BasicThreadsPool::Join()
 {
 	for (auto var : threadsPool)
 	{
@@ -137,7 +151,7 @@ void BasicThreadsPool::Join()
 	}
 }
 
-void BasicThreadsPool::ForceClose()
+inline void BasicThreadsPool::ForceClose()
 {
 	for (auto var : threadsPool)
 	{
@@ -145,7 +159,7 @@ void BasicThreadsPool::ForceClose()
 	}
 }
 
-bool BasicThreadsPool::AllTasksIsFinished()
+inline bool BasicThreadsPool::AllTasksIsFinished()
 {
 	for (auto var : threadsPool)
 	{
@@ -155,11 +169,21 @@ bool BasicThreadsPool::AllTasksIsFinished()
 	return true;
 }
 
-void BasicThreadsPool::Wait()
+inline void BasicThreadsPool::Wait()
 {
 }
 
-std::thread::id BasicThreadsPool::GetThreadID()
+inline std::thread::id BasicThreadsPool::GetThreadID()
 {
 	return std::thread::id();
 }
+
+FunctionTask::FunctionTask(std::function<void()> f):func(std::move(f))
+{
+}
+
+void FunctionTask::DoTask()
+{
+	func();
+}
+

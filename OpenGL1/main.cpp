@@ -237,6 +237,19 @@ int main()
     dfgi->GlobalSDFBoxMax = gene.SDFMax;
     dfgi->GlobalSDFBoxMin = gene.SDFMin;
 
+    /*BasicThreadsPool* pool=new BasicThreadsPool(4);
+    pool->Run();
+    std::future<void> t;
+    for (int i = 9990; i < 10030; ++i) {
+        auto ts= pool->AddTask(std::make_shared<TestTask>(i));
+        if (i == 10015)
+            t = std::move(ts);
+    }*/
+
+     //t.get();
+    //pool.Join();
+    //pool.ForceClose();
+    //bt->Join();
     {
 
         //probe->SetDefferedShader(defferedShader);
@@ -326,7 +339,7 @@ int main()
         render(&scene);
         gcController.update();
         glfwSwapBuffers(window);
-        glfwPollEvents();
+         glfwPollEvents();
     }
 
     glfwTerminate();

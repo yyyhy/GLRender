@@ -1,6 +1,6 @@
 #include "SDF.hpp"
 
-GenerateSDFTask::GenerateSDFTask(float* data, AccelStructrue* acc, Vector3f s, Vector3f d, Vector3i si, Vector3i ei, Vector3f r)
+GenerateSDFTask::GenerateSDFTask(float* data, AccelStructrue* acc, Vector3f s, Vector3f d, Vector3i si, Vector3i ei, Vector3f r, std::atomic_int& p)
 	:data(data)
 	,acc(acc)
 	,start(s)
@@ -8,6 +8,7 @@ GenerateSDFTask::GenerateSDFTask(float* data, AccelStructrue* acc, Vector3f s, V
 	,startIndex(si)
 	,endIndex(ei)
 	,resolution(r)
+	,process(p)
 {
 }
 
@@ -42,4 +43,6 @@ void GenerateSDFTask::DoTask()
 			}
 		}
 	}
+
+	process += 1;
 }

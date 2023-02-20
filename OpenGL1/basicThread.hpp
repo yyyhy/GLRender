@@ -3,14 +3,12 @@
 #ifndef BASIC_THREAD_H
 #define BASIC_THREAD_H
 #include"threads.hpp"
-
+#include<memory>
 
 class BasicThread : public VirtualThread {
 
 private:
 	bool end;
-	//std::thread* checkThread;
-	//std::list<std::shared_ptr<Task>> waitingTasks;
 	const unsigned MAX_TASK_SIZE = 64;
 	std::mutex m_conditional_mutex;
 	std::condition_variable m_conditional_lock;
@@ -22,7 +20,7 @@ public:
 
 	virtual unsigned ThreadPressure() override;
 
-	virtual bool AddTask(std::shared_ptr<Task> task) override;
+	virtual std::future<void> AddTask(std::shared_ptr<Task> task) override;
 
 	virtual void Run() override;
 
@@ -33,6 +31,7 @@ public:
 	virtual void Wait() override;
 
 	virtual std::thread::id GetThreadID() override;
+
 };
 
 inline void DoTask(std::queue<std::shared_ptr<Task>>* doingTasks, bool* end, bool* forceClose) {
@@ -82,7 +81,7 @@ public:
 
 	virtual unsigned ThreadPressure() override;
 
-	virtual bool AddTask(std::shared_ptr<Task>) override;
+	virtual std::future<void> AddTask(std::shared_ptr<Task>) override;
 
 	virtual void Run() override;
 
@@ -95,6 +94,7 @@ public:
 	virtual void Wait() override;
 
 	virtual std::thread::id GetThreadID() override;
+
 };
 
 #endif // !BASIC_THREAD_H
