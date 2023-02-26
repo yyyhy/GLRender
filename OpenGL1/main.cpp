@@ -91,24 +91,25 @@ int main()
     std::shared_ptr<Shader> gBufferShaderDiffuse3 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
-    DFGI* dfgi = new DFGI(1600, 900);
+    DFGI* dfgi = new DFGI(SCR_WIDTH, SCR_HEIGHT);
 
     auto sponzaObj = CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
+    auto s2 = CopyObject(sphereObj);
+    s2->GetComponent<Transform>()->Translate(glm::vec3(0, -8, 0));
     //auto sphereObj1 = CreateObject("objs/sphere.obj");
     auto doorObj = CreateObject("objs/door.FBX");
     auto sceneObj = CreateObject("objs/scene/bedroom.obj");
     //auto bigObj = CreateObject("objs/scene/file.obj");
     render.SetDefferedShader(defferedShader);
     //sponzaObj->buildBVH();
-    //sphereObj->buildBVH();
+    sphereObj->buildBVH();
     sceneObj->buildBVH();
     //bigObj->buildBVH();
     //sphereObj1->buildBVH();
     //doorObj->buildBVH();
 
-
-    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 8, 0));
+    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, 0));
     //sphereObj1->GetComponent<Transform>()->Translate(glm::vec3(0, 4, 0));
     //sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
     //sphereObj->AddComponent<Test>();
@@ -116,9 +117,7 @@ int main()
     //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
     //scene.AddObject(sponzaObj);
-    auto s2 = CopyObject(sphereObj);
-    s2->GetComponent<Transform>()->Translate(glm::vec3(0, -8, 0));
-    //scene.AddObject(sphereObj);
+    scene.AddObject(sphereObj);
     //scene.AddObject(s2);
     scene.AddObject(sceneObj);
     //scene.AddObject(bigObj);
@@ -132,7 +131,7 @@ int main()
     scene.AddObject(cameraObj);
 
     auto objL = CreateObject();
-    DirectLight* l = new DirectLight(Spectrum(250 / 255.f, 240 / 255.f, 253 / 255.f), 200000.f, glm::normalize(glm::vec3(0.8f, -1.0f, -0.3f)), true);
+    DirectLight* l = new DirectLight(Spectrum(250 / 255.f, 240 / 255.f, 253 / 255.f), 60000.f, glm::normalize(glm::vec3(0.8f, -1.0f, -0.3f)), true);
     objL->AddComponent(l);
     for (int i = 0; i < 4; ++i) {
         dfgi->RSMAlbedoFlag[i] = l->GetRSM(i, 1);
@@ -144,7 +143,6 @@ int main()
     dfgi->gAlbedoMetallic = render.GetGBuffer(2);
     dfgi->gPositionRoughness = render.GetGBuffer(0);
     dfgi->gNormalDepth = render.GetGBuffer(1);
-    dfgi->gTangent = render.GetGBuffer(3);
     dfgi->LightDirection = l->GetDirection();
     scene.AddLight(l);
     scene.AddObject(objL);
@@ -184,11 +182,7 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
 
-    gBufferShaderGlossy->SetTexture("albedoMap", "objs/tex/albedo.png");
-    gBufferShaderGlossy->SetTexture("normalMap", "objs/tex/normal.png");
-    gBufferShaderGlossy->SetTexture("roughnessMap", "objs/tex/roughness.png");
-    gBufferShaderGlossy->SetTexture("metallicMap", "objs/tex/metallic.png");
-
+    
     gBufferShaderSpecler->SetTexture("albedoMap", "objs/tex/marble/albedo.jpg");
     gBufferShaderSpecler->SetTexture("normalMap", "objs/tex/marble/normal.jpg");
     gBufferShaderSpecler->SetTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
@@ -211,16 +205,22 @@ int main()
     gBufferShaderDiffuse4->SetTexture("normalMap", "objs/tex/red/normal.png");
     gBufferShaderDiffuse4->SetTexture("roughnessMap", "objs/tex/red/roughness.png");
 
+    gBufferShaderGlossy->SetTexture("albedoMap", "objs/tex/albedo.png");
+    gBufferShaderGlossy->SetTexture("normalMap", "objs/tex/normal.png");
+    gBufferShaderGlossy->SetTexture("roughnessMap", "objs/tex/roughness.png");
+    gBufferShaderGlossy->SetTexture("metallicMap", "objs/tex/metallic.png");
+
+
     sponzaObj->SetShader(-1, gBufferShaderGlossy, Deffered);
     sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     s2->SetShader(-1, gBufferShaderSpecler, Deffered);
     sceneObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
-    sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
-    sceneObj->SetShader(2, gBufferShaderSpecler, Deffered);
+   // sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
+    sceneObj->SetShader(2, gBufferShaderGlossy, Deffered);
+    
     //sceneObj->SetShader(0, gBufferShaderDiffuse4, Deffered);
     for (int i = 3; i < 25; ++i)
         sceneObj->SetShader(i, gBufferShaderDiffuse3, Deffered);
-    //sceneObj->SetShader(22, gBufferShaderGlossy, Deffered);
     //sphereObj1->SetShader(-1, gBufferShader2, Deffered);
     //doorObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     //sphereObj2->SetShader(-1, gBufferShader, Deffered);
@@ -294,7 +294,7 @@ int main()
 
     render.OpenTAA();
     render.AddPostProcess(dfgi);
-    float delta = -500;
+    float delta = -0.01;
     RENDER_MAIN_LOOP(window)
     {
        

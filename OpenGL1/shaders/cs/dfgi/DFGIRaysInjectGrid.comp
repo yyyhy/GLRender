@@ -104,7 +104,7 @@ void main(){
     vec4 originImportancePosition=imageLoad(DFGIGridImportancePosition,gridIndex);
 
 #ifdef AMD_PLATFORM
-    imageStore(DFGIGridFlux,gridIndex,mix(originFlux,vec4(flux*2*PI,0),MIX_FACTOR));
+    imageStore(DFGIGridFlux,gridIndex,mix(originFlux,vec4(flux,0),MIX_FACTOR));
     imageStore(DFGIGridImportanceDirection,gridIndex,normalize(mix(originImportanceDirection,vec4(normalize(direction),0),MIX_FACTOR)));
     imageStore(DFGIGridImportancePosition,gridIndex,mix(originImportancePosition,vec4(position,0),MIX_FACTOR));
 #else

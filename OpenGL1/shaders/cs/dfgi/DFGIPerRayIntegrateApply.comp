@@ -39,10 +39,6 @@ layout(std430, binding = 2) buffer DFGIRaysBuffer{
     DFGIRay rays[];
 };
 
-layout(std430, binding = 3) buffer DFGIGridCanSparse{
-    uint gridCanSparseIndex[];
-};
-
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
 }
@@ -153,11 +149,11 @@ void main(){
 
         ivec3 gridIndex=WorldPosToGridIndex(worldPos);
         uint linearGridIndex=LinearGridIndex(gridIndex);
-        uint rayIndex=linearGridIndex*GridContainsRays+rayOffset;
-        DFGIRay ray=rays[rayIndex];
         vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
         float gridDiag=sqrt(dot(gridSize,gridSize));
         vec3 Li=vec3(0);
+        vec3 direction=vec3(0);
+        float totolAttenuation=0;
         for(int x=-1;x<=1;++x){
             for(int y=-1;y<=1;++y){
                 for(int z=-1;z<=1;++z){
@@ -165,23 +161,24 @@ void main(){
                     vec3 gridWorldPos=GridIndexToWorldPos(offsetGridIndex);
                     uint offsetLinearGridIndex=LinearGridIndex(offsetGridIndex);
                     uint rayIndex=offsetLinearGridIndex*GridContainsRays+rayOffset;
-                    DFGIRay ray=rays[rayIndex];
-                    float attenuation=max(1-length(worldPos-gridWorldPos)/(2.5*gridDiag),0.01);
-                    Li+=ray.flux*attenuation;
+                    DFGIRay offsetRay=rays[rayIndex];
+                    if(offsetRay.refCount==0)
+                        continue;
+                    float attenuation=max(1-length(worldPos-gridWorldPos)/(1.5*gridDiag),0);
+                    Li+=offsetRay.flux*attenuation;
+                    direction+=offsetRay.direction;
+                    totolAttenuation+=attenuation;
                 }
             }
         }
 
-        Li/=9.0;
-
-        if(NeedMarkGridCanMultBounce){
-            gridCanSparseIndex[linearGridIndex]=1;
-        }
+        Li/=totolAttenuation;
+        direction=normalize(direction);
             
-        float NdotL=max(0,dot(N,-ray.direction));
+        float NdotL=max(0,dot(N,-direction));
         if(NdotL>0.0){
             //float attenuation=max(1-length(worldPos-ray.hitPosition)/max(gridSize.x,max(gridSize.y,gridSize.z)),0.01);
-            vec3 Loi=calcMicroFacedBRDF(N,-ray.direction,V,uv)*Li*NdotL;
+            vec3 Loi=calcMicroFacedBRDF(N,-direction,V,uv)*Li*NdotL;
 
             atomicAdd(Lox,int(Loi.x*10000));
             atomicAdd(Loy,int(Loi.y*10000));
@@ -193,9 +190,8 @@ void main(){
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
     if(rayOffset.x==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/10000*2*PI/GridContainsRays*2;
-        vec3 col=imageLoad(DFGIResult,uvIndex).xyz;
-        imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,1),1));
+        vec3 Lo=vec3(Lox,Loy,Loz)/10000*2*PI/max(cnt,1);
+        imageStore(DFGIResult,uvIndex,vec4(Lo,1));
     }
     
 }

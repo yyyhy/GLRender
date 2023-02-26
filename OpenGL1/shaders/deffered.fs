@@ -457,13 +457,24 @@ bool usIsValid(vec4 texCoords){
     return uv.x>=-1&&uv.x<=1&&uv.y>=-1&&uv.y<=1;
 }
 
+//#define DEBUG_ALBEDO
+
 void main()
 {             
     vec3 N=texture2D(gBuffer1,texCoords).xyz;
+#ifdef DEBUG_NORMAL
+    gl_FragColor = vec4(N, 1.0);return;
+#endif
     vec3 albedo=texture(gBuffer2,texCoords).xyz;
+#ifdef DEBUG_ALBEDO
+    gl_FragColor = vec4(albedo, 1.0);return;
+#endif
     float AO=texture2D(gBuffer3,texCoords).w;
     float wet=texture2D(gBuffer4,texCoords).w;
     vec3 vWorldPos=texture2D(gBuffer0,texCoords).xyz;
+#ifdef DEBUG_WORLD_POS
+    gl_FragColor = vec4(vWorldPos, 1.0);return;
+#endif
     vec3 V=normalize(uCameraPos - vWorldPos);
     float NdotV=max(0,dot(N,V));
     float depth=texture2D(gBuffer1,texCoords).w;

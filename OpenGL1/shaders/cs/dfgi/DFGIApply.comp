@@ -45,16 +45,6 @@ layout(std430, binding = 2) buffer DFGIGridLightInfos{
 };
 #endif
 
-#ifdef RESULT_STORE_IN_TEX3D
-layout(std430, binding = 2 ) buffer DFGIGridCanSparse{
-    uint gridCanSparseIndex[];
-};
-#else
-layout(std430, binding = 3 ) buffer DFGIGridCanSparse{
-    uint gridCanSparseIndex[];
-};
-#endif
-
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
 }
@@ -161,8 +151,6 @@ void main(){
 
     ivec3 gridIndexLocal=WorldPosToGridIndex(worldPos);
     uint linearGridIndex=LinearGridIndex(gridIndexLocal);
-    if(NeedMarkGridCanMultBounce)
-        gridCanSparseIndex[linearGridIndex]=1;
     //test info
     // GridLightInfo info=infos[linearGridIndex];
     // vec3 colo=info.Flux;
@@ -195,9 +183,9 @@ void main(){
 #endif
         
  
-        atomicAdd(Lox,int(Loi.x*4024));
-        atomicAdd(Loy,int(Loi.y*4024));
-        atomicAdd(Loz,int(Loi.z*4024));
+        atomicAdd(Lox,int(Loi.x*10000));
+        atomicAdd(Loy,int(Loi.y*10000));
+        atomicAdd(Loz,int(Loi.z*10000));
         atomicAdd(cnt,1U);
     }           
      
@@ -205,7 +193,7 @@ void main(){
 
     
     if(gridIndexOffset.x==0U&&gridIndexOffset.y==0U&&gridIndexOffset.z==0U){
-        vec3 Lo=vec3(Lox,Loy,Loz)/4024/float(cnt);
+        vec3 Lo=vec3(Lox,Loy,Loz)/10000*4*PI/float(cnt);
         vec3 col=imageLoad(DFGIResult,uvIndex).xyz;
         imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,1),1));
     }

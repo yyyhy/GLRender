@@ -53,30 +53,29 @@ void DFGI::excute()
 			CurrRSMSampleIndex = it->second;
 		}
 
-		DFGIFirstRaySparseCS.Use();
-		DFGIFirstRaySparseCS.SetInt("GridContainsRays", GridContainsRays);
-		DFGIFirstRaySparseCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
-		DFGIFirstRaySparseCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
-		DFGIFirstRaySparseCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
-		DFGIFirstRaySparseCS.SetVec3("LightFlux", LightFlux);
-		DFGIFirstRaySparseCS.SetVec3("LightDirection", LightDirection);
-		DFGIFirstRaySparseCS.SetVec2("CurrRSMSampleIndex", CurrRSMSampleIndex);
-		DFGIFirstRaySparseCS.SetVec2("RSMSampleResolution", RSMSampleResolution);
-		DFGIFirstRaySparseCS.SetVec2("RSMSampleBrickSize", RSMSampleBrickSize);
-		DFGIFirstRaySparseCS.SetVec2("RSMDownSample", RSMDownSample);
+		DFGIRaySparseCS.Use();
+		DFGIRaySparseCS.SetInt("GridContainsRays", GridContainsRays);
+		DFGIRaySparseCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
+		DFGIRaySparseCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
+		DFGIRaySparseCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
+		DFGIRaySparseCS.SetVec3("LightFlux", LightFlux);
+		DFGIRaySparseCS.SetVec3("LightDirection", LightDirection);
+		DFGIRaySparseCS.SetVec2("CurrRSMSampleIndex", CurrRSMSampleIndex);
+		DFGIRaySparseCS.SetVec2("RSMSampleResolution", RSMSampleResolution);
+		DFGIRaySparseCS.SetVec2("RSMSampleBrickSize", RSMSampleBrickSize);
+		DFGIRaySparseCS.SetVec2("RSMDownSample", RSMDownSample);
+		DFGIRaySparseCS.SetVec2("RSMSize", glm::vec2(RSM_W/4, RSM_H/4));
+		DFGIRaySparseCS.SetBuffer(0, DFGIRaysBuffer);
+		DFGIRaySparseCS.SetBuffer(1, DFGIWeightBuffer);
+		DFGIRaySparseCS.SetTexture("GlobalSDF", gSDF);
 
-		DFGIFirstRaySparseCS.SetBuffer(0, DFGIRaysBuffer);
-		DFGIFirstRaySparseCS.SetBuffer(1, DFGIRayCounterBuffer);
-		DFGIFirstRaySparseCS.SetBuffer(2, DFGIWeightBuffer);
-		DFGIFirstRaySparseCS.SetTexture("GlobalSDF", gSDF);
+		for (int i = 1; i < 2; ++i) {
 
-		for (int i = 1; i < 3; ++i) {
-
-			DFGIFirstRaySparseCS.SetTexture("RSMAlbedoFlag", RSMAlbedoFlag[i]);
-			DFGIFirstRaySparseCS.SetTexture("RSMNormalRoughness", RSMNormalRoughness[i]);
-			DFGIFirstRaySparseCS.SetTexture("RSMPositionMetallic", RSMPositionMetallic[i]);
-			DFGIFirstRaySparseCS.SetTexture("RSMTangent", RSMTangent[i]);
-			DFGIFirstRaySparseCS.Dispath(RSMSampleBrickSize.x/RSMDownSample.x, RSMSampleBrickSize.y/RSMDownSample.y, 1);
+			DFGIRaySparseCS.SetTexture("RSMAlbedoFlag", RSMAlbedoFlag[i]);
+			DFGIRaySparseCS.SetTexture("RSMNormalRoughness", RSMNormalRoughness[i]);
+			DFGIRaySparseCS.SetTexture("RSMPositionMetallic", RSMPositionMetallic[i]);
+			DFGIRaySparseCS.SetTexture("RSMTangent", RSMTangent[i]);
+			DFGIRaySparseCS.Dispath(RSMSampleBrickSize.x/RSMDownSample.x, RSMSampleBrickSize.y/RSMDownSample.y, 1);
 		}
 
 		FirstSparseCounter = 0;
@@ -94,7 +93,7 @@ void DFGI::excute()
 	DFGIPackSHCS.Dispath(32, 32, 32);
 #else
 
-#ifndef HIGH_QUANLITY_APPLY
+#ifndef PER_RAY_INTEGRATE_APPLY
 	DFGIRaysInjectGridCS.Use();
 	DFGIRaysInjectGridCS.SetInt("GridContainsRays", GridContainsRays);
 	DFGIRaysInjectGridCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
@@ -125,15 +124,10 @@ void DFGI::excute()
 	DFGISHApplyCS.SetTexture("gNormalDepth", gNormalDepth);
 	DFGISHApplyCS.SetBindingImage(1, DFGIResult);
 	DFGISHApplyCS.SetBuffer(2, DFGISHBuffer);
-	DFGISHApplyCS.SetBuffer(3, DFGIGridCanSparseBuffer);
-	if (MultBounceCounter >= MultBounceFrequency)
-		DFGISHApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
-	else
-		DFGISHApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
-	DFGISHApplyCS.Dispath(width / DFGI_DOWN_SAMPLE, height / DFGI_DOWN_SAMPLE, 1);
+	DFGISHApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 
 #else
-#ifndef HIGH_QUANLITY_APPLY
+#ifndef PER_RAY_INTEGRATE_APPLY
 	DFGIApplyCS.Use();
 	DFGIApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
 	DFGIApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
@@ -149,33 +143,19 @@ void DFGI::excute()
 	DFGIApplyCS.SetBuffer(2, DFGIGridLightInfosBuffer);
 #endif
 	DFGIApplyCS.SetBindingImage(1, DFGIResult);
-#ifdef RESULT_STORE_IN_TEX3D
-	DFGIApplyCS.SetBuffer(2, DFGIGridCanSparseBuffer);
-#else
-	DFGIApplyCS.SetBuffer(3, DFGIGridCanSparseBuffer);
-#endif
-	if (MultBounceCounter >= MultBounceFrequency)
-		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
-	else
-		DFGIApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
 	DFGIApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 #else
-	DFGIHighQuanlityApplyCS.Use();
-	DFGIHighQuanlityApplyCS.SetInt("GridContainsRays", GridContainsRays);
-	DFGIHighQuanlityApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
-	DFGIHighQuanlityApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
-	DFGIHighQuanlityApplyCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
-	DFGIHighQuanlityApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
-	DFGIHighQuanlityApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
-	DFGIHighQuanlityApplyCS.SetTexture("gNormalDepth", gNormalDepth);
-	DFGIHighQuanlityApplyCS.SetBindingImage(1, DFGIResult);
-	DFGIHighQuanlityApplyCS.SetBuffer(2, DFGIRaysBuffer);
-	DFGIHighQuanlityApplyCS.SetBuffer(3, DFGIGridCanSparseBuffer);
-	if (MultBounceCounter >= MultBounceFrequency)
-		DFGIHighQuanlityApplyCS.SetBool("NeedMarkGridCanMultBounce", true);
-	else
-		DFGIHighQuanlityApplyCS.SetBool("NeedMarkGridCanMultBounce", false);
-	DFGIHighQuanlityApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
+	DFGIPerRayIntegrateApplyCS.Use();
+	DFGIPerRayIntegrateApplyCS.SetInt("GridContainsRays", GridContainsRays);
+	DFGIPerRayIntegrateApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
+	DFGIPerRayIntegrateApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
+	DFGIPerRayIntegrateApplyCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
+	DFGIPerRayIntegrateApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
+	DFGIPerRayIntegrateApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
+	DFGIPerRayIntegrateApplyCS.SetTexture("gNormalDepth", gNormalDepth);
+	DFGIPerRayIntegrateApplyCS.SetBindingImage(1, DFGIResult);
+	DFGIPerRayIntegrateApplyCS.SetBuffer(2, DFGIRaysBuffer);
+	DFGIPerRayIntegrateApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 #endif // !HIGH_QUANLITY_APPLY
 
 	
@@ -189,15 +169,14 @@ void DFGI::excute()
 		DFGIRayMultBounceCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
 		DFGIRayMultBounceCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
 		DFGIRayMultBounceCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
+		DFGIRayMultBounceCS.SetVec2("MultBounceDownSample", glm::vec2(16, 9));
+		DFGIRayMultBounceCS.SetVec2("Resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
 		DFGIRayMultBounceCS.SetTexture("gPositionRoughness", gPositionRoughness);
 		DFGIRayMultBounceCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
 		DFGIRayMultBounceCS.SetTexture("gNormalDepth", gNormalDepth);
-		DFGIRayMultBounceCS.SetTexture("gTangent", gTangent);
 		DFGIRayMultBounceCS.SetTexture("GlobalSDF", gSDF);
 		DFGIRayMultBounceCS.SetBuffer(1, DFGIRaysBuffer);
-		DFGIRayMultBounceCS.SetBuffer(2, DFGIRayCounterBuffer);
-		DFGIRayMultBounceCS.SetBuffer(3, DFGIGridCanSparseBuffer);
-		DFGIRayMultBounceCS.Dispath(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z);
+		DFGIRayMultBounceCS.Dispath(width/16, height/16, 1);
 		MultBounceCounter = 0;
 	}
 #endif // MULT_BOUNCE_ON
@@ -206,6 +185,7 @@ void DFGI::excute()
 	DFGICompositeResultCS.Use();
 	DFGICompositeResultCS.SetTexture("DFGIResult", DFGIResult);
 	DFGICompositeResultCS.SetBindingImage(0, GetInTexBuffer());
+	DFGICompositeResultCS.SetVec2("Resolution", glm::vec2(SCR_WIDTH,SCR_HEIGHT));
 	DFGICompositeResultCS.Dispath(width, height, 1);
 
 	//
@@ -215,9 +195,10 @@ void DFGI::excute()
 	//DFGIRayLiveDownCS.Dispath(32, 32, 32);
 
 	
-	RSMDownSample = RSMDownSample+glm::vec2{3, 3};
+	/*RSMDownSample = RSMDownSample+glm::vec2{3, 3};
 	RSMDownSample.x = std::max(3, int(RSMDownSample.x) % 8);
 	RSMDownSample.y = std::max(3, int(RSMDownSample.y) % 8);
+	RSMDownSample =  glm::vec2{ 1, 1 };*/
 #ifdef MULT_BOUNCE_ON
 	MultBounceCounter++;
 #endif

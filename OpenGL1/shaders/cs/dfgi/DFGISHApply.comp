@@ -34,10 +34,6 @@ layout(std430, binding = 2) buffer DFGISHBuffer{
     DFGISH sh[];
 };
 
-layout(std430, binding =3 ) buffer DFGIGridCanSparse{
-    uint gridCanSparseIndex[];
-};
-
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
 }
@@ -254,8 +250,6 @@ void main(){
 
     ivec3 gridIndexLocal=WorldPosToGridIndex(worldPos);
     uint linearGridIndex=LinearGridIndex(gridIndexLocal);
-    if(NeedMarkGridCanMultBounce)
-        gridCanSparseIndex[linearGridIndex]=1;
    
     DFGISH shi=sh[linearGridIndex];
     vec4 ci=shi.shCi[ciIndex];
