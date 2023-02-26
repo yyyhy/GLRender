@@ -19,7 +19,7 @@ public:
 	}
 
 	void excute() override{
-		taa->use();
+		taa->Use();
 		taa->SetTexture("lastFrame", GetOutTexBuffer(1-currTBuffer).id);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(currTBuffer), taa.get(),GetOutFrameBuffer(currTBuffer));
 		
@@ -28,8 +28,8 @@ public:
 	void SendBufferToNext(PostProcess* p) override{
 		p->SetInTexBuffer(GetOutTexBuffer(currTBuffer));
 		currTBuffer = 1 - currTBuffer;
-		taa->use();
-		taa->setBool("init", false);
+		taa->Use();
+		taa->SetBool("init", false);
 	}
 
 

@@ -22,9 +22,9 @@ public:
 	}
 
 	void LoadToShader(Shader& s) override {
-		s.setVec3("sphereLight["+std::to_string(index)+"].position", position);
-		s.setVec3("sphereLight[" + std::to_string(index) + "].luminance", GetSpectrum());
-		s.setFloat("sphereLight[" + std::to_string(index) + "].radius", radius);
+		s.SetVec3("sphereLight["+std::to_string(index)+"].position", position);
+		s.SetVec3("sphereLight[" + std::to_string(index) + "].luminance", GetSpectrum());
+		s.SetFloat("sphereLight[" + std::to_string(index) + "].radius", radius);
 	}
 
 	Spectrum GetSpectrum() const override {

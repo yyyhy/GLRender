@@ -20,13 +20,13 @@ public:
 		filterShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/commonblur.fs");
 
 		auto ssdoShader = mainShader;
-		ssdoShader->use();
+		ssdoShader->Use();
 		std::default_random_engine engine;
 		std::uniform_real_distribution<float> dis(0, 1);
 		engine.seed(time(0));
 		for (int i = 0; i < 16; i++) {
 			glm::vec3 v = { 2.0 * dis(engine) - 1,2.0 * dis(engine) - 1,dis(engine) };
-			ssdoShader->setVec3("ssdoSample[" + std::to_string(i) + "]", v);
+			ssdoShader->SetVec3("ssdoSample[" + std::to_string(i) + "]", v);
 		}
 
 		std::vector<glm::vec3> ssaoNoise;

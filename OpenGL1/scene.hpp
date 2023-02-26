@@ -31,7 +31,7 @@ public:
 
 	Scene() :skyBuffer(0), bvh(nullptr) {
 		sky = new Shader("shaders/sky.vs", "shaders/sky.fs");
-		sky->setInt("skybox", 0);
+		sky->SetInt("skybox", 0);
 		glGenVertexArrays(1, &skyVAO);
 		glBindVertexArray(skyVAO);
 		unsigned VBO;
@@ -131,6 +131,7 @@ public:
 		photonMappingEngine->readFile(path);
 	}
 
+#if _DEBUG
 	void genLightMap(Object* o, int index, const std::string& path) {
 		if (index == -1) {
 			for (unsigned i = 0; i < o->meshes.size(); ++i) {
@@ -163,7 +164,7 @@ public:
 		if (m != NULL)
 			photonMappingEngine->genLightMap(bvh, m->vertices, path + std::to_string(index) + ".txt");
 	}
-
+#endif
 	glm::vec3 GetSceneBoundMax() const {
 		Bounds3 box = bvh->GetBounds();
 		return box.pMax;

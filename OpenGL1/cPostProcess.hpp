@@ -70,7 +70,7 @@ public:
 	void SetInTexBuffer(const Texture& buffer) {
 		InTexture = buffer;
 		if (shader) {
-			shader->use();
+			shader->Use();
 			shader->SetTexture("tex", InTexture);
 		}
 	}

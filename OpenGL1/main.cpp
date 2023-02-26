@@ -85,11 +85,11 @@ int main()
         });
 
     std::shared_ptr<Shader> gBufferShaderGlossy = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShaderSpecler = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShaderDiffuse = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShaderDiffuse2 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShaderDiffuse3 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
-    std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>("shaders/gbuffer.vs", "shaders/gbuffer.fs");
+    std::shared_ptr<Shader> gBufferShaderSpecler = std::make_shared<Shader>(*gBufferShaderGlossy.get());
+    std::shared_ptr<Shader> gBufferShaderDiffuse = std::make_shared<Shader>(*gBufferShaderGlossy.get());
+    std::shared_ptr<Shader> gBufferShaderDiffuse2 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
+    std::shared_ptr<Shader> gBufferShaderDiffuse3 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
+    std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
     DFGI* dfgi = new DFGI(1600, 900);
 
@@ -108,7 +108,7 @@ int main()
     //doorObj->buildBVH();
 
 
-    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, 0));
+    sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 8, 0));
     //sphereObj1->GetComponent<Transform>()->Translate(glm::vec3(0, 4, 0));
     //sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
     //sphereObj->AddComponent<Test>();
@@ -116,7 +116,10 @@ int main()
     //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
     //scene.AddObject(sponzaObj);
+    auto s2 = CopyObject(sphereObj);
+    s2->GetComponent<Transform>()->Translate(glm::vec3(0, -8, 0));
     //scene.AddObject(sphereObj);
+    //scene.AddObject(s2);
     scene.AddObject(sceneObj);
     //scene.AddObject(bigObj);
     //scene.AddObject(sphereObj1);
@@ -143,12 +146,6 @@ int main()
     dfgi->gNormalDepth = render.GetGBuffer(1);
     dfgi->gTangent = render.GetGBuffer(3);
     dfgi->LightDirection = l->GetDirection();
-    //l->isStatic = true;
-    /*SpotLight* sl = new SpotLight(512,512,Spectrum(1.f, 0, 0), 70, 5, Vector3f(-0.4f,-1.f,-0.3f), true);
-    objL->AddComponent(sl);
-    sl->pos = { 2,4,1 };
-    sl->isStatic = true;*/
-    //scene.AddLight(sl);
     scene.AddLight(l);
     scene.AddObject(objL);
     /* SphereLight* spl1 = new SphereLight(Spectrum(1, 1, 1), 50);
@@ -165,7 +162,7 @@ int main()
      o->GetComponent<Transform>()->SetScale({ 0.2,0.2,0.2 });
      auto s = std::make_shared<Shader>("shaders/pbr.vs", "shaders/photon.fs");
      s->use();
-     s->setVec3("col", {5,5,5});
+     s->SetVec3("col", {5,5,5});
      o->SetShader(-1, s);
      scene.AddObject(o);*/
 
@@ -203,8 +200,8 @@ int main()
     gBufferShaderDiffuse2->SetTexture("albedoMap", "objs/tex/white.png");
     //gBufferShaderDiffuse2->SetTexture("normalMap", "objs/tex/normal.png");
     gBufferShaderDiffuse2->SetTexture("roughnessMap", "objs/tex/white.png");
-    gBufferShaderDiffuse2->use();
-    //gBufferShaderDiffuse2->setVec3("baseColor", glm::vec3(-1,-1,5));
+    gBufferShaderDiffuse2->Use();
+    //gBufferShaderDiffuse2->SetVec3("baseColor", glm::vec3(-1,-1,5));
 
     gBufferShaderDiffuse3->SetTexture("albedoMap", "objs/tex/grass/albedo.jpg");
     gBufferShaderDiffuse3->SetTexture("normalMap", "objs/tex/grass/normal.jpg");
@@ -216,6 +213,7 @@ int main()
 
     sponzaObj->SetShader(-1, gBufferShaderGlossy, Deffered);
     sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
+    s2->SetShader(-1, gBufferShaderSpecler, Deffered);
     sceneObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
     sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
     sceneObj->SetShader(2, gBufferShaderSpecler, Deffered);
@@ -237,19 +235,6 @@ int main()
     dfgi->GlobalSDFBoxMax = gene.SDFMax;
     dfgi->GlobalSDFBoxMin = gene.SDFMin;
 
-    /*BasicThreadsPool* pool=new BasicThreadsPool(4);
-    pool->Run();
-    std::future<void> t;
-    for (int i = 9990; i < 10030; ++i) {
-        auto ts= pool->AddTask(std::make_shared<TestTask>(i));
-        if (i == 10015)
-            t = std::move(ts);
-    }*/
-
-     //t.get();
-    //pool.Join();
-    //pool.ForceClose();
-    //bt->Join();
     {
 
         //probe->SetDefferedShader(defferedShader);
@@ -258,20 +243,18 @@ int main()
         //probe->GenerateCubemap(&scene);
         // probe2->GenerateCubemap(&scene);
         // probe3->GenerateCubemap(&scene);
-        //// scene.SetSkyBox(probe3->GetCubeMap().id);
-       /* defferedShader->use();
-         defferedShader->setCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
-         defferedShader->setBool("reflectCube[0].exist", true);
-         defferedShader->setVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());*/
-         // defferedShader->setCubeMap("reflectCube[1].reflectCube", probe2->GetCubeMap().id);
-         // defferedShader->setBool("reflectCube[1].exist", true);
-         // defferedShader->setVec3("reflectCube[1].pos", probe2->object->GetComponent<Transform>()->GetPosition());
-         // defferedShader->setCubeMap("reflectCube[2].reflectCube", probe3->GetCubeMap().id);
-         // defferedShader->setBool("reflectCube[2].exist", true);
-         // defferedShader->setVec3("reflectCube[2].pos", probe3->object->GetComponent<Transform>()->GetPosition());
+        // scene.SetSkyBox(probe3->GetCubeMap().id);
+        /*defferedShader->Use();
+        defferedShader->SetCubeMap("reflectCube[0].reflectCube", probe->GetCubeMap().id);
+        defferedShader->SetBool("reflectCube[0].exist", true);
+        defferedShader->SetVec3("reflectCube[0].pos", probe->object->GetComponent<Transform>()->GetPosition());*/
+        // defferedShader->SetCubeMap("reflectCube[1].reflectCube", probe2->GetCubeMap().id);
+        // defferedShader->SetBool("reflectCube[1].exist", true);
+        // defferedShader->SetVec3("reflectCube[1].pos", probe2->object->GetComponent<Transform>()->GetPosition());
+        // defferedShader->SetCubeMap("reflectCube[2].reflectCube", probe3->GetCubeMap().id);
+        // defferedShader->SetBool("reflectCube[2].exist", true);
+        // defferedShader->SetVec3("reflectCube[2].pos", probe3->object->GetComponent<Transform>()->GetPosition());
     }
-    /*defferedShader->use();
-    defferedShader->setBool("lightMapOff", true);*/
 
     /*scene.buildBVH();
     scene.mappingPhotons(l,100000);
@@ -291,7 +274,7 @@ int main()
     //    o->GetComponent<Transform>()->SetScale({ 0.2,0.2,0.2 });
     //    auto s= std::make_shared<Shader>("shaders/pbr.vs", "shaders/photon.fs");
     //    s->use();
-    //    s->setVec3("col", p.color);
+    //    s->SetVec3("col", p.color);
     //    o->SetShader(-1,s);
     //    scene.AddObject(o);
     //    pos.push_back(p.positon);
@@ -304,24 +287,17 @@ int main()
     //for (int i = 0; i < 6; i++) {
     //    scene.genLightMapIR(sponzaObj.get(), i, "./baking/lightMap/main_light/bk");
     //}
-    //    
-    ///*for(int i=22;i<40;++i)
-    //    scene.genLightMap(sponzaObj.get(), i, "./baking/lightMap/main_light/bk");*/
-    //sponzaObj->LoadLightMapData();
+       
+    /*for(int i=22;i<40;++i)
+        scene.genLightMap(sponzaObj.get(), i, "./baking/lightMap/main_light/bk");
+    sponzaObj->LoadLightMapData();*/
 
-    //return 0;
     render.OpenTAA();
     render.AddPostProcess(dfgi);
     float delta = -500;
     RENDER_MAIN_LOOP(window)
     {
-        /*auto flux = l->GetFlux();
-        if (flux < 10000)
-            delta = 500;
-        if (flux > 300000)
-            delta = -500;
-        l->SetIntensity(flux + delta);*/
-
+       
         processInput(window);
         if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             render.openSSDO();

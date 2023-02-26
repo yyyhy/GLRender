@@ -72,10 +72,10 @@ inline void GenCubeMipMap(Shader * prefilterShader,const FrameBuffer& Buffer,con
 	glBindTexture(GL_TEXTURE_CUBE_MAP, output.id);
 	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-	prefilterShader->use();
-	prefilterShader->setMat4("projection", glm::perspective(glm::radians(90.f), 1.f, 0.1f, 100.f));
-	prefilterShader->setCubeMap("environmentMap", prefilterTexture->id);
-	prefilterShader->initTexture();
+	prefilterShader->Use();
+	prefilterShader->SetMat4("projection", glm::perspective(glm::radians(90.f), 1.f, 0.1f, 100.f));
+	prefilterShader->SetCubeMap("environmentMap", prefilterTexture->id);
+	prefilterShader->InitTexture();
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, Buffer.frameBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, Buffer.depthRBO);
@@ -85,10 +85,10 @@ inline void GenCubeMipMap(Shader * prefilterShader,const FrameBuffer& Buffer,con
 		glViewport(0, 0, mipWidth, mipHeight);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mipWidth, mipHeight);
 		float roughness = (float)mip / (float)(level - 1);
-		prefilterShader->setFloat("roughness", roughness);
+		prefilterShader->SetFloat("roughness", roughness);
 		for (unsigned int i = 0; i < 6; ++i) 
 		{
-			prefilterShader->setMat4("view", glm::lookAt({ 0,0,0 }, captureViews[i * 2], captureViews[i * 2 + 1]));
+			prefilterShader->SetMat4("view", glm::lookAt({ 0,0,0 }, captureViews[i * 2], captureViews[i * 2 + 1]));
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, output.id, mip);
 			glClear(GL_DEPTH_BUFFER_BIT);
 			renderCube();
@@ -101,9 +101,9 @@ inline void GenCubeMipMap(Shader * prefilterShader,const FrameBuffer& Buffer,con
 inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,const Texture& output, unsigned level = 4) {
 	auto const prefilterTexture = Buffer.GetTexture(0);
 
-	prefilterShader->use();
+	prefilterShader->Use();
 	prefilterShader->SetTexture("prefilterInMap", prefilterTexture->id);
-	prefilterShader->initTexture();
+	prefilterShader->InitTexture();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, Buffer.frameBuffer);
 	for (int mip = 0; mip < level; mip++) {
@@ -112,22 +112,22 @@ inline void GenTexMipMap(Shader* prefilterShader, const FrameBuffer& Buffer,cons
 		glViewport(0, 0, mipWidth, mipHeight);
 
 		float roughness = (float)mip / (float)(level - 1);
-		prefilterShader->setFloat("roughness", roughness);
+		prefilterShader->SetFloat("roughness", roughness);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, output.id, mip);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		renderPlane();
 
 		prefilterShader->SetTexture("prefilterInMap", output.id);
-		prefilterShader->initTexture();
+		prefilterShader->InitTexture();
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 inline void BlitMap(const Texture& in,const Texture& out,Shader *s,const FrameBuffer& outFrameBuffer=InvalidFrameBuffer) {
 
-	s->use();
+	s->Use();
 	s->SetTexture("tex", in.id);
-	s->initTexture();
+	s->InitTexture();
 	
 	InitDefaultFrameBufferOut();
 

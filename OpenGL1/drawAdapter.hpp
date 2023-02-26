@@ -19,7 +19,7 @@ public:
 
 	void draw(unsigned VAO, unsigned size) override{
 		if (shader != NULL) {
-			shader->initTexture();
+			shader->InitTexture();
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
 		}
@@ -36,7 +36,7 @@ public:
 
 	void draw(unsigned VAO, unsigned size) override {
 		if (shader != NULL) {
-			shader->initTexture();
+			shader->InitTexture();
 			glBindVertexArray(VAO);
 			glDrawElementsInstanced(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0,cnt);
 		}

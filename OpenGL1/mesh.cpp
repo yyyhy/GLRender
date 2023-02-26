@@ -1,7 +1,6 @@
 
-#ifndef MESH_H
+
 #include"mesh.hpp"
-#endif // !mesh_H
 #include"component.hpp"
 #include"opengl.hpp"
 #include<fstream>
@@ -21,8 +20,7 @@ Intersection Triangle::getIntersection(Ray ray)
 {
 	Intersection inter = Intersection();
 
-	if (glm::dot(ray.direction, normal) > 0)
-		return inter;
+	
 	float u, v, t_tmp = 0;
 	Vector3d pvec = glm::cross(ray.direction, e2);
 	double det = glm::dot(e1, pvec);
@@ -64,17 +62,17 @@ Vector3d Triangle::evalDiffuseColor(const Vector2d& uv) const
 	return col / 255.;
 }
 
-void MeshTriangle::setupMesh()
+void MeshTriangle::setupMesh(std::vector<Vertex>& vertices, std::vector<unsigned>& indices)
 {
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, VAO.get());
+	glGenBuffers(1, VBO.get());
+	glGenBuffers(1, EBO.get());
 
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(*VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
 		&indices[0], GL_STATIC_DRAW);
 
@@ -115,30 +113,18 @@ void MeshTriangle::setupMesh()
 	}
 
 	box = Bounds3(min, max);
-	index = meshIndex++;
 
 }
 
 MeshTriangle::MeshTriangle() {
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, VAO.get());
+	glGenBuffers(1, VBO.get());
+	glGenBuffers(1, EBO.get());
 	area = 0;
 	bvh = nullptr;
 }
 
-MeshTriangle::MeshTriangle(const MeshTriangle& o) :vertices(o.vertices), indices(o.indices), albedo(o.albedo) {
-	setupMesh();
-
-};
-
-MeshTriangle::MeshTriangle(MeshTriangle&& o) noexcept :vertices(o.vertices), indices(o.indices), albedo(o.albedo) {
-	o.clear();
-	setupMesh();
-};
-
 MeshTriangle::~MeshTriangle() {
-	clear();
 	delete bvh;
 #ifdef _DEBUG
 	std::cout << VAO << " mesh lose\n";
@@ -147,70 +133,43 @@ MeshTriangle::~MeshTriangle() {
 
 }
 
-MeshTriangle& MeshTriangle::operator=(MeshTriangle& o)
-{
-	indices = o.indices;
-	albedo = o.albedo;
-	vertices = o.vertices;
-
-	// TODO: 在此处插入 return 语句
-	return *this;
-}
-
-MeshTriangle& MeshTriangle::operator=(MeshTriangle&& o) noexcept
-{
-	o.indices.swap(o.indices);
-	o.vertices.swap(o.vertices);
-	o.albedo = o.albedo;
-	o.clear();
-
-	return *this;
-}
-
-void MeshTriangle::clear()
-{
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
-	glDeleteVertexArrays(1, &VAO);
-}
-
 void MeshTriangle::draw() const {
 	// bind appropriate textures
 	if (!forwardShader)
-		;
+		return;
 	else
-		forwardShader->initTexture();
+		forwardShader->InitTexture();
 
 	// draw mesh
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(*VAO);
+	glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
 	//glBindVertexArray(0);
 
 }
 
 void MeshTriangle::draw(Shader* s) const
 {
-	s->use();
-	s->initTexture();
+	s->Use();
+	s->InitTexture();
 
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(*VAO);
+	glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
 void MeshTriangle::drawGBuffer() const
 {
 	if (defferedShader != NULL) {
-		defferedShader->initTexture();
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		defferedShader->InitTexture();
+		glBindVertexArray(*VAO);
+		glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0);
 	}
 }
 
 void MeshTriangle::drawInstance(unsigned size) const
 {
-	glBindVertexArray(VAO);
-	glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, size);
+	glBindVertexArray(*VAO);
+	glDrawElementsInstanced(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, 0, size);
 }
 
 

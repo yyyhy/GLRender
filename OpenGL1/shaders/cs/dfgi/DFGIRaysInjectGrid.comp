@@ -59,6 +59,8 @@ float Power(vec3 l){
     return 0.299*l.x+0.587*l.y+0.114*l.z;
 }
 
+const float PI = 3.14159265359;
+
 void main(){
     ivec3 gridIndex = ivec3(gl_WorkGroupID.xyz);
     vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
@@ -101,9 +103,18 @@ void main(){
     vec4 originImportanceDirection=imageLoad(DFGIGridImportanceDirection,gridIndex);
     vec4 originImportancePosition=imageLoad(DFGIGridImportancePosition,gridIndex);
 
-    imageStore(DFGIGridFlux,gridIndex,mix(originFlux,vec4(flux,0),MIX_FACTOR));
+#ifdef AMD_PLATFORM
+    imageStore(DFGIGridFlux,gridIndex,mix(originFlux,vec4(flux*2*PI,0),MIX_FACTOR));
     imageStore(DFGIGridImportanceDirection,gridIndex,normalize(mix(originImportanceDirection,vec4(normalize(direction),0),MIX_FACTOR)));
     imageStore(DFGIGridImportancePosition,gridIndex,mix(originImportancePosition,vec4(position,0),MIX_FACTOR));
+#else
+    imageStore(DFGIGridFlux,gridIndex,vec4(flux,0));
+    if(direction.x!=0&&direction.y!=0&&direction.z!=0)
+        imageStore(DFGIGridImportanceDirection,gridIndex,vec4(normalize(direction),0));
+    else
+        imageStore(DFGIGridImportanceDirection,gridIndex,vec4(0));
+    imageStore(DFGIGridImportancePosition,gridIndex,vec4(position,0));
+#endif
 
 #else
     GridLightInfo info;

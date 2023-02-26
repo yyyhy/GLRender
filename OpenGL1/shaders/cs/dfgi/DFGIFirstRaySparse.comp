@@ -1,10 +1,9 @@
 
 #version 450 core
 #extension GL_EXT_shader_atomic_float : enable
-#extension GL_EXT_transform_feedback : enable
 #pragma debug(on)
 
-const int PerpixelSparseRays=128;
+const int PerpixelSparseRays=64;
 
 layout(local_size_x = PerpixelSparseRays, local_size_y = 1) in;
 struct DFGIRay{
@@ -92,7 +91,7 @@ void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
             vec3 nextPosition=currPosition+direction*sdfValue;
             vec3 nextUVW=WorldPosToUVW(nextPosition);
             float nextSDFValue=texture(GlobalSDF,nextUVW).x;
-            if(sdfValue<EPS&&i>0&&originGridIndex!=WorldPosToGridIndex(currPosition)&&sdfValue>=nextSDFValue){
+            if(sdfValue<EPS&&i>0&&originGridIndex!=WorldPosToGridIndex(currPosition)&&(!UVWIsValid(nextUVW)||sdfValue>=nextSDFValue)){
                 ray.hitPosition=currPosition;
                 ray.refCount=1;
                 return;
@@ -102,9 +101,16 @@ void TraceGlobalSDF(vec3 start,vec3 direction,out DFGIRay ray){
             }
         }
         else{
+            ray.refCount=0;
+            ray.direction=direction;
+            ray.hitPosition=vec3(0);
             return;
         }
     }
+    ray.refCount=0;
+    ray.direction=direction;
+    ray.hitPosition=vec3(0);
+    return;
 
 }
 
@@ -190,7 +196,7 @@ void BlendGridFlux(ivec3 gridIndex, int rayIndex){
 }
 
 //4x4 direction
-int LinearDirection(out vec3 dir){
+int LinearDirection(vec3 dir){
     float cosTheta=dir.z;
     float sinTheta=sqrt(1-cosTheta*cosTheta);
     float cosPhi=dir.x/sinTheta;

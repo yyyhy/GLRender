@@ -53,18 +53,18 @@ public:
 	const glm::vec3& GetDirection() const{ return direction; }
 	
 	void LoadToShader(Shader& s) override {
-		s.use();
-		s.setVec3("mainLight.uLightColor", GetSpectrum()/(radius*radius*glm::pi<float>()));
-		s.setVec3("mainLight.uLightDir", direction);
-		s.setBool("mainLight.exist", true);
+		s.Use();
+		s.SetVec3("mainLight.uLightColor", GetSpectrum()/(radius*radius*glm::pi<float>()));
+		s.SetVec3("mainLight.uLightDir", direction);
+		s.SetBool("mainLight.exist", true);
 		if (genShadowMap) {
 			//auto div = GetCsmDivide();
 			for (unsigned i = 0; i < CSM_MAX_LEVEL; ++i) {
 				s.SetTexture("mainLight.shadowMap["+std::to_string(i)+"]", RSMTextureBuffers[i*RSM_SIZE]);
-				s.setMat4("mainLight.lightMVP[" + std::to_string(i)+"]", currMats.at(i));
+				s.SetMat4("mainLight.lightMVP[" + std::to_string(i)+"]", currMats.at(i));
 			}
-			s.setInt("mainLight.csmLevel", CSM_MAX_LEVEL);
-			s.setVec4("mainLight.csmLevelDivide", csmLevelDivide);
+			s.SetInt("mainLight.csmLevel", CSM_MAX_LEVEL);
+			s.SetVec4("mainLight.csmLevelDivide", csmLevelDivide);
 		}
 	}
 

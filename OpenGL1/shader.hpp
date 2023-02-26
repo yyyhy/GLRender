@@ -34,6 +34,9 @@ enum RenderPass {
 
 class Shader {
 private:
+    unsigned vertexId;
+    unsigned fragmentId;
+    unsigned geometryId;
     unsigned int ID;
     RenderType renderType;
     CullType cullType;
@@ -99,132 +102,160 @@ public:
         const char* vShaderCode = vertexCode.c_str();
         const char* fShaderCode = fragmentCode.c_str();
         // 2. compile shaders
-        unsigned int vertex, fragment;
         // vertex shader
-        vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vShaderCode, NULL);
-        glCompileShader(vertex);
-        checkCompileErrors(vertex, "VERTEX");
+        vertexId = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexId, 1, &vShaderCode, NULL);
+        glCompileShader(vertexId);
+        checkCompileErrors(vertexId, "VERTEX");
         //auto v=glCreateShader(GL_SHADER)
         // fragment Shader
-        fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &fShaderCode, NULL);
-        glCompileShader(fragment);
-        checkCompileErrors(fragment, "FRAGMENT");
+        fragmentId = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentId, 1, &fShaderCode, NULL);
+        glCompileShader(fragmentId);
+        checkCompileErrors(fragmentId, "FRAGMENT");
         // if geometry shader is given, compile geometry shader
-        unsigned int geometry;
         if (geometryPath != nullptr)
         {
             const char* gShaderCode = geometryCode.c_str();
-            geometry = glCreateShader(GL_GEOMETRY_SHADER);
-            glShaderSource(geometry, 1, &gShaderCode, NULL);
-            glCompileShader(geometry);
-            checkCompileErrors(geometry, "GEOMETRY");
+            geometryId = glCreateShader(GL_GEOMETRY_SHADER);
+            glShaderSource(geometryId, 1, &gShaderCode, NULL);
+            glCompileShader(geometryId);
+            checkCompileErrors(geometryId, "GEOMETRY");
         }
+        else
+            geometryId = 0;
         // shader Program
         ID = glCreateProgram();
-        glAttachShader(ID, vertex);
-        glAttachShader(ID, fragment);
+        glAttachShader(ID, vertexId);
+        glAttachShader(ID, fragmentId);
         if (geometryPath != nullptr)
-            glAttachShader(ID, geometry);
+            glAttachShader(ID, geometryId);
         glLinkProgram(ID);
         checkCompileErrors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessery
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-        if (geometryPath != nullptr)
-            glDeleteShader(geometry);
+        
+        Use();
+        SetCubeMap("reflectCube[0].reflectCube", 0);
+        SetBool("reflectCube[0].exist", false);
+        SetCubeMap("reflectCube[1].reflectCube", 0);
+        SetBool("reflectCube[1].exist", false);
+        SetCubeMap("reflectCube[2].reflectCube", 0);
+        SetBool("reflectCube[2].exist", false);
+        SetCubeMap("reflectCube[3].reflectCube", 0);
+        SetBool("reflectCube[3].exist", false);
+    }
 
-        use();
-        setCubeMap("reflectCube[0].reflectCube", 0);
-        setBool("reflectCube[0].exist", false);
-        setCubeMap("reflectCube[1].reflectCube", 0);
-        setBool("reflectCube[1].exist", false);
-        setCubeMap("reflectCube[2].reflectCube", 0);
-        setBool("reflectCube[2].exist", false);
-        setCubeMap("reflectCube[3].reflectCube", 0);
-        setBool("reflectCube[3].exist", false);
+    Shader& operator=(const Shader& s) {
+        ID = s.ID;
+        vertexId = s.vertexId;
+        fragmentId = s.fragmentId;
+        renderType = s.renderType;
+        geometryId = s.geometryId;
+        cullType = s.cullType;
+        shadowType = s.shadowType;
+        ID = glCreateProgram();
+        glAttachShader(ID, vertexId);
+        glAttachShader(ID, fragmentId);
+        if (geometryId != 0)
+            glAttachShader(ID, geometryId);
+        glLinkProgram(ID);
+    }
+
+    Shader(const Shader& s) :ID(s.ID),vertexId(s.vertexId),fragmentId(s.fragmentId),geometryId(s.geometryId)
+                            ,renderType(s.renderType),cullType(s.cullType),shadowType(s.shadowType) {
+        
+        ID = glCreateProgram();
+        glAttachShader(ID, vertexId);
+        glAttachShader(ID, fragmentId);
+        if (geometryId != 0)
+            glAttachShader(ID, geometryId);
+        glLinkProgram(ID);
     }
 
     ~Shader() {
 #ifdef _DEBUG
         std::cout << ID << " shader lose\n";
 #endif // DEBUG
+        glDeleteProgram(ID);
+        glDeleteShader(vertexId);
+        glDeleteShader(fragmentId);
+        if (geometryId != 0)
+            glDeleteShader(geometryId);
 
     }
     // activate the shader
     // ------------------------------------------------------------------------
-    void use() const
+    void Use() const
     {
         glUseProgram(ID);
     }
 
     // utility uniform functions
     // ------------------------------------------------------------------------
-    void setBool(const std::string& name, bool value) const
+    void SetBool(const std::string& name, bool value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
 
     // ------------------------------------------------------------------------
-    void setInt(const std::string& name, int value) const
+    void SetInt(const std::string& name, int value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
 
     // ------------------------------------------------------------------------
-    void setFloat(const std::string& name, float value) const
+    void SetFloat(const std::string& name, float value) const
     {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 
     // ------------------------------------------------------------------------
-    void setVec2(const std::string& name, const glm::vec2& value) const
+    void SetVec2(const std::string& name, const glm::vec2& value) const
     {
         glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
     }
 
-    void setVec2(const std::string& name, float x, float y) const
+    void SetVec2(const std::string& name, float x, float y) const
     {
         glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
     }
 
     // ------------------------------------------------------------------------
-    void setVec3(const std::string& name, const glm::vec3& value) const
+    void SetVec3(const std::string& name, const glm::vec3& value) const
     {
         glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
     }
 
-    void setVec3(const std::string& name, float x, float y, float z) const
+    void SetVec3(const std::string& name, float x, float y, float z) const
     {
         glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
     }
 
     // ------------------------------------------------------------------------
-    void setVec4(const std::string& name, const glm::vec4& value) const
+    void SetVec4(const std::string& name, const glm::vec4& value) const
     {
         glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
     }
 
-    void setVec4(const std::string& name, float x, float y, float z, float w)
+    void SetVec4(const std::string& name, float x, float y, float z, float w)
     {
         glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
     }
 
     // ------------------------------------------------------------------------
-    void setMat2(const std::string& name, const glm::mat2& mat) const
+    void SetMat2(const std::string& name, const glm::mat2& mat) const
     {
         glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
     // ------------------------------------------------------------------------
-    void setMat3(const std::string& name, const glm::mat3& mat) const
+    void SetMat3(const std::string& name, const glm::mat3& mat) const
     {
         glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
     // ------------------------------------------------------------------------
-    void setMat4(const std::string& name, const glm::mat4& mat) const
+    void SetMat4(const std::string& name, const glm::mat4& mat) const
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
@@ -263,38 +294,38 @@ public:
         textures[name] = *t;
     }
 
-    void setCubeMap(const std::string& name, int id) {
+    void SetCubeMap(const std::string& name, int id) {
         cubeMaps[name] = id;
         stageChange = true;
     }
 
     void SetRenderType(RenderType t) {
         renderType = t;
-        setInt("shadowType", renderType);
+        SetInt("shadowType", renderType);
     }
 
     void SetShadowType(ShadowType t) {
         shadowType = t;
-        setInt("shadowType", shadowType);
+        SetInt("shadowType", shadowType);
     }
 
     RenderType GetRenderType() const { return renderType; }
 
     ShadowType GetShadowType() const { return shadowType; }
 
-    void initTexture() const {
+    void InitTexture() const {
         /*if (!stageChange) {
             return;
         }*/
         int index = 0;
         for (auto i = textures.begin(); i != textures.end(); i++, index++) {
-            setInt(i->first, index);
+            SetInt(i->first, index);
             glActiveTexture(GL_TEXTURE0 + index);
             glBindTexture(i->second.type, i->second.id);
         }
 
         for (auto i = cubeMaps.begin(); i != cubeMaps.end(); i++, index++) {
-            setInt(i->first, index);
+            SetInt(i->first, index);
             glActiveTexture(GL_TEXTURE0 + index);
             glBindTexture(GL_TEXTURE_CUBE_MAP, i->second);
         }

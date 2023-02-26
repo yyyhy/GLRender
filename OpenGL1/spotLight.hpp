@@ -55,15 +55,15 @@ public:
 	}
 
 	void LoadToShader(Shader& s) override {
-		s.use();
-		s.setVec3("spotLight.uLightColor", GetSpectrum());
-		s.setVec3("spotLight.uLightDir", dir);
-		s.setBool("spotLight.exist", true);
-		s.setFloat("spotLight.radius", radius);
-		s.setVec3("spotLight.pos", pos);
+		s.Use();
+		s.SetVec3("spotLight.uLightColor", GetSpectrum());
+		s.SetVec3("spotLight.uLightDir", dir);
+		s.SetBool("spotLight.exist", true);
+		s.SetFloat("spotLight.radius", radius);
+		s.SetVec3("spotLight.pos", pos);
 		if (genShadowMap) {
 			//s.SetTexture("spotLight.shadowMap0", rsmBuffer[0]);
-			s.setMat4("spotLight.lightMVP", GetLightMat().at(0));
+			s.SetMat4("spotLight.lightMVP", GetLightMat().at(0));
 		}
 	}
 

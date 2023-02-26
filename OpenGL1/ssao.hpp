@@ -17,7 +17,7 @@ public:
 		mainShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/ssao.fs");
 		filterShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/commonblur.fs");
 
-		mainShader->use();
+		mainShader->Use();
 		std::vector<glm::vec3> samples;
 		std::default_random_engine engine;
 		std::uniform_real_distribution<float> real(0, 1);
@@ -31,7 +31,7 @@ public:
 			scale = 0.1f + 0.9f * scale * scale;
 			sample *= scale;
 			samples.push_back(sample);
-			mainShader->setVec3("ssaoSample[" + std::to_string(i) + "]", samples[i]);
+			mainShader->SetVec3("ssaoSample[" + std::to_string(i) + "]", samples[i]);
 			//std::cout << samples[i].x << " " << samples[i].y << " "<<samples[i].z << "\n";
 		}
 

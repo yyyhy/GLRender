@@ -63,17 +63,17 @@ private:
 				auto rsmShader = l->rsmShader;
 				if (rsmShader == NULL)
 					continue;
-				rsmShader->use();
+				rsmShader->Use();
 				auto mats = l->GetLightMat();
 				for (unsigned i = 0; i < l->FrameBufferSize; ++i) {
-					rsmShader->setMat4("LightMat", mats.at(i));
+					rsmShader->SetMat4("LightMat", mats.at(i));
 
 					l->GetFrameBuffer(i).Bind();
 					glClearColor(0, 0, 0, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 					for (auto& o : scene->objects) {
-						rsmShader->setMat4("trans", (*o->GetComponent<Transform>())());
+						rsmShader->SetMat4("trans", (*o->GetComponent<Transform>())());
 
 						for (int i = 0; i < o->GetMeshLength(); ++i) {
 							auto shader = o->GetShader(i, Deffered);
@@ -104,17 +104,17 @@ private:
 				auto rsmShader = l->rsmShader;
 				if (rsmShader == NULL)
 					continue;
-				rsmShader->use();
+				rsmShader->Use();
 				//std::cout << l->GetRSMWidth() << " " << l->GetRSMHeigth() << " " << l->GetFrameBuffer() << " " << l->GetRSMBuffer() << "\n\n";
 				auto mats = l->GetLightMat();
 				for (unsigned i = 0; i < l->FrameBufferSize; ++i) {
-					rsmShader->setMat4("LightMat", mats.at(i));
+					rsmShader->SetMat4("LightMat", mats.at(i));
 					auto fbo = l->GetFrameBuffer(i);
 					fbo.Bind();
 					glClearColor(0.3, 1, 1, 1);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					for (auto& o : scene->objects) {
-						rsmShader->setMat4("trans", (*o->GetComponent<Transform>())());
+						rsmShader->SetMat4("trans", (*o->GetComponent<Transform>())());
 						o->draw(l->rsmShader.get());
 					}
 				}
@@ -206,9 +206,9 @@ private:
 			for (int j = 0; j < i->GetMeshLength(); j++) {
 				auto shader = i->GetShader(j, Deffered);
 				if (shader != nullptr) {
-					shader->use();
-					shader->setMat4("preTrans", transform->lastTransform);
-					shader->setMat4("trans", (*transform)());
+					shader->Use();
+					shader->SetMat4("preTrans", transform->lastTransform);
+					shader->SetMat4("trans", (*transform)());
 
 				}
 
@@ -239,7 +239,7 @@ private:
 	void initSSGI() {
 		auto ssgi = new SSGI(RenderWidth, RenderHeight);
 		auto ssgiShader = ssgi->GetShader();
-		ssgiShader->use();
+		ssgiShader->Use();
 		ssgiShader->SetTexture("gPositionRoughness", GetGBuffer(0));
 		ssgiShader->SetTexture("gNormalDepth", GetGBuffer(1));
 		ssgiShader->SetTexture("gAlbedoMetallic", GetGBuffer(2));
@@ -263,13 +263,13 @@ private:
 	}
 
 	void updateCurrTBuffer() {
-		taaShader->use();
-		taaShader->setMat4("lastCameraMVP", lastCameraMVP);
+		taaShader->Use();
+		taaShader->SetMat4("lastCameraMVP", lastCameraMVP);
 
 	}
 
 	void BindGBuffer() const {
-		defferedShader->use();
+		defferedShader->Use();
 		for (auto i = 0; i < GBUFFER_SIZE; i++) {
 			defferedShader->SetTexture("gBuffer" + std::to_string(i), gColorBuffers[i].id);
 		}
@@ -288,8 +288,8 @@ private:
 		shader->SetTexture("gPositionRoughness", GetGBuffer(0));
 		shader->SetTexture("gNormalDepth", GetGBuffer(1));
 		shader->SetTexture("gAlbedoMetallic", GetGBuffer(2));
-		shader->setVec3("L", glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)));
-		shader->setInt("range", 2);
+		shader->SetVec3("L", glm::normalize(glm::vec3(-0.5f, -1.0f, 0.3f)));
+		shader->SetInt("range", 2);
 		AddPostProcess(s);
 	}
 
@@ -351,7 +351,7 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if (defferedShader != NULL) {
-			defferedShader->use();
+			defferedShader->Use();
 			ApplyLightProperties(defferedShader, scene);
 			BlitMap(0, *BackFrameBuffer.GetTexture(0), defferedShader.get(), BackFrameBuffer);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, gFrameBuffer.frameBuffer);
@@ -380,8 +380,8 @@ public:
 					else if (shader->GetRenderType() == Opaque) {
 						glDisable(GL_BLEND);
 					}
-					shader->use();
-					shader->setMat4("trans", (*transform)());
+					shader->Use();
+					shader->SetMat4("trans", (*transform)());
 					ApplyLightProperties(shader, scene);
 					i->draw(j);
 				}
@@ -390,9 +390,9 @@ public:
 
 		//draw sky
 		if (scene->sky != NULL && applySky) {
-			scene->sky->use();
-			scene->sky->setMat4("projection", mainCamera->GetProjection());
-			scene->sky->setMat4("view", mainCamera->GetView());
+			scene->sky->Use();
+			scene->sky->SetMat4("projection", mainCamera->GetProjection());
+			scene->sky->SetMat4("view", mainCamera->GetView());
 			glDepthFunc(GL_LEQUAL);
 			glBindVertexArray(scene->skyVAO);
 			glActiveTexture(GL_TEXTURE0);
@@ -452,7 +452,7 @@ public:
 		auto taa = new TAA(RenderWidth, RenderHeight);
 		taaShader = taa->GetShader();
 
-		taaShader->use();
+		taaShader->Use();
 		taaShader->SetTexture("gWorldPos", GetGBuffer(0));
 		taaShader->SetTexture("gVelo", GetGBuffer(6));
 		taaShader->SetTexture("gNormalDepth", GetGBuffer(1));

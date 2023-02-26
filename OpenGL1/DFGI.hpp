@@ -20,9 +20,9 @@ const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4,
 
 //#define IMPORTANCE_SAMPLE_RSM
 #define RESULT_STORE_IN_TEX3D
-#define HIGH_QUANLITY_APPLY
+//#define HIGH_QUANLITY_APPLY
 //#define USE_SH
-#define MULT_BOUNCE_ON
+//#define MULT_BOUNCE_ON
 
 class DFGI : public PostProcess{
 public:

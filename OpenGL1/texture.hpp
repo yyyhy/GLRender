@@ -17,7 +17,7 @@ struct Texture {
     const unsigned char* albedo;
     unsigned type;
     std::string name;
-    Texture(unsigned t = GL_TEXTURE_2D, const std::string& name = "") :type(t), id(0), name(name) {}
+    Texture(unsigned t = GL_TEXTURE_2D, const std::string& name = "") :type(t), id(0), name(name), w(0), h(0), albedo(0) {}
     virtual ~Texture();
     virtual void Release();
     void swap(Texture&& t) {

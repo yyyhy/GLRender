@@ -22,12 +22,12 @@ public:
 	void LoadToShader(Shader& s) override {
 		std::string pre = "pointLight[";
 		pre.push_back(index+48);
-		s.use();
-		s.setVec3(pre+"].col", color * flux);
-		s.setVec3(pre + "].pos", position);
-		s.setFloat(pre + "].Kl", Kl);
-		s.setFloat(pre + "].Kq", Kq);
-		s.setBool(pre + "].exist", true);
+		s.Use();
+		s.SetVec3(pre+"].col", color * flux);
+		s.SetVec3(pre + "].pos", position);
+		s.SetFloat(pre + "].Kl", Kl);
+		s.SetFloat(pre + "].Kq", Kq);
+		s.SetBool(pre + "].exist", true);
 	}
 
 	void initBuffer(int w, int h) override{

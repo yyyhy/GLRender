@@ -3,10 +3,8 @@
 #pragma debug(on)
 
 const int GridMaxContiansRays=64;
-const int NeighborSampleY=1;
-const int NeighborSampleZ=1;
 
-layout(local_size_x = GridMaxContiansRays, local_size_y = NeighborSampleY, local_size_z=NeighborSampleZ) in;
+layout(local_size_x = GridMaxContiansRays, local_size_y = 1, local_size_z=1) in;
 
 struct DFGIRay{
     vec3 direction;
@@ -52,6 +50,11 @@ vec3 WorldPosToUVW(vec3 worldPos){
 ivec3 WorldPosToGridIndex(vec3 worldPos){
     vec3 uvw=WorldPosToUVW(worldPos);
     return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
+}
+
+vec3 GridIndexToWorldPos(ivec3 gridIndex){
+    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+    return GlobalSDFBoxMin+(vec3(gridIndex)+vec3(0.5))*gridSize;
 }
 
 uint LinearGridIndex(ivec3 gridIndex){
@@ -128,7 +131,6 @@ bool UVWIsValid(vec3 uvw){
 void main(){
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
     uint rayOffset=gl_LocalInvocationID.x;
-    ivec3 girdOffset=ivec3(0,gl_LocalInvocationID.yz-ivec2(NeighborSampleY/2,NeighborSampleZ/2));
     if(rayOffset<GridContainsRays){
         vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
         vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
@@ -141,7 +143,7 @@ void main(){
         vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
         vec3 V=normalize(CameraPos-worldPos); 
 
-        if(rayOffset.x==0&&girdOffset.y==0&&girdOffset.z==0){
+        if(rayOffset.x==0){
             Lox=0;
             Loy=0;
             Loz=0;
@@ -149,33 +151,49 @@ void main(){
         }
         groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
-        ivec3 gridIndex=WorldPosToGridIndex(worldPos)+girdOffset;
+        ivec3 gridIndex=WorldPosToGridIndex(worldPos);
         uint linearGridIndex=LinearGridIndex(gridIndex);
-        if(NeedMarkGridCanMultBounce)
-            gridCanSparseIndex[linearGridIndex]=1;
-        
         uint rayIndex=linearGridIndex*GridContainsRays+rayOffset;
         DFGIRay ray=rays[rayIndex];
         vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+        float gridDiag=sqrt(dot(gridSize,gridSize));
+        vec3 Li=vec3(0);
+        for(int x=-1;x<=1;++x){
+            for(int y=-1;y<=1;++y){
+                for(int z=-1;z<=1;++z){
+                    ivec3 offsetGridIndex=gridIndex+ivec3(x,y,z);
+                    vec3 gridWorldPos=GridIndexToWorldPos(offsetGridIndex);
+                    uint offsetLinearGridIndex=LinearGridIndex(offsetGridIndex);
+                    uint rayIndex=offsetLinearGridIndex*GridContainsRays+rayOffset;
+                    DFGIRay ray=rays[rayIndex];
+                    float attenuation=max(1-length(worldPos-gridWorldPos)/(2.5*gridDiag),0.01);
+                    Li+=ray.flux*attenuation;
+                }
+            }
+        }
+
+        Li/=9.0;
+
+        if(NeedMarkGridCanMultBounce){
+            gridCanSparseIndex[linearGridIndex]=1;
+        }
+            
         float NdotL=max(0,dot(N,-ray.direction));
         if(NdotL>0.0){
             //float attenuation=max(1-length(worldPos-ray.hitPosition)/max(gridSize.x,max(gridSize.y,gridSize.z)),0.01);
-            vec3 Li=ray.flux;
             vec3 Loi=calcMicroFacedBRDF(N,-ray.direction,V,uv)*Li*NdotL;
 
-            atomicAdd(Lox,int(Loi.x*4024));
-            atomicAdd(Loy,int(Loi.y*4024));
-            atomicAdd(Loz,int(Loi.z*4024));
+            atomicAdd(Lox,int(Loi.x*10000));
+            atomicAdd(Loy,int(Loi.y*10000));
+            atomicAdd(Loz,int(Loi.z*10000));
             atomicAdd(cnt,1);
-
-            groupMemoryBarrier(); memoryBarrierShared(); barrier();
         }
     }
 
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
-    if(rayOffset.x==0&&girdOffset.y==0&&girdOffset.z==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/4024*2*PI/GridContainsRays*2/NeighborSampleY/NeighborSampleZ;
+    if(rayOffset.x==0){
+        vec3 Lo=vec3(Lox,Loy,Loz)/10000*2*PI/GridContainsRays*2;
         vec3 col=imageLoad(DFGIResult,uvIndex).xyz;
         imageStore(DFGIResult,uvIndex,vec4(mix(col,Lo,1),1));
     }

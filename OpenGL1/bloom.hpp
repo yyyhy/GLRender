@@ -26,7 +26,7 @@ public:
 		BlitMap(GetInTexBuffer(), bloomMainTexBuffer, mainShader.get());
 		BlitMap(bloomMainTexBuffer, bloomBlurHTexBuffer, filterHShader.get());
 		BlitMap(bloomBlurHTexBuffer, bloomBlurVTexBuffer, filterVShader.get());
-		GetShader()->use();
+		GetShader()->Use();
 		GetShader()->SetTexture("bloomMap", bloomBlurVTexBuffer);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}

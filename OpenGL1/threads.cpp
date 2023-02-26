@@ -15,11 +15,6 @@ TaskState Task::GetState() const
 	return state;
 }
 
-void Task::WaitUntilTaskIsFinish()
-{
-	while (state != Finish);
-}
-
 void Task::SetState(TaskState s)
 {
 	state = s;

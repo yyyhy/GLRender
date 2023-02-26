@@ -39,23 +39,15 @@ public:
 
     explicit Object() :active(true) { AddComponent<Transform>(); }
 
-    Object(Object& o) {
+    Object(const Object& o) {
 #ifdef _DEBUG
         std::cout << "Copy obj\n";
 #endif // _DEBUG
 
-        for (int i = 0; i < o.meshes.size(); i++) {
-            MeshTriangle *mesh = new MeshTriangle();
-            *mesh = *o.meshes.at(i);
-            meshes.push_back(std::shared_ptr<MeshTriangle>(mesh));
-        }
-        for (int i = 0; i < o.components.size(); i++) {
-            Component* com = new Component(*o.components[i]);
-            components.push_back(com);
-        }
+        meshes = o.meshes;
         active = o.active;
         isStatic = o.isStatic;
-        
+        AddComponent<Transform>();
     }
 
     Object(Object&& o) noexcept {
@@ -72,12 +64,10 @@ public:
 
     Object& operator=(Object& o) {
         meshes = o.meshes;
-        for (auto& c : o.components) {
-            auto tmp = c;
-            components.push_back(c);
-        }
-            
+        
         active = o.active;
+        isStatic = o.isStatic;
+        AddComponent<Transform>();
         return *this;
     }
 

@@ -107,19 +107,15 @@ inline bool rayTriangleIntersect(const Vector3d& v0, const Vector3d& v1,
 	return true;
 }
 
-static unsigned meshIndex = 0;
-
 class MeshTriangle: public Shape {
 	
 public:
-	unsigned VAO;
-	unsigned VBO;
-	unsigned EBO;
-	std::vector<Vertex> vertices;
-	std::vector<unsigned> indices;
+	std::shared_ptr<unsigned> VAO;
+	std::shared_ptr<unsigned> VBO;
+	std::shared_ptr<unsigned> EBO;
 	Texture albedo;
 	std::vector<Triangle> triangles;
-	unsigned verticesCount=0;
+	unsigned indicesCount=0;
 	std::shared_ptr<Shader> forwardShader;
 	std::shared_ptr<Shader> defferedShader;
 	union
@@ -130,21 +126,14 @@ public:
 	
 	Bounds3 box;
 	float area;
-	unsigned index;
-	void setupMesh();
+	void setupMesh(std::vector<Vertex>& vertices, std::vector<unsigned>& indices);
 public:
 	
 	MeshTriangle();
 
-	MeshTriangle(const MeshTriangle& o);
-
-	MeshTriangle(MeshTriangle&& o) noexcept;
-
-	MeshTriangle(std::vector<Vertex>& vertices, std::vector<unsigned>& indices)
-		:vertices(std::move(vertices)), indices(std::move(indices)){
-		setupMesh();
-		std::vector<Vertex>().swap(vertices);
-		std::vector<unsigned>().swap(indices);
+	MeshTriangle(std::vector<Vertex>& vertices, std::vector<unsigned>& indices) :
+		VAO(new unsigned()), VBO(new unsigned()), EBO(new unsigned()), indicesCount(indices.size()) {
+		setupMesh(vertices, indices);
 	};
 
 	~MeshTriangle();
@@ -159,13 +148,7 @@ public:
 		//stbi_write_png("0.png", 1024, 1024, 3, albedo.albedo, 0);
 	}
 
-	const unsigned GetVAO() const { return VAO; }
-
-	MeshTriangle& operator=(MeshTriangle&);
-
-	MeshTriangle& operator=(MeshTriangle&&) noexcept;
-
-	void clear();
+	const std::shared_ptr<unsigned> GetVAO() const { return VAO; }
 
 	void draw() const;
 
@@ -180,10 +163,10 @@ public:
 	bool intersect(const Ray& ray, float& tnear, uint32_t& index) const override
 	{
 		bool intersect = false;
-		for (uint32_t k = 0; k < indices.size()/3; ++k) {
-			const Vector3d& v0 = vertices[indices[k * 3]].Position;
-			const Vector3d& v1 = vertices[indices[k * 3 + 1]].Position;
-			const Vector3d& v2 = vertices[indices[k * 3 + 2]].Position;
+		for (uint32_t k = 0; k < triangles.size(); ++k) {
+			const Vector3d& v0 = triangles[index].v0.Position;
+			const Vector3d& v1 = triangles[index].v1.Position;
+			const Vector3d& v2 = triangles[index].v2.Position;
 			float t, u, v;
 			if (rayTriangleIntersect(v0, v1, v2, ray.origin, ray.direction, t,
 				u, v) &&
@@ -203,15 +186,15 @@ public:
 		const uint32_t& index, const Vector2d& uv,
 		Vector3d& N, Vector2d& st) const override
 	{
-		const Vector3d& v0 = vertices[indices[index * 3]].Position;
-		const Vector3d& v1 = vertices[indices[index * 3 + 1]].Position;
-		const Vector3d& v2 = vertices[indices[index * 3 + 2]].Position;
+		const Vector3d& v0 = triangles[index].v0.Position;
+		const Vector3d& v1 = triangles[index].v1.Position;
+		const Vector3d& v2 = triangles[index].v2.Position;
 		Vector3d e0 = normalize(v1 - v0);
 		Vector3d e1 = normalize(v2 - v1);
 		N = glm::normalize(glm::cross(e0, e1));
-		const Vector2d& st0 = vertices[indices[index * 3]].TexCoords;
-		const Vector2d& st1 = vertices[indices[index * 3]+1].TexCoords;
-		const Vector2d& st2 = vertices[indices[index * 3]+2].TexCoords;
+		const Vector2d& st0 = triangles[index].v0.TexCoords;
+		const Vector2d& st1 = triangles[index].v1.TexCoords;
+		const Vector2d& st2 = triangles[index].v2.TexCoords;
 		st = st0 * (1 - uv.x - uv.y) + st1 * uv.x + st2 * uv.y;
 	}
 
@@ -231,8 +214,8 @@ public:
 			if (kdTree)
 				kdTree->Intersect(ray,&intersec);
 			else {
-				if(vertices.size())
-					std::cerr << "No Accel-Structure attach to this obj!"<<index<<"\n";
+				if(*VAO!=0)
+					std::cerr << "No Accel-Structure attach to this obj!"<<VAO<<"\n";
 			}
 		}
 		return intersec;
@@ -247,18 +230,18 @@ public:
 	}
 
 	void LoadLightMapData() {
-		auto v = vertices.at(0);
+		/*auto v = vertices.at(0);
 		if (v.IndLight.x + v.IndLight.y + v.IndLight.z < 0.1) {
 			return;
 		}
 		
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindVertexArray(*VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, *VBO);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-			&indices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesCount * sizeof(unsigned int),
+			&indices[0], GL_STATIC_DRAW);*/
 
 		glEnableVertexAttribArray(5);
 		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, IndLight));

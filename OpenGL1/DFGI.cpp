@@ -216,8 +216,8 @@ void DFGI::excute()
 
 	
 	RSMDownSample = RSMDownSample+glm::vec2{3, 3};
-	RSMDownSample.x = int(RSMDownSample.x) % 8;
-	RSMDownSample.y = int(RSMDownSample.y) % 8;
+	RSMDownSample.x = std::max(3, int(RSMDownSample.x) % 8);
+	RSMDownSample.y = std::max(3, int(RSMDownSample.y) % 8);
 #ifdef MULT_BOUNCE_ON
 	MultBounceCounter++;
 #endif
