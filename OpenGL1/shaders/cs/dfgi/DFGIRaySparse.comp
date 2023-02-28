@@ -3,7 +3,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int PerpixelSparseRays=16;
+const int PerpixelSparseRays=64;
 
 layout(local_size_x = PerpixelSparseRays, local_size_y = 1) in;
 struct DFGIRay{
@@ -33,6 +33,7 @@ uniform sampler2D RSMNormalRoughness;
 uniform sampler2D RSMPositionMetallic;
 uniform sampler2D RSMTangent;
 uniform sampler3D GlobalSDF;
+uniform samplerCube SkyBox;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
 uniform int GridContainsRays;
@@ -52,7 +53,7 @@ vec3 WorldPosToUVW(vec3 worldPos){
 
 ivec3 WorldPosToGridIndex(vec3 worldPos){
     vec3 uvw=WorldPosToUVW(worldPos);
-    return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
+    return ivec3((SceneGridsResolution.x-1)*uvw.x,(SceneGridsResolution.y-1)*uvw.y,(SceneGridsResolution.z-1)*uvw.z);
 }
 
 vec3 GridIndexToWorldPos(ivec3 gridIndex){
@@ -97,7 +98,7 @@ DFGIRay TraceGlobalSDF(vec3 start,vec3 direction){
                 ray.refCount=1;
                 return ray;
             }
-            else if(sdfValue<0){
+            else if(sdfValue<EPS){
                 return ray;
             }
             else{
@@ -220,6 +221,53 @@ int LinearDirection(vec3 dir){
     return phiIndex*div+thetaIndex;
 
 }
+
+float DistributionGGX(float NdotH, float roughness){
+    float a=roughness;
+    float ggx=a*a/(PI*pow(NdotH*NdotH*(a*a-1.0)+1.0,2.0));
+    return ggx;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness){
+    float k=pow(1.0+roughness,2.0)/8.0;
+    float g=NdotV/(NdotV*(1.0-k)+k);
+    return g;
+}
+
+float GeometrySmith(float NdotV,float NdotL, float roughness){
+    return GeometrySchlickGGX(NdotV,roughness)*GeometrySchlickGGX(NdotL,roughness);
+}
+
+vec3 fresnelSchlick(vec3 F0, float VdotH){
+    return F0+(1.0-F0)*pow(1.0-VdotH,5.0);
+}
+
+vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
+    
+    vec3 albedo=texture(RSMAlbedoFlag,tex).xyz;
+    float rough=texture(RSMNormalRoughness,tex).w;
+    //rough=0.5;
+    vec3 F0 = vec3(0.04); 
+    float metallic=texture(RSMPositionMetallic,tex).w;
+    //metallic=0.5;
+    F0 = mix(F0, albedo, metallic);
+
+    vec3 H = normalize(V + L);
+    float NdotL = max(dot(N, L), 0.001); 
+    float NdotV = max(dot(N, V), 0.001);
+    float VdotH = max(dot(V,H),0.001);
+    float NdotH = max(dot(N,H),0.001);
+
+    float NDF = DistributionGGX(NdotH, rough);   
+    float G   = GeometrySmith(NdotL,NdotV, rough); 
+    vec3 F = fresnelSchlick(F0, VdotH);
+
+    vec3 numerator    = NDF * G * F; 
+    float denominator = (4.0 * NdotL * NdotV);
+    vec3 BRDF = numerator / vec3(denominator,denominator,denominator);
+    return BRDF;
+}
+
 void main() {
     uint sampleIndex=gl_LocalInvocationID.x;
     vec2 Xi=Hammersley(sampleIndex,PerpixelSparseRays);
@@ -238,25 +286,29 @@ void main() {
     if(length(N)<0.99||(albedo.x<0.001&&albedo.y<0.001&&albedo.z<0.001)){
         return;
     }
+    if(!(N.y>0.9))
+        return;
     vec3 worldPos=texture2D(RSMPositionMetallic,uv).xyz;
     vec3 tangent=texture2D(RSMTangent,uv).xyz;
     float roughness=texture2D(RSMNormalRoughness,uv).w;
     vec3 H=ImportanceSampleGGX(Xi,N,tangent,roughness);
-    vec3 LiDirection=-LightDirection;
-    vec3 LoDirection=normalize(2.0 * dot(LiDirection, H) * H - LiDirection);
-    float NdotLi=max(dot(N,LiDirection),0.0);
-    float NdotLo=dot(N,LoDirection);
-    vec3 flux=LightFlux*albedo*NdotLi/PI;
+    vec3 Wi=-LightDirection;
+    vec3 Wo=normalize(2.0 * dot(Wi, H) * H - Wi);
+    float NdotLi=max(dot(N,Wi),0.0);
+    float NdotLo=dot(N,Wo);
+    float metallic=texture2D(RSMPositionMetallic,uv).w;
+    vec3 flux=LightFlux*NdotLi*(calcMicroFacedBRDF(N,Wi,Wo,uv)+(1-metallic)*albedo);
     
     if(NdotLi>0.01&&NdotLo>0.01){
         
-        DFGIRay ray=TraceGlobalSDF(worldPos+LoDirection*0.05,LoDirection);
+        DFGIRay ray=TraceGlobalSDF(worldPos+Wo*0.2,Wo);
         if(ray.refCount!=0){
             uint rsmIndex=LinearRSMSampleIndex(CurrRSMSampleIndex);
-            atomicAdd(weight[rsmIndex],1U);
+            //atomicAdd(weight[rsmIndex],1U);
             
+            vec3 dis=ray.hitPosition-worldPos;
             ray.flux=flux;
-            ray.direction=LoDirection;
+            ray.direction=Wo;
             ray.liveCount=MAX_RAY_LIVE_COUNT;
             ivec3 gridIndex=WorldPosToGridIndex(ray.hitPosition);
             uint linearIndex=LinearGridIndex(gridIndex); 
@@ -267,7 +319,9 @@ void main() {
             if(Power(rays[rayIndex].flux)<0.1*Power(ray.flux))
                 rays[rayIndex]=ray;
             else
+                //rays[rayIndex].flux=Power(rays[rayIndex].flux)>Power(ray.flux)? rays[rayIndex].flux:ray.flux;
                 rays[rayIndex].flux=mix(rays[rayIndex].flux,ray.flux,0.1);
+                //rays[rayIndex].flux=ray.flux;
 
             
         }

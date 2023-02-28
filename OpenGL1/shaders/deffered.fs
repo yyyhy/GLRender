@@ -466,6 +466,7 @@ void main()
     gl_FragColor = vec4(N, 1.0);return;
 #endif
     vec3 albedo=texture(gBuffer2,texCoords).xyz;
+    float metallic=texture(gBuffer2,texCoords).w;
 #ifdef DEBUG_ALBEDO
     gl_FragColor = vec4(albedo, 1.0);return;
 #endif
@@ -522,9 +523,9 @@ void main()
         // }
         
         BRDF = calcMicroFacedBRDF(N,L,V,texCoords);
-        BRDF +=MultiScatterBRDF(NdotL,NdotV);
+        BRDF +=(1-metallic)*albedo;
         BRDFdir = BRDF;
-        Lo += BRDF*radiance * NdotL*shadow;
+        Lo += (BRDF)*radiance * NdotL*shadow;
 
 	    //gl_FragColor = vec4(Lo, 1.0);return;
         // if(shadow<0.5){
@@ -553,7 +554,7 @@ void main()
     float dis=999;
     vec3 ibl=vec3(0);
     float totolFactor=0;
-    const float IBLScale=0.2;
+    const float IBLScale=1;
     for(int i=0;i<4;i++){
         if(reflectCube[i].exist){
             float d=sqrt(dot(vWorldPos-reflectCube[i].pos,vWorldPos-reflectCube[i].pos));

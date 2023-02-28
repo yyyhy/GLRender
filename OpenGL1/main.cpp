@@ -90,11 +90,13 @@ int main()
     std::shared_ptr<Shader> gBufferShaderDiffuse2 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> gBufferShaderDiffuse3 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> gBufferShaderDiffuse4 = std::make_shared<Shader>(*gBufferShaderGlossy.get());
+    std::shared_ptr<Shader> gBufferShaderCave = std::make_shared<Shader>(*gBufferShaderGlossy.get());
     std::shared_ptr<Shader> defferedShader = std::make_shared<Shader>("shaders/bf.vs", "shaders/deffered.fs");
     DFGI* dfgi = new DFGI(SCR_WIDTH, SCR_HEIGHT);
 
     auto sponzaObj = CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
+    auto caveObj = CreateObject("objs/cave/cave.gltf");
     auto s2 = CopyObject(sphereObj);
     s2->GetComponent<Transform>()->Translate(glm::vec3(0, -8, 0));
     //auto sphereObj1 = CreateObject("objs/sphere.obj");
@@ -105,6 +107,7 @@ int main()
     //sponzaObj->buildBVH();
     sphereObj->buildBVH();
     sceneObj->buildBVH();
+    //caveObj->buildBVH();
     //bigObj->buildBVH();
     //sphereObj1->buildBVH();
     //doorObj->buildBVH();
@@ -116,8 +119,9 @@ int main()
     doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
     //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
 
+    //scene.AddObject(caveObj);
     //scene.AddObject(sponzaObj);
-    scene.AddObject(sphereObj);
+    //scene.AddObject(sphereObj);
     //scene.AddObject(s2);
     scene.AddObject(sceneObj);
     //scene.AddObject(bigObj);
@@ -131,7 +135,7 @@ int main()
     scene.AddObject(cameraObj);
 
     auto objL = CreateObject();
-    DirectLight* l = new DirectLight(Spectrum(250 / 255.f, 240 / 255.f, 253 / 255.f), 60000.f, glm::normalize(glm::vec3(0.8f, -1.0f, -0.3f)), true);
+    DirectLight* l = new DirectLight(Spectrum(250 / 255.f, 240 / 255.f, 253 / 255.f), 12000.f, glm::normalize(glm::vec3(0.8f, -1.0f, -0.3f)), true);
     objL->AddComponent(l);
     for (int i = 0; i < 4; ++i) {
         dfgi->RSMAlbedoFlag[i] = l->GetRSM(i, 1);
@@ -186,36 +190,46 @@ int main()
     gBufferShaderSpecler->SetTexture("albedoMap", "objs/tex/marble/albedo.jpg");
     gBufferShaderSpecler->SetTexture("normalMap", "objs/tex/marble/normal.jpg");
     gBufferShaderSpecler->SetTexture("roughnessMap", "objs/tex/marble/roughness.jpg");
+    gBufferShaderSpecler->SetTexture("metallicMap", "objs/tex/black.png");
 
     gBufferShaderDiffuse->SetTexture("albedoMap", "objs/tex/brick/albedo.jpg");
     gBufferShaderDiffuse->SetTexture("normalMap", "objs/tex/brick/normal.jpg");
     gBufferShaderDiffuse->SetTexture("roughnessMap", "objs/tex/brick/roughness.jpg");
+    gBufferShaderDiffuse->SetTexture("metallicMap", "objs/tex/black.png");
 
     gBufferShaderDiffuse2->SetTexture("albedoMap", "objs/tex/white.png");
     //gBufferShaderDiffuse2->SetTexture("normalMap", "objs/tex/normal.png");
     gBufferShaderDiffuse2->SetTexture("roughnessMap", "objs/tex/white.png");
-    gBufferShaderDiffuse2->Use();
+    gBufferShaderDiffuse2->SetTexture("metallicMap", "objs/tex/black.png");
+    //gBufferShaderDiffuse2->Use();
     //gBufferShaderDiffuse2->SetVec3("baseColor", glm::vec3(-1,-1,5));
 
     gBufferShaderDiffuse3->SetTexture("albedoMap", "objs/tex/grass/albedo.jpg");
     gBufferShaderDiffuse3->SetTexture("normalMap", "objs/tex/grass/normal.jpg");
     gBufferShaderDiffuse3->SetTexture("roughnessMap", "objs/tex/grass/roughness.jpg");
+    gBufferShaderDiffuse3->SetTexture("metallicMap", "objs/tex/black.png");
 
     gBufferShaderDiffuse4->SetTexture("albedoMap", "objs/tex/red/albedo.png");
     gBufferShaderDiffuse4->SetTexture("normalMap", "objs/tex/red/normal.png");
     gBufferShaderDiffuse4->SetTexture("roughnessMap", "objs/tex/red/roughness.png");
+    gBufferShaderDiffuse4->SetTexture("metallicMap", "objs/tex/black.png");
 
     gBufferShaderGlossy->SetTexture("albedoMap", "objs/tex/albedo.png");
     gBufferShaderGlossy->SetTexture("normalMap", "objs/tex/normal.png");
     gBufferShaderGlossy->SetTexture("roughnessMap", "objs/tex/roughness.png");
     gBufferShaderGlossy->SetTexture("metallicMap", "objs/tex/metallic.png");
 
+    gBufferShaderCave->SetTexture("albedoMap", "objs/cave/albedo.jpg");
+    gBufferShaderCave->SetTexture("normalMap", "objs/cave/normal.jpg");
+    gBufferShaderCave->SetTexture("metallicMap", "objs/tex/metallic.png");
+    gBufferShaderCave->SetTexture("roughnessMap", "objs/tex/white.png");
 
+    caveObj->SetShader(-1, gBufferShaderCave, Deffered);
     sponzaObj->SetShader(-1, gBufferShaderGlossy, Deffered);
     sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
     s2->SetShader(-1, gBufferShaderSpecler, Deffered);
     sceneObj->SetShader(-1, gBufferShaderDiffuse, Deffered);
-   // sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
+    //sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
     sceneObj->SetShader(2, gBufferShaderGlossy, Deffered);
     
     //sceneObj->SetShader(0, gBufferShaderDiffuse4, Deffered);
@@ -293,7 +307,9 @@ int main()
     sponzaObj->LoadLightMapData();*/
 
     render.OpenTAA();
+    //render.openSSAO();
     render.AddPostProcess(dfgi);
+    
     float delta = -0.01;
     RENDER_MAIN_LOOP(window)
     {

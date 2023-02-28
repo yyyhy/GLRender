@@ -2,9 +2,8 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int GridMaxContiansRays=64;
-
-layout(local_size_x = GridMaxContiansRays, local_size_y = 1, local_size_z=1) in;
+const int SPP=8;
+layout(local_size_x = SPP, local_size_y = 1, local_size_z=1) in;
 
 struct DFGIRay{
     vec3 direction;
@@ -13,6 +12,10 @@ struct DFGIRay{
 
     uint refCount;
     uint liveCount;
+};
+
+struct DFGISH{
+    vec4 shCi[9];
 };
 
 layout(std140 , binding=0) uniform CameraProperty{
@@ -35,8 +38,8 @@ uniform vec3 GlobalSDFBoxMin; //vec3(-17.4,-1.7,-7.8);
 uniform vec3 GlobalSDFBoxMax; //vec3(17.4,15.6,7.8);
 uniform bool NeedMarkGridCanMultBounce;
 
-layout(std430, binding = 2) buffer DFGIRaysBuffer{
-    DFGIRay rays[];
+layout(std430, binding = 2) buffer DFGISHBuffer{
+    DFGISH sh[];
 };
 
 vec3 WorldPosToUVW(vec3 worldPos){
@@ -45,7 +48,7 @@ vec3 WorldPosToUVW(vec3 worldPos){
 
 ivec3 WorldPosToGridIndex(vec3 worldPos){
     vec3 uvw=WorldPosToUVW(worldPos);
-    return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
+    return ivec3((SceneGridsResolution.x-1)*uvw.x,(SceneGridsResolution.y-1)*uvw.y,(SceneGridsResolution.z-1)*uvw.z);
 }
 
 vec3 GridIndexToWorldPos(ivec3 gridIndex){
@@ -113,85 +116,213 @@ vec3 calcMicroFacedBRDF(vec3 N,vec3 L,vec3 V,vec2 tex){
     return BRDF;
 }
 
-shared int Lox;
-shared int Loy;
-shared int Loz;
-shared int cnt;
-
 bool UVWIsValid(vec3 uvw){
     return uvw.x>=0.0&&uvw.x<=1.0
         &&uvw.y>=0.0&&uvw.y<=1.0
         &&uvw.z>=0.0&&uvw.z<=1.0;
 }
 
+float P(int l, int m, float x)
+{
+    // evaluate an Associated Legendre Polynomial P(l,m,x) at x
+    float pmm = 1.0;
+    if (m > 0) {
+        float somx2 = sqrt((1.0 - x) * (1.0 + x));
+        float fact = 1.0;
+        for (int i = 1; i <= m; i++) {
+            pmm *= (-fact) * somx2;
+            fact += 2.0;
+        }
+    }
+    if (l == m) return pmm;
+    float pmmp1 = x * (2.0 * m + 1.0) * pmm;
+    if (l == m + 1) return pmmp1;
+    float pll = 0.0;
+    for (int ll = m + 2; ll <= l; ++ll) {
+        pll = ((2.0 * ll - 1.0) * x * pmmp1 - (ll + m - 1.0) * pmm) / (ll - m);
+        pmm = pmmp1;
+        pmmp1 = pll;
+    }
+    return pll;
+}
+
+int factorial(int v) {
+    int res = 1;
+    while (v > 1)
+    {
+        res *= v;
+        v--;
+    }
+    return res;
+}
+
+float K(int l, int m)
+{
+    // renormalisation constant for SH function
+    float temp = ((2.0 * l + 1.0) * factorial(l - m)) / (4.0 * PI * factorial(l + m));
+    return sqrt(temp);
+}
+
+float SH(int l, int m, float theta, float phi)
+{
+    // return a point sample of a Spherical Harmonic basis function
+    // l is the band, range [0..N]
+    // m in the range [-l..l]
+    // theta in the range [0..Pi]
+    // phi in the range [0..2*Pi]
+    const float sqrt2 = sqrt(2.0);
+    if (m == 0) return K(l, 0) * P(l, m, cos(theta));
+    else if (m > 0) return sqrt2 * K(l, m) * cos(m * phi) * P(l, m, cos(theta));
+    else return sqrt2 * K(l, -m) * sin(-m * phi) * P(l, -m, cos(theta));
+}
+
+const ivec2 shTable[]={ivec2(0,0),ivec2(1,-1),ivec2(1,0),ivec2(1,1),ivec2(2,-2),ivec2(2,-1),ivec2(2,0),ivec2(2,1),ivec2(2,2)};
+
+ivec3 Flag(vec3 v){
+    ivec3 flag=ivec3(0);
+    if(v.x>0)
+        flag.x=0;
+    else 
+        flag.x=-1;
+    if(v.y>0)
+        flag.y=0;
+    else 
+        flag.y=-1;
+    if(v.z>0)
+        flag.z=0;
+    else 
+        flag.z=-1;
+    return flag;
+}
+
+float RadicalInverse_VdC(uint bits) 
+{
+     bits = (bits << 16u) | (bits >> 16u);
+     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+     return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 Hammersley(uint i, uint N)
+{
+	return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+}
+
+vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
+{
+	float a = roughness*roughness;
+	
+	float phi = 2.0 * PI * Xi.x;
+	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+	float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+	
+	// from spherical coordinates to cartesian coordinates - halfway vector
+	vec3 H;
+	H.x = cos(phi) * sinTheta;
+	H.y = sin(phi) * sinTheta;
+	H.z = cosTheta;
+	
+	// from tangent-space H vector to world-space sample vector
+	vec3 up          = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+	vec3 tangent   = normalize(cross(up, N));
+	vec3 bitangent = cross(N, tangent);
+	
+	vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+	return normalize(sampleVec);
+}
+
+shared uint Lox;
+shared uint Loy;
+shared uint Loz;
+
 void main(){
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
-    uint rayOffset=gl_LocalInvocationID.x;
-    if(rayOffset<GridContainsRays){
-        vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
-        vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
-        vec3 N=texture2D(gNormalDepth,uv).xyz;
-        if(N.x==0&&N.y==0&&N.z==0){
-            imageStore(DFGIResult,uvIndex,vec4(0));
-            return;
-        }
+    vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
+    vec3 N=texture2D(gNormalDepth,uv).xyz;
+    uint sampleIndex=gl_LocalInvocationID.x;
+    if(N.x==0&&N.y==0&&N.z==0){
+        imageStore(DFGIResult,uvIndex,vec4(0));
+        return;
+    }
 
-        vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
-        vec3 V=normalize(CameraPos-worldPos); 
-
-        if(rayOffset.x==0){
-            Lox=0;
-            Loy=0;
-            Loz=0;
-            cnt=0;
-        }
-        groupMemoryBarrier(); memoryBarrierShared(); barrier();
-
-        ivec3 gridIndex=WorldPosToGridIndex(worldPos);
-        uint linearGridIndex=LinearGridIndex(gridIndex);
-        vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
-        float gridDiag=sqrt(dot(gridSize,gridSize));
-        vec3 Li=vec3(0);
-        vec3 direction=vec3(0);
-        float totolAttenuation=0;
-        for(int x=-1;x<=1;++x){
-            for(int y=-1;y<=1;++y){
-                for(int z=-1;z<=1;++z){
-                    ivec3 offsetGridIndex=gridIndex+ivec3(x,y,z);
-                    vec3 gridWorldPos=GridIndexToWorldPos(offsetGridIndex);
-                    uint offsetLinearGridIndex=LinearGridIndex(offsetGridIndex);
-                    uint rayIndex=offsetLinearGridIndex*GridContainsRays+rayOffset;
-                    DFGIRay offsetRay=rays[rayIndex];
-                    if(offsetRay.refCount==0)
-                        continue;
-                    float attenuation=max(1-length(worldPos-gridWorldPos)/(1.5*gridDiag),0);
-                    Li+=offsetRay.flux*attenuation;
-                    direction+=offsetRay.direction;
-                    totolAttenuation+=attenuation;
-                }
-            }
-        }
-
-        Li/=totolAttenuation;
-        direction=normalize(direction);
-            
-        float NdotL=max(0,dot(N,-direction));
-        if(NdotL>0.0){
-            //float attenuation=max(1-length(worldPos-ray.hitPosition)/max(gridSize.x,max(gridSize.y,gridSize.z)),0.01);
-            vec3 Loi=calcMicroFacedBRDF(N,-direction,V,uv)*Li*NdotL;
-
-            atomicAdd(Lox,int(Loi.x*10000));
-            atomicAdd(Loy,int(Loi.y*10000));
-            atomicAdd(Loz,int(Loi.z*10000));
-            atomicAdd(cnt,1);
-        }
+    if(sampleIndex==0){
+        Lox=0;
+        Loy=0;
+        Loz=0;
     }
 
     groupMemoryBarrier(); memoryBarrierShared(); barrier();
 
-    if(rayOffset.x==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/10000*2*PI/max(cnt,1);
+    vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
+    vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
+    vec3 V=normalize(CameraPos-worldPos); 
+    float metallic=texture2D(gAlbedoMetallic,uv).w;
+    float roughness=texture2D(gPositionRoughness,uv).w;
+    vec3 totolLo=vec3(0);
+
+    ivec3 gridIndex=WorldPosToGridIndex(worldPos);
+    vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
+    vec3 worldPosToGridWorldPos=worldPos-gridWorldPos;
+    ivec3 flag=Flag(worldPosToGridWorldPos);
+    ivec3 startGridIndex=gridIndex+flag;
+    worldPosToGridWorldPos=worldPos-GridIndexToWorldPos(startGridIndex);
+
+    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
+    float gridDiag=sqrt(dot(gridSize,gridSize));
+    vec3 Li=vec3(0);
+    float totolAttenuation=0;
+    vec3 En=vec3(0);
+
+    for(int x=0;x<=1;x++){
+        for(int y=0;y<=1;y++){
+            for(int z=0;z<=1;z++){
+                ivec3 offsetGridIndex=startGridIndex+ivec3(x,y,z);
+                vec3 gridWorldPos=GridIndexToWorldPos(offsetGridIndex);
+                vec2 Xi=Hammersley(sampleIndex,SPP);
+                vec3 H=ImportanceSampleGGX(Xi,N,roughness);
+                vec3 L=normalize(2.0 * dot(V, H) * H - V);
+                //vec3 L=N;
+                
+                float theta=acos(L.z);
+                float phi=atan(L.y/L.z);
+                float NdotL=dot(N,L);
+                float dirWeight=pow(((NdotL+1)/2),2)+0.2;
+
+                uint offsetLinearGridIndex=LinearGridIndex(offsetGridIndex);
+                DFGISH gridSH=sh[offsetLinearGridIndex];
+                for(int i=0;i<4;++i)
+                    Li+=gridSH.shCi[i].xyz*SH(shTable[i].x,shTable[i].y,theta,phi);
+                vec3 alpha = clamp((worldPosToGridWorldPos / gridSize), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+                vec3 trilinear = max(vec3(0.001), mix(1.0 - alpha, alpha, vec3(x,y,z)));
+                float  trilinearWeight = (trilinear.x * trilinear.y * trilinear.z);
+                float attenuation=trilinearWeight*dirWeight;
+                vec3 Lo=(calcMicroFacedBRDF(N,L,V,uv)+(1-metallic)*albedo/PI)*Li*NdotL*attenuation;
+                En+=Li*attenuation*albedo/PI;
+                totolAttenuation+=attenuation;
+                totolLo+=Lo;
+                Li=vec3(0);
+            }
+        }
+    }
+    
+    if(totolAttenuation>0){
+        totolLo/=totolAttenuation;
+        En/=totolAttenuation;
+        totolLo=totolLo*2*PI;
+    }
+
+    atomicAdd(Lox,uint(totolLo.x*10000));
+    atomicAdd(Loy,uint(totolLo.y*10000));
+    atomicAdd(Loz,uint(totolLo.z*10000));
+
+    groupMemoryBarrier(); memoryBarrierShared(); barrier();
+
+    if(sampleIndex==0){
+        vec3 Lo=vec3(Lox,Loy,Loz)/10000/SPP;
         imageStore(DFGIResult,uvIndex,vec4(Lo,1));
     }
+    
     
 }

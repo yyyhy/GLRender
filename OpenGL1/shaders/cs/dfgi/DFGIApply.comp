@@ -51,7 +51,7 @@ vec3 WorldPosToUVW(vec3 worldPos){
 
 ivec3 WorldPosToGridIndex(vec3 worldPos){
     vec3 uvw=WorldPosToUVW(worldPos);
-    return ivec3(SceneGridsResolution.x*uvw.x,SceneGridsResolution.y*uvw.y,SceneGridsResolution.z*uvw.z);
+    return ivec3((SceneGridsResolution.x-1)*uvw.x,(SceneGridsResolution.y-1)*uvw.y,(SceneGridsResolution.z-1)*uvw.z);
 }
 
 uint LinearGridIndex(ivec3 gridIndex){
@@ -140,6 +140,7 @@ void main(){
     
     vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
     vec3 V=normalize(CameraPos-worldPos); 
+    float metallic=texture2D(gAlbedoMetallic,uv).w;
 
     if(gridIndexOffset.x==0U&&gridIndexOffset.y==0U&&gridIndexOffset.z==0U){
         Lox=0;
@@ -170,7 +171,7 @@ void main(){
         vec3 dir=normalize(texture(DFGIGridImportanceDirection,uvw).xyz);
         vec3 Li=texture(DFGIGridFlux,uvw).xyz;
         float NdotL=max(0,dot(N,-dir));
-        vec3 Loi=calcMicroFacedBRDF(N,-dir,V,uv)*Li*NdotL;
+        vec3 Loi=(calcMicroFacedBRDF(N,-dir,V,uv)+albedo/PI*(1-metallic))*Li*NdotL;
 #else
         uint linearGridIndex=LinearGridIndex(gridIndexLocal);
         GridLightInfo info=infos[linearGridIndex];

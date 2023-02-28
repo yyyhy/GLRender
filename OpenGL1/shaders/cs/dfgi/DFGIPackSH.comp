@@ -98,8 +98,6 @@ float SH(int l, int m, float theta, float phi)
     else return sqrt2 * K(l, -m) * sin(-m * phi) * P(l, -m, cos(theta));
 }
 
-shared uint Ci[16];
-
 const ivec2 shTable[]={ivec2(0,0),ivec2(1,-1),ivec2(1,0),ivec2(1,1),ivec2(2,-2),ivec2(2,-1),ivec2(2,0),ivec2(2,1),ivec2(2,2)};
 
 void main(){
@@ -107,30 +105,21 @@ void main(){
     vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
     uint linearGridIndex=LinearGridIndex(gridIndex);
     
-
     uint shIndex=gl_LocalInvocationID.x;
     vec3 ci=vec3(0);
     ivec2 shlm=shTable[shIndex];
 
-    for(int x=-1;x<2;++x){
-        for(int y=-1;x<2;++x){
-            for(int z=-1;x<2;++x){
+    for(int x=0;x<1;++x){
+        for(int y=0;y<1;++y){
+            for(int z=0;z<1;++z){
                 uint offset=LinearGridIndex(gridIndex+ivec3(x,y,z))*GridContainsRays;
 
                 for(int i=0;i<GridContainsRays;++i){
                     DFGIRay ray=rays[offset+i];
-                    if(ray.refCount<1)
-                        continue;
+                   
                     vec3 dir=-ray.direction;
-                    float cosTheta=dir.z;
-                    float sinTheta=sqrt(1-cosTheta*cosTheta);
-                    float cosPhi=dir.x/sinTheta;
-                    float sinPhi=dir.y/sinTheta;
-                    float theta=acos(cosTheta);
-                    float phi=acos(cosPhi);
-                    if(sinPhi<0){
-                        phi=2*PI-phi;
-                    }
+                    float theta=acos(dir.z);
+                    float phi=atan(dir.y/dir.z);
                     vec3 flux=ray.flux; 
                     float shValue=SH(shlm.x,shlm.y,theta,phi);
                     ci+=vec3((shValue)*flux);
@@ -140,11 +129,6 @@ void main(){
         }
     }
     
-
     sh[linearGridIndex].shCi[shIndex]=vec4(ci,0);
-
-
-
-
 
 }

@@ -45,4 +45,6 @@ void GenerateSDFTask::DoTask()
 	}
 
 	process += 1;
+	if(process==10)
+	std::cout << "SDF bake process: " << (int)process + "/4096\r";
 }

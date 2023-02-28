@@ -10,17 +10,18 @@
 #include<random>
 
 const static int DFGIIngegrateDownSample = 2;
-const static glm::vec3 SceneGridsResolution = { 32,32,32 };
+const static glm::vec3 SceneGridsResolution = { 36,36,36 };
 const static int SceneGrids = SceneGridsResolution.x*SceneGridsResolution.y*SceneGridsResolution.z;
-const static int GridContainsRays = 16;
+const static int GridContainsRays = 64;
 
 const static glm::vec2 RSMSampleBrickSize = { 1024,1024 };
 const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4, RSM_H / RSMSampleBrickSize.y / 4 };
 
-
+const static glm::vec2 MultBounceDownSample = { 16,9 };
 //#define IMPORTANCE_SAMPLE_RSM
 #define RESULT_STORE_IN_TEX3D
-//#define PER_RAY_INTEGRATE_APPLY
+#define PER_RAY_INTEGRATE_APPLY
+#define PACK_SH
 //#define USE_SH
 #define MULT_BOUNCE_ON
 
@@ -45,7 +46,8 @@ public:
 			DFGIPerRayIntegrateApplyCS("shaders/cs/dfgi/DFGIPerRayIntegrateApply.comp"),
 			DFGIPackSHCS("shaders/cs/dfgi/DFGIPackSH.comp"),
 			DFGISHBuffer(sizeof(DFGISH), SceneGrids),
-			DFGISHApplyCS("shaders/cs/dfgi/DFGISHApply.comp")
+			DFGISHApplyCS("shaders/cs/dfgi/DFGISHApply.comp")/*,
+			GridFluxAtlas(9*32*6,9*32*6,GL_RGB32F,GL_RGB)*/
 #ifdef RESULT_STORE_IN_TEX3D
 			,DFGIGridFlux(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z, GL_RGBA32F, GL_RGBA),
 			DFGIGridDirection(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z, GL_RGBA32F, GL_RGBA),
@@ -82,7 +84,7 @@ public:
 	Texture2D RSMPositionMetallic[4];
 	Texture2D RSMTangent[4];
 	Texture3D gSDF;
-	
+
 	glm::vec3 GlobalSDFBoxMin;
 	glm::vec3 GlobalSDFBoxMax;
 	glm::vec3 LightFlux;

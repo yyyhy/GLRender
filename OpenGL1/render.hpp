@@ -84,6 +84,8 @@ private:
 								rsmShader->SetTexture("normalMap", normalMap);
 								Texture& roughnessMap = shader->GetTexture("roughnessMap");
 								rsmShader->SetTexture("roughnessMap", roughnessMap);
+								Texture& metallicMap = shader->GetTexture("metallicMap");
+								rsmShader->SetTexture("metallicMap", metallicMap);
 							}
 							o->draw(i, l->rsmShader.get());
 						}
