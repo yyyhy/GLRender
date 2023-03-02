@@ -58,7 +58,7 @@ bool UVWIsValid(vec3 uvw){
 }
 
 const int MAX_TRACE_STEPS = 128;
-const float EPS = 0.05;
+const float EPS = 0.1;
 
 DFGIRay TraceGlobalSDF(vec3 start,vec3 direction){
     //ray.refCount=1;
@@ -155,16 +155,10 @@ float Power(vec3 l){
 
 //NxN direction
 int LinearDirection(vec3 dir){
-    float cosTheta=dir.z;
-    float sinTheta=sqrt(1-cosTheta*cosTheta);
-    float cosPhi=dir.x/sinTheta;
-    float sinPhi=dir.y/sinTheta;
-    float theta=acos(cosTheta);
-    float phi=acos(cosPhi);
-    if(sinPhi<0){
-        phi=2*PI-phi;
-    }
-
+    float theta=acos(dir.z);
+    if(dir.x==0)
+        dir.x=0.001;
+    float phi=atan(dir.y/dir.x);
     int div=int(sqrt(GridContainsRays));
 
     float THETA_PI_DIV=PI/div;
@@ -268,7 +262,8 @@ void main() {
             if(Power(rays[rayIndex].flux)<0.1*Power(ray.flux))
                 rays[rayIndex]=ray;
             else
-                rays[rayIndex].flux=mix(rays[rayIndex].flux,ray.flux,0.1);
+                rays[rayIndex].flux=mix(rays[rayIndex].flux,ray.flux,0.03);
+                //rays[rayIndex].flux+=ray.flux;
                 //rays[rayIndex].flux=Power(rays[rayIndex].flux)>Power(ray.flux)? rays[rayIndex].flux:ray.flux;
         }
     }

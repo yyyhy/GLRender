@@ -14,9 +14,9 @@ private:
 	Vector3i startIndex;
 	Vector3i endIndex;
 	Vector3f resolution;
-	std::atomic_int& process;
+	std::atomic_int* process;
 public:
-	GenerateSDFTask(float* data,AccelStructrue* acc,Vector3f s,Vector3f d,Vector3i si,Vector3i ei,Vector3f r,std::atomic_int&);
+	GenerateSDFTask(float* data,AccelStructrue* acc,Vector3f s,Vector3f d,Vector3i si,Vector3i ei,Vector3f r,std::atomic_int*);
 
 	virtual void DoTask() override;
 };
@@ -50,16 +50,17 @@ public:
 				for (unsigned z = 0; z < resolution.z; z+= delta.z) {
 					auto task = std::make_shared<GenerateSDFTask>(data, 
 										acc, start, diag, Vector3i(x, y, z), 
-										Vector3i(x, y , z)+delta, resolution,process);
+										Vector3i(x, y , z)+delta, resolution,&process);
 
 					pool.AddTask(task);
 				}
 			}
 		}
 
+		std::cout << "SDF is baking...\n";
 		pool.Run();
 		pool.Join();
-		std::cout << "Process: " << process << "/" << resolution.x * resolution.y * resolution.z / delta.x/delta.y/delta.z << "\r";
+		std::cout << "\n";
 		auto t3D= Texture3D(data, resolution.x, resolution.y, resolution.z, GL_R16F,GL_RED);
 		t3D.box = Bounds3(start, start + diag);
 		delete[] data;

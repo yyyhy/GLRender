@@ -88,9 +88,10 @@ void DFGI::excute()
 	DFGIPackSHCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
 	DFGIPackSHCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
 	DFGIPackSHCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
+
 	DFGIPackSHCS.SetBuffer(0, DFGIRaysBuffer);
 	DFGIPackSHCS.SetBuffer(1, DFGISHBuffer);
-	DFGIPackSHCS.Dispath(32, 32, 32);
+	DFGIPackSHCS.Dispath(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z);
 #else
 
 #ifndef PER_RAY_INTEGRATE_APPLY
@@ -113,20 +114,6 @@ void DFGI::excute()
 #endif //  USE_SH
 
 	//default quanlity
-#ifdef USE_SH
-	DFGISHApplyCS.Use();
-
-	DFGISHApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
-	DFGISHApplyCS.SetVec3("GlobalSDFBoxMax", GlobalSDFBoxMax);
-	DFGISHApplyCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
-	DFGISHApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
-	DFGISHApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
-	DFGISHApplyCS.SetTexture("gNormalDepth", gNormalDepth);
-	DFGISHApplyCS.SetBindingImage(1, DFGIResult);
-	DFGISHApplyCS.SetBuffer(2, DFGISHBuffer);
-	DFGISHApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
-
-#else
 #ifndef PER_RAY_INTEGRATE_APPLY
 	DFGIApplyCS.Use();
 	DFGIApplyCS.SetVec3("GlobalSDFBoxMin", GlobalSDFBoxMin);
@@ -158,8 +145,6 @@ void DFGI::excute()
 	DFGIPerRayIntegrateApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 #endif // !HIGH_QUANLITY_APPLY
 
-	
-#endif // USE_SH
 
 	//
 #ifdef MULT_BOUNCE_ON

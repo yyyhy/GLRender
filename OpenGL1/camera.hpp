@@ -41,7 +41,7 @@ public:
     float MouseSensitivity;
     float Zoom;
     Transform* trans;
-    float Fov=45;
+    float Fov=60;
     float w=SCR_WIDTH;
     float h=SCR_HEIGHT;
     float near = 0.1f;

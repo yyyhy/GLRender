@@ -3,7 +3,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int PerpixelSparseRays=64;
+const int PerpixelSparseRays=32;
 
 layout(local_size_x = PerpixelSparseRays, local_size_y = 1) in;
 struct DFGIRay{
@@ -196,16 +196,10 @@ void BlendGridFlux(ivec3 gridIndex, int rayIndex){
 
 //4x4 direction
 int LinearDirection(vec3 dir){
-    float cosTheta=dir.z;
-    float sinTheta=sqrt(1-cosTheta*cosTheta);
-    float cosPhi=dir.x/sinTheta;
-    float sinPhi=dir.y/sinTheta;
-    float theta=acos(cosTheta);
-    float phi=acos(cosPhi);
-    if(sinPhi<0){
-        phi=2*PI-phi;
-    }
-
+    float theta=acos(dir.z);
+    if(dir.x==0)
+        dir.x=0.001;
+    float phi=atan(dir.y/dir.x);
     int div=int(sqrt(GridContainsRays));
 
     float THETA_PI_DIV=PI/div;
@@ -286,8 +280,8 @@ void main() {
     if(length(N)<0.99||(albedo.x<0.001&&albedo.y<0.001&&albedo.z<0.001)){
         return;
     }
-    if(!(N.y>0.9))
-        return;
+    // if(!(N.y>0.9))
+    //     return;
     vec3 worldPos=texture2D(RSMPositionMetallic,uv).xyz;
     vec3 tangent=texture2D(RSMTangent,uv).xyz;
     float roughness=texture2D(RSMNormalRoughness,uv).w;
@@ -320,8 +314,8 @@ void main() {
                 rays[rayIndex]=ray;
             else
                 //rays[rayIndex].flux=Power(rays[rayIndex].flux)>Power(ray.flux)? rays[rayIndex].flux:ray.flux;
-                rays[rayIndex].flux=mix(rays[rayIndex].flux,ray.flux,0.1);
-                //rays[rayIndex].flux=ray.flux;
+                rays[rayIndex].flux=mix(rays[rayIndex].flux,ray.flux,0.03);
+                //rays[rayIndex].flux+=ray.flux;
 
             
         }

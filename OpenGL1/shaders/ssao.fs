@@ -16,7 +16,7 @@ layout(std140, binding=1) uniform RenderSettings{
 };
 
 
-float radius = 0.1;
+float radius = 0.3;
 
 uniform sampler2D gPosition;
 uniform sampler2D gNormalDepth;

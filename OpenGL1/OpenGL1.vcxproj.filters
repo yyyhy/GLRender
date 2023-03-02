@@ -70,6 +70,15 @@
     <Filter Include="头文件\core\rendering">
       <UniqueIdentifier>{5111e0e5-6e88-40b5-a0e4-2563250daf56}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\core\raytracing\structure">
+      <UniqueIdentifier>{f5bcb4f3-9cf4-4c74-be17-855bf987fa61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\raytracing\SDF">
+      <UniqueIdentifier>{37be401f-273c-40de-a10b-bc372bb810a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\common">
+      <UniqueIdentifier>{0df8401b-44bc-45be-8c62-7e750840821f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -80,9 +89,6 @@
     </ClCompile>
     <ClCompile Include="cPostProcess.hpp">
       <Filter>头文件\core\postprocess</Filter>
-    </ClCompile>
-    <ClCompile Include="BVH.cpp">
-      <Filter>头文件\core\raytracing</Filter>
     </ClCompile>
     <ClCompile Include="mesh.cpp">
       <Filter>头文件\core\shapes</Filter>
@@ -102,20 +108,23 @@
     <ClCompile Include="threads.cpp">
       <Filter>头文件\core\threads</Filter>
     </ClCompile>
-    <ClCompile Include="SDF.cpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClCompile>
     <ClCompile Include="DFGI.cpp">
       <Filter>头文件\rtgi\dfgi</Filter>
     </ClCompile>
+    <ClCompile Include="BVH.cpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClCompile>
+    <ClCompile Include="SDF.cpp">
+      <Filter>头文件\core\raytracing\SDF</Filter>
+    </ClCompile>
     <ClCompile Include="ComputeBuffer.cpp">
-      <Filter>头文件\core</Filter>
+      <Filter>头文件\core\common</Filter>
     </ClCompile>
     <ClCompile Include="computeShader.cpp">
-      <Filter>头文件\core</Filter>
+      <Filter>头文件\core\common</Filter>
     </ClCompile>
     <ClCompile Include="texture.cpp">
-      <Filter>头文件\core</Filter>
+      <Filter>头文件\core\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -182,18 +191,6 @@
     <ClInclude Include="sssss.hpp">
       <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
-    <ClInclude Include="BVH.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="intersection.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="bound.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="ray.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="mesh.hpp">
       <Filter>头文件\core\shapes</Filter>
     </ClInclude>
@@ -212,7 +209,7 @@
     <ClInclude Include="spotLight.hpp">
       <Filter>头文件\core\component\light</Filter>
     </ClInclude>
-    <ClInclude Include="sh.hpp">
+    <ClInclude Include="math.hpp">
       <Filter>头文件\core\math</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">
@@ -245,12 +242,6 @@
     <ClInclude Include="sphereLight.hpp">
       <Filter>头文件\core\component\light</Filter>
     </ClInclude>
-    <ClInclude Include="kd_tree.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="AccelStructure.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="bloom.hpp">
       <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
@@ -262,33 +253,6 @@
     </ClInclude>
     <ClInclude Include="settings.hpp">
       <Filter>头文件\third</Filter>
-    </ClInclude>
-    <ClInclude Include="SDF.hpp">
-      <Filter>头文件\core\raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="frameBuffer.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="filter.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="texture.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="commons.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="debugTool.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="computeShader.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
-    <ClInclude Include="drawAdapter.hpp">
-      <Filter>头文件\core</Filter>
     </ClInclude>
     <ClInclude Include="RenderManager.hpp">
       <Filter>头文件\core\managers</Filter>
@@ -302,9 +266,6 @@
     <ClInclude Include="DFGI.hpp">
       <Filter>头文件\rtgi\dfgi</Filter>
     </ClInclude>
-    <ClInclude Include="ComputeBuffer.hpp">
-      <Filter>头文件\core</Filter>
-    </ClInclude>
     <ClInclude Include="photon.hpp">
       <Filter>头文件\core\raytracing\photonmapping</Filter>
     </ClInclude>
@@ -316,6 +277,54 @@
     </ClInclude>
     <ClInclude Include="basicThread.hpp">
       <Filter>头文件\core\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="AccelStructure.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="bound.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="BVH.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="intersection.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="kd_tree.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.hpp">
+      <Filter>头文件\core\raytracing\structure</Filter>
+    </ClInclude>
+    <ClInclude Include="SDF.hpp">
+      <Filter>头文件\core\raytracing\SDF</Filter>
+    </ClInclude>
+    <ClInclude Include="commons.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeBuffer.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="computeShader.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="debugTool.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="drawAdapter.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="filter.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="frameBuffer.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.hpp">
+      <Filter>头文件\core\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

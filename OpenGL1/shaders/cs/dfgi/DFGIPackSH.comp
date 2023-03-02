@@ -109,24 +109,19 @@ void main(){
     vec3 ci=vec3(0);
     ivec2 shlm=shTable[shIndex];
 
-    for(int x=0;x<1;++x){
-        for(int y=0;y<1;++y){
-            for(int z=0;z<1;++z){
-                uint offset=LinearGridIndex(gridIndex+ivec3(x,y,z))*GridContainsRays;
-
-                for(int i=0;i<GridContainsRays;++i){
-                    DFGIRay ray=rays[offset+i];
-                   
-                    vec3 dir=-ray.direction;
-                    float theta=acos(dir.z);
-                    float phi=atan(dir.y/dir.z);
-                    vec3 flux=ray.flux; 
-                    float shValue=SH(shlm.x,shlm.y,theta,phi);
-                    ci+=vec3((shValue)*flux);
-                    
-                }
-            }
-        }
+    uint offset=LinearGridIndex(gridIndex)*GridContainsRays;
+    for(int i=0;i<GridContainsRays;++i){
+        DFGIRay ray=rays[offset+i];
+        
+        vec3 dir=-ray.direction;
+        if(length(dir)<=0.01)
+            continue;
+        float theta=acos(dir.z);
+        float phi=atan(dir.y/dir.x);
+        vec3 flux=ray.flux; 
+        float shValue=SH(shlm.x,shlm.y,theta,phi);
+        ci+=shValue*flux;
+        //rays[offset+i].flux/=2.0;
     }
     
     sh[linearGridIndex].shCi[shIndex]=vec4(ci,0);

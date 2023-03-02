@@ -4,7 +4,7 @@
 #ifndef DIRECT_LIGHT_H
 #define DIRECT_LIGHT_H
 #include "light.hpp"
-#include"sh.hpp"
+#include"math.hpp"
 #include"texture.hpp"
 #include"debugtool.hpp"
 

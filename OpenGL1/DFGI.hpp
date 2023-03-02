@@ -10,19 +10,21 @@
 #include<random>
 
 const static int DFGIIngegrateDownSample = 2;
-const static glm::vec3 SceneGridsResolution = { 36,36,36 };
+const static glm::vec3 SceneGridsResolution = { 32,32,32 };
 const static int SceneGrids = SceneGridsResolution.x*SceneGridsResolution.y*SceneGridsResolution.z;
 const static int GridContainsRays = 64;
 
-const static glm::vec2 RSMSampleBrickSize = { 1024,1024 };
+const static glm::vec2 RSMSampleBrickSize = { 512,512 };
 const static glm::vec2 RSMSampleResolution = { RSM_W / RSMSampleBrickSize.x / 4, RSM_H / RSMSampleBrickSize.y / 4 };
+const static glm::vec2 RSMDownSample = { 4,4 };
 
-const static glm::vec2 MultBounceDownSample = { 16,9 };
+const static glm::vec3 PackSHGroupSize = { 32,32,32 };
+
+const static glm::vec2 MultBounceDownSample = { 32,18 };
 //#define IMPORTANCE_SAMPLE_RSM
 #define RESULT_STORE_IN_TEX3D
 #define PER_RAY_INTEGRATE_APPLY
 #define PACK_SH
-//#define USE_SH
 #define MULT_BOUNCE_ON
 
 class DFGI : public PostProcess{
@@ -37,16 +39,13 @@ public:
 			DFGIRayMultBounceCS("shaders/cs/dfgi/DFGIMultBounce.comp"),
 			DFGIResult(w/ DFGIIngegrateDownSample,h/ DFGIIngegrateDownSample,GL_RGBA32F,GL_RGBA),
 			DFGICompositeResultCS("shaders/cs/dfgi/DFGICompositeResult.comp"),
-			DFGIBlurGBufferCS("shaders/cs/dfgi/DFGIBlurGBuffer.comp"),
-			BlurGBuffer(w,h,GL_RGBA32F,GL_RGBA),
 			DFGIRayLiveDownCS("shaders/cs/dfgi/DFGIRayLiveDown.comp"),
 			DFFGIInitBufferCS("shaders/cs/dfgi/DFGIInitBuffer.comp"),
 			DFGIWeightBuffer(sizeof(unsigned), 32* 32),
 			weight(nullptr),
 			DFGIPerRayIntegrateApplyCS("shaders/cs/dfgi/DFGIPerRayIntegrateApply.comp"),
 			DFGIPackSHCS("shaders/cs/dfgi/DFGIPackSH.comp"),
-			DFGISHBuffer(sizeof(DFGISH), SceneGrids),
-			DFGISHApplyCS("shaders/cs/dfgi/DFGISHApply.comp")/*,
+			DFGISHBuffer(sizeof(DFGISH), SceneGrids)/*,
 			GridFluxAtlas(9*32*6,9*32*6,GL_RGB32F,GL_RGB)*/
 #ifdef RESULT_STORE_IN_TEX3D
 			,DFGIGridFlux(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z, GL_RGBA32F, GL_RGBA),
@@ -61,7 +60,7 @@ public:
 		FirstSparseCounter = FirstSparseFrequency;
 		MultBounceCounter = MultBounceFrequency;
 		RegenerateCounter = RegenerateWeightFrequency;
-		std::cout <<"\nRayStructSize" << sizeof(DFGIRay) << "    DFGI init\n";
+		std::cout <<"DFGI init\n";
 	}
 
 	void excute() override;
@@ -93,7 +92,7 @@ public:
 	unsigned FirstSparseFrequency = 1;
 	unsigned FirstSparseCounter=0;
 	glm::vec2 CurrRSMSampleIndex;
-	glm::vec2 RSMDownSample = { 8,8 };
+	
 	
 	std::uniform_int_distribution<int> dis;
 	std::default_random_engine engine;
@@ -125,18 +124,11 @@ public:
 	//Or integrate all rays to apply
 	ComputeShader DFGIPerRayIntegrateApplyCS;
 
-	//Or sh apply
-	ComputeShader DFGISHApplyCS;
-
 	//MultBounce
 	ComputeShader DFGIRayMultBounceCS;
 
 	unsigned MultBounceFrequency = 1;
 	unsigned MultBounceCounter=0;
-
-	//A sub process
-	ComputeShader DFGIBlurGBufferCS;
-	Texture2D BlurGBuffer;
 
 	//Composite result
 	ComputeShader DFGICompositeResultCS;

@@ -1,6 +1,6 @@
 #include "SDF.hpp"
 
-GenerateSDFTask::GenerateSDFTask(float* data, AccelStructrue* acc, Vector3f s, Vector3f d, Vector3i si, Vector3i ei, Vector3f r, std::atomic_int& p)
+GenerateSDFTask::GenerateSDFTask(float* data, AccelStructrue* acc, Vector3f s, Vector3f d, Vector3i si, Vector3i ei, Vector3f r, std::atomic_int* p)
 	:data(data)
 	,acc(acc)
 	,start(s)
@@ -44,7 +44,7 @@ void GenerateSDFTask::DoTask()
 		}
 	}
 
-	process += 1;
-	if(process==10)
-	std::cout << "SDF bake process: " << (int)process + "/4096\r";
+	(*process)++;
+	if((*process)%20==0)
+		std::cout << "process: " << *process << "/4096\r";
 }
