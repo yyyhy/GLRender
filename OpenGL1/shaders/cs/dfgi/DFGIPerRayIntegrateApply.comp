@@ -2,7 +2,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int SPP=4;
+const int SPP=1;
 layout(local_size_x = SPP, local_size_y = 1, local_size_z=1) in;
 
 struct DFGIRay{
@@ -12,10 +12,6 @@ struct DFGIRay{
 
     uint refCount;
     uint liveCount;
-};
-
-struct DFGISH{
-    vec4 shCi[9];
 };
 
 layout(std140 , binding=0) uniform CameraProperty{
@@ -32,15 +28,15 @@ layout(binding = 1, rgba32f) uniform image2D DFGIResult;
 uniform sampler2D gPositionRoughness;
 uniform sampler2D gNormalDepth;
 uniform sampler2D gAlbedoMetallic;
+uniform sampler3D SH0;
+uniform sampler3D SH10;
+uniform sampler3D SH11;
+uniform sampler3D SH12;
 uniform vec3 SceneGridsResolution;
 uniform int GridContainsRays;
 uniform vec3 GlobalSDFBoxMin; //vec3(-17.4,-1.7,-7.8);
 uniform vec3 GlobalSDFBoxMax; //vec3(17.4,15.6,7.8);
 uniform bool NeedMarkGridCanMultBounce;
-
-layout(std430, binding = 2) buffer DFGISHBuffer{
-    DFGISH sh[];
-};
 
 vec3 WorldPosToUVW(vec3 worldPos){
     return (worldPos-GlobalSDFBoxMin)/(GlobalSDFBoxMax-GlobalSDFBoxMin);
@@ -170,65 +166,6 @@ float SH(int l, int m, float theta, float phi)
 
 const ivec2 shTable[]={ivec2(0,0),ivec2(1,-1),ivec2(1,0),ivec2(1,1),ivec2(2,-2),ivec2(2,-1),ivec2(2,0),ivec2(2,1),ivec2(2,2)};
 
-ivec3 Flag(vec3 v){
-    ivec3 flag=ivec3(0);
-    if(v.x>=0)
-        flag.x=0;
-    else 
-        flag.x=-1;
-    if(v.y>=0)
-        flag.y=0;
-    else 
-        flag.y=-1;
-    if(v.z>=0)
-        flag.z=0;
-    else 
-        flag.z=-1;
-    return flag;
-}
-
-float RadicalInverse_VdC(uint bits) 
-{
-     bits = (bits << 16u) | (bits >> 16u);
-     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-     return float(bits) * 2.3283064365386963e-10; // / 0x100000000
-}
-
-vec2 Hammersley(uint i, uint N)
-{
-	return vec2(float(i)/float(N), RadicalInverse_VdC(i));
-}
-
-vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
-{
-	float a = roughness*roughness;
-	
-	float phi = 2.0 * PI * Xi.x;
-	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
-	float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-	
-	// from spherical coordinates to cartesian coordinates - halfway vector
-	vec3 H;
-	H.x = cos(phi) * sinTheta;
-	H.y = sin(phi) * sinTheta;
-	H.z = cosTheta;
-	
-	// from tangent-space H vector to world-space sample vector
-	vec3 up          = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-	vec3 tangent   = normalize(cross(up, N));
-	vec3 bitangent = cross(N, tangent);
-	
-	vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-	return normalize(sampleVec);
-}
-
-shared uint Lox;
-shared uint Loy;
-shared uint Loz;
-
 void main(){
     ivec2 uvIndex = ivec2(gl_WorkGroupID.xy);
     vec2 uv=vec2(uvIndex)/vec2(gl_NumWorkGroups.xy);
@@ -239,89 +176,25 @@ void main(){
         return;
     }
 
-    if(sampleIndex==0){
-        Lox=0;
-        Loy=0;
-        Loz=0;
-    }
-
-    groupMemoryBarrier(); memoryBarrierShared(); barrier();
-
     vec3 worldPos=texture2D(gPositionRoughness,uv).xyz;
     vec3 albedo=texture2D(gAlbedoMetallic,uv).xyz;
     vec3 V=normalize(CameraPos-worldPos); 
     float metallic=texture2D(gAlbedoMetallic,uv).w;
     float roughness=texture2D(gPositionRoughness,uv).w;
-    vec3 totolLo=vec3(0);
 
-    ivec3 gridIndex=WorldPosToGridIndex(worldPos);
-    vec3 gridWorldPos=GridIndexToWorldPos(gridIndex);
-    vec3 worldPosToGridWorldPos=worldPos-gridWorldPos;
-    ivec3 flag=Flag(worldPosToGridWorldPos);
-    ivec3 startGridIndex=gridIndex+flag;
-    startGridIndex=clamp(startGridIndex,ivec3(0,0,0),ivec3(SceneGridsResolution));
-    worldPosToGridWorldPos=worldPos-GridIndexToWorldPos(startGridIndex);
+    vec3 uvw=WorldPosToGridIndex(worldPos)/SceneGridsResolution;
 
-    vec3 gridSize=(GlobalSDFBoxMax-GlobalSDFBoxMin)/SceneGridsResolution;
-    float gridDiag=sqrt(dot(gridSize,gridSize));
-    vec3 Li=vec3(0);
-    float totolAttenuation=0;
-    vec3 En=vec3(0);
+    vec3 L=normalize(N);
+    float theta=acos(L.y);
+    float phi=atan(L.z/(L.x==0? 0.0001:L.x));
+    vec3 Li=texture(SH0, uvw).xyz*SH(shTable[0].x,shTable[0].y,theta,phi);
+    Li+=texture(SH10, uvw).xyz*SH(shTable[1].x,shTable[1].y,theta,phi);
+    Li+=texture(SH11, uvw).xyz*SH(shTable[2].x,shTable[2].y,theta,phi);
+    Li+=texture(SH12, uvw).xyz*SH(shTable[3].x,shTable[3].y,theta,phi);
 
-    vec2 Xi=Hammersley(sampleIndex,SPP);
-    vec3 H=ImportanceSampleGGX(Xi,N,roughness);
-    vec3 L=normalize(2.0 * dot(N, H) * H - N);
-    float NdotL=dot(N,L);
-
-    for(int x=0;x<=1;x++){
-        for(int y=0;y<=1;y++){
-            for(int z=0;z<=1;z++){
-                ivec3 offsetGridIndex=startGridIndex+ivec3(x,y,z);
-                vec3 gridWorldPos=GridIndexToWorldPos(offsetGridIndex);
-                if(NdotL<0)
-                    continue;
-                
-                float theta=acos(L.z);
-                float phi=atan(L.y/L.x);
-                
-                vec3 dir=normalize(worldPos-gridWorldPos);
-                float dirWeight=pow(((dot(N,dir)+1)/2),2)+0.2;
-
-                uint offsetLinearGridIndex=LinearGridIndex(offsetGridIndex);
-                DFGISH gridSH=sh[offsetLinearGridIndex];
-                vec3 Lix=vec3(0);
-                for(int i=0;i<4;++i)
-                    Lix+=gridSH.shCi[i].xyz*SH(shTable[i].x,shTable[i].y,theta,phi);
-                vec3 alpha = clamp((worldPosToGridWorldPos / gridSize), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-                
-                vec3 trilinear = max(vec3(0.001), mix(1.0 - alpha, alpha, vec3(x,y,z)));
-                float  trilinearWeight = pow(trilinear.x * trilinear.y * trilinear.z,1);
-                float attenuation= trilinearWeight;
-                Li+=Lix*attenuation;
-                En+=Li*attenuation*albedo/PI;
-                totolAttenuation+=attenuation;
-            }
-        }
-    }
+    vec3 Lo=(calcMicroFacedBRDF(N,L,V,uv)+(1-metallic)*albedo/PI)*Li;
+    imageStore(DFGIResult,uvIndex,vec4(Lo,1));
     
-    totolLo=(calcMicroFacedBRDF(N,L,V,uv)+(1-metallic)*albedo/PI)*Li*NdotL;
-    if(totolAttenuation>0){
-        totolLo/=totolAttenuation;
-        En/=totolAttenuation;
-        totolLo=totolLo*2*PI;
-    }
-
-    atomicAdd(Lox,uint(totolLo.x*10000));
-    atomicAdd(Loy,uint(totolLo.y*10000));
-    atomicAdd(Loz,uint(totolLo.z*10000));
-
-    groupMemoryBarrier(); memoryBarrierShared(); barrier();
-
-    if(sampleIndex==0){
-        vec3 Lo=vec3(Lox,Loy,Loz)/10000/SPP;
-        //vec3 Lo=En;
-        imageStore(DFGIResult,uvIndex,vec4(Lo,1));
-    }
     
     
 }

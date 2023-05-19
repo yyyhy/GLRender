@@ -62,7 +62,7 @@ public:
 		ssaoTexBuffer.Release();
 	}
 
-	void excute() override {
+	void Excute() override {
 		BlitMap(0, ssaoTexBuffer, mainShader.get());
 		BlitMap(ssaoTexBuffer, ssaoBlurBuffer, filterShader.get());
 		GetShader()->SetTexture("ssaoMap", ssaoBlurBuffer);

@@ -50,7 +50,7 @@ public:
 		ssdoShader->SetTexture("ssdoNoise", noiseTexture);
 	}
 
-	void excute() override {
+	void Excute() override {
 		BlitMap(GetInTexBuffer(), ssdoTexBuffer, mainShader.get());
 		BlitMap(ssdoTexBuffer, ssdoBlurBuffer, filterShader.get());
 		GetShader()->SetTexture("ssdoMap", ssdoBlurBuffer);

@@ -30,14 +30,14 @@ private:
     bool createFinish = false;
 
 public:
-    explicit Object(const std::string& filepath) :active(true) {
+    explicit Object(const std::string& filepath) :active(true) ,isStatic(true){
         AddComponent<Transform>();
         /*std::thread t(std::bind(&Object::loadModel,this, filepath, genBVH));
         t.join();*/
         loadModel(filepath);
     }
 
-    explicit Object() :active(true) { AddComponent<Transform>(); }
+    explicit Object() :active(true), isStatic(true) { AddComponent<Transform>(); }
 
     Object(const Object& o) {
 #ifdef _DEBUG

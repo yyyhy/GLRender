@@ -3,18 +3,19 @@
 #ifndef RENDER_MANAGER_H
 #define RENDER_MANAGER_H
 #include<vector>
+#include"RenderPipeline.hpp"
 
 class Render;
 
 class RenderManager {
 private:
-	std::vector<Render*> renders;
+	std::vector<RenderPipeline*> renders;
 	RenderManager(RenderManager&) {}
 	RenderManager(RenderManager&&) noexcept {}
 
 public:
 	RenderManager() {}
-	void RegisterRender(Render* render) {
+	void RegisterRender(RenderPipeline* render) {
 		renders.push_back(render);
 	}
 

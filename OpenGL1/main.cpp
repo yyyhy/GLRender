@@ -13,7 +13,6 @@
 #include"test.hpp"
 #include"reflectProbe.hpp"
 #include"debugTool.hpp"
-#include <crtdbg.h>
 #include"spotLight.hpp"
 #include"gc.hpp"
 #include"lightFlicker.hpp"
@@ -65,12 +64,6 @@ int main()
     printf("OpenGL Vender£º%s\n", GetGLVender());
     printf("GPU£º%s\n", GetGLRenderer());
     printf("OpenGL Version£º%s\n\n", GetGLVersion());
-    //GetSupportExtensions();
-    //glPatchParameteri(GL_PATCH_VERTICES, 3);
-    /*auto sphereObjt = CreateObject("objs/sphere.obj", false);
-    glfwTerminate();
-    _CrtDumpMemoryLeaks();
-    return 0;*/
 
     system("color 02");
 
@@ -96,6 +89,7 @@ int main()
 
     auto sponzaObj = CreateObject("objs/sponza/sponza.obj");
     auto sphereObj = CreateObject("objs/sphere.obj");
+    sphereObj->isStatic = false;
     //auto caveObj = CreateObject("objs/cave/cave.gltf");
     auto s2 = CopyObject(sphereObj);
     s2->GetComponent<Transform>()->Translate(glm::vec3(0, -8, 0));
@@ -114,7 +108,7 @@ int main()
 
     sphereObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, 0));
     //sphereObj1->GetComponent<Transform>()->Translate(glm::vec3(0, 4, 0));
-    //sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
+    sphereObj->GetComponent<Transform>()->SetScale(glm::vec3(0.3, 0.3, 0.3));
     //sphereObj->AddComponent<Test>();
     doorObj->GetComponent<Transform>()->Translate(glm::vec3(0, 0, -0.5));
     //doorObj->GetComponent<Transform>()->SetScale(glm::vec3(0.02, 0.02, 0.02));
@@ -124,8 +118,9 @@ int main()
     //scene.AddObject(sphereObj);
     //scene.AddObject(s2);
     scene.AddObject(sceneObj);
+    
     //scene.AddObject(bigObj);
-    //scene.AddObject(sphereObj1);
+    scene.AddObject(sphereObj);
     //scene.AddObject(doorObj);
 
     auto cameraObj = CreateObject();
@@ -167,9 +162,6 @@ int main()
      s->SetVec3("col", {5,5,5});
      o->SetShader(-1, s);
      scene.AddObject(o);*/
-
-
-
 
     auto probeObj = CreateObject();
     probeObj->GetComponent<Transform>()->Translate(0, 2, 0);
@@ -225,10 +217,10 @@ int main()
 
     //caveObj->SetShader(-1, gBufferShaderCave, Deffered);
     sponzaObj->SetShader(-1, gBufferShaderDiffuse2, Deffered);
-    sphereObj->SetShader(-1, gBufferShaderSpecler, Deffered);
+    sphereObj->SetShader(-1, gBufferShaderDiffuse2, Deffered);
     s2->SetShader(-1, gBufferShaderSpecler, Deffered);
     sceneObj->SetShader(-1, gBufferShaderDiffuse2, Deffered);
-    //sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
+    sceneObj->SetShader(1, gBufferShaderDiffuse2, Deffered);
     //sceneObj->SetShader(2, gBufferShaderGlossy, Deffered);
     
     //sceneObj->SetShader(0, gBufferShaderDiffuse4, Deffered);

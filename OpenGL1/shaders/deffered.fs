@@ -78,7 +78,6 @@ in mat4 CameraV;
 in mat4 CameraM;
 in mat4 CameraP;
 
-
 #define PI 3.1415926
 #define PI2 6.283185307179586
 #define LIGHT_WIDTH 0.3

@@ -18,7 +18,7 @@ public:
 		
 	}
 
-	void excute() override{
+	void Excute() override{
 		taa->Use();
 		taa->SetTexture("lastFrame", GetOutTexBuffer(1-currTBuffer).id);
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(currTBuffer), taa.get(),GetOutFrameBuffer(currTBuffer));

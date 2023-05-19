@@ -99,7 +99,7 @@ public:
 		return TargetOutputFrameBuffer;
 	}
 
-	virtual void excute() = 0;
+	virtual void Excute() = 0;
 
 	std::shared_ptr<Shader> GetShader() const { return shader; }
 	bool enable;

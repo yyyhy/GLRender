@@ -30,6 +30,6 @@ public:
 			timer = 0;
 			dir = -dir;
 		}
-		t->Translate(globalTimer.deltaTime * 0.5*dir, globalTimer.deltaTime * 0.5 * dir, 0);
+		t->Translate(globalTimer.deltaTime * 0.5*dir,0, 0);
 	}
 };

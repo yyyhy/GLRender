@@ -1,6 +1,6 @@
 #include "DFGI.hpp"
 
-void DFGI::excute()
+void DFGI::Excute()
 {
 	//
 	if (RegenerateCounter >= RegenerateWeightFrequency) {
@@ -90,7 +90,10 @@ void DFGI::excute()
 	DFGIPackSHCS.SetVec3("SceneGridsResolution", SceneGridsResolution);
 
 	DFGIPackSHCS.SetBuffer(0, DFGIRaysBuffer);
-	DFGIPackSHCS.SetBuffer(1, DFGISHBuffer);
+	DFGIPackSHCS.SetBindingImage(1, SH0);
+	DFGIPackSHCS.SetBindingImage(2, SH10);
+	DFGIPackSHCS.SetBindingImage(3, SH11);
+	DFGIPackSHCS.SetBindingImage(4, SH12);
 	DFGIPackSHCS.Dispath(SceneGridsResolution.x, SceneGridsResolution.y, SceneGridsResolution.z);
 #else
 
@@ -140,8 +143,11 @@ void DFGI::excute()
 	DFGIPerRayIntegrateApplyCS.SetTexture("gPositionRoughness", gPositionRoughness);
 	DFGIPerRayIntegrateApplyCS.SetTexture("gAlbedoMetallic", gAlbedoMetallic);
 	DFGIPerRayIntegrateApplyCS.SetTexture("gNormalDepth", gNormalDepth);
+	DFGIPerRayIntegrateApplyCS.SetTexture("SH0", SH0);
+	DFGIPerRayIntegrateApplyCS.SetTexture("SH10", SH10);
+	DFGIPerRayIntegrateApplyCS.SetTexture("SH11", SH11);
+	DFGIPerRayIntegrateApplyCS.SetTexture("SH12", SH12);
 	DFGIPerRayIntegrateApplyCS.SetBindingImage(1, DFGIResult);
-	DFGIPerRayIntegrateApplyCS.SetBuffer(2, DFGISHBuffer);
 	DFGIPerRayIntegrateApplyCS.Dispath(width / DFGIIngegrateDownSample, height / DFGIIngegrateDownSample, 1);
 #endif // !HIGH_QUANLITY_APPLY
 

@@ -82,7 +82,7 @@ void main()
     vec3 lastcol;
     vec2 closestUV=getClosestUV();
     vec2 velo=texture2D(gVelo,closestUV).xy;
-    lastUV=texCoords-velo;
+    lastUV=texCoords-vec2(velo.x,velo.y);
     if(lastUV.x<0||lastUV.x>1||lastUV.y<0||lastUV.y>1){
         gl_FragColor=vec4(Albedo,1);
         return;

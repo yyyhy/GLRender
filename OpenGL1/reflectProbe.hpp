@@ -83,7 +83,7 @@ public:
 				tmpCamera->Up = captureViews[j * 2 + 1];
 				glBindFramebuffer(GL_FRAMEBUFFER, GetFrameBuffer().frameBuffer);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, GetCubeMap().id, 0);
-				localRender(s, GetFrameBuffer(), true);
+				localRender(s, GetFrameBuffer());
 				/*for (int j = 0; j < 6; ++j) {
 					int w = 512, h = 512;
 					unsigned char* imageData = new unsigned char[w * h * 3] { 255 };

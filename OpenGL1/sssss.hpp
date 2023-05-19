@@ -13,7 +13,7 @@ public:
 
 	}
 
-	void excute() override {
+	void Excute() override {
 		BlitMap(GetInTexBuffer(), GetOutTexBuffer(), GetShader().get());
 	}
 

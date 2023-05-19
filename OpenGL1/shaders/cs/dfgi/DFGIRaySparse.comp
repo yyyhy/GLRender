@@ -3,7 +3,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int PerpixelSparseRays=32;
+const int PerpixelSparseRays=64;
 
 layout(local_size_x = PerpixelSparseRays, local_size_y = 1) in;
 struct DFGIRay{
@@ -196,10 +196,10 @@ void BlendGridFlux(ivec3 gridIndex, int rayIndex){
 
 //4x4 direction
 int LinearDirection(vec3 dir){
-    float theta=acos(dir.z);
+    float theta=acos(dir.y);
     if(dir.x==0)
         dir.x=0.001;
-    float phi=atan(dir.y/dir.x);
+    float phi=atan(dir.z/dir.x);
     int div=int(sqrt(GridContainsRays));
 
     float THETA_PI_DIV=PI/div;

@@ -29,7 +29,7 @@
 static unsigned CameraPropertyUbo;
 static unsigned RenderSettingsUbo;
 
-class Render {
+class Render : public RenderPipeline{
 private:
 
 	FrameBuffer BackFrameBuffer;
@@ -182,7 +182,7 @@ private:
 		(*p)->SetInTexBuffer(*BackFrameBuffer.GetTexture(0));
 		for (p; p != postProcess.end(); ++p) {
 
-			(*p)->excute();
+			(*p)->Excute();
 
 			auto next = p;
 			++next;
@@ -313,8 +313,6 @@ public:
 		auto blit = new Blit(RenderWidth, RenderHeight);
 
 		AddPostProcess(blit);
-
-		RenderManagerInstance.RegisterRender(this);
 	}
 
 	~Render() {
@@ -328,7 +326,11 @@ public:
 		}
 	}
 
-	void operator()(Scene* scene, const FrameBuffer& targetBuffer = TargetOutputFrameBuffer, bool applySky = true) {
+	void MainRender() override{
+		
+	};
+
+	void operator()(Scene* scene, const FrameBuffer& targetBuffer = TargetOutputFrameBuffer) {
 
 		if (mainCamera == NULL)
 			return;
@@ -391,7 +393,7 @@ public:
 		}
 
 		//draw sky
-		if (scene->sky != NULL && applySky) {
+		if (scene->sky != NULL) {
 			scene->sky->Use();
 			scene->sky->SetMat4("projection", mainCamera->GetProjection());
 			scene->sky->SetMat4("view", mainCamera->GetView());
@@ -481,8 +483,6 @@ public:
 			++p;
 		SaveFrameBuffer((*p)->GetOutFrameBuffer());
 	}
-
-
 };
 
 #endif // !RENDER_H

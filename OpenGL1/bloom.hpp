@@ -22,7 +22,7 @@ public:
 		
 	}
 
-	void excute() override {
+	void Excute() override {
 		BlitMap(GetInTexBuffer(), bloomMainTexBuffer, mainShader.get());
 		BlitMap(bloomMainTexBuffer, bloomBlurHTexBuffer, filterHShader.get());
 		BlitMap(bloomBlurHTexBuffer, bloomBlurVTexBuffer, filterVShader.get());

@@ -27,7 +27,7 @@ public:
 		cs("shaders/cs/test.csr")
 		{}
 
-	void excute() override {
+	void Excute() override {
 		auto s = GetShader();
 		cs.SetTexture("sadimage", 11);
 		cs.SetTexture("RSM", 15);

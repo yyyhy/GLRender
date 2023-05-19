@@ -16,26 +16,11 @@
     <Filter Include="源文件\shader">
       <UniqueIdentifier>{d45294e6-3d5a-4ba6-8650-8d3ee04e4db2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\gc">
-      <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\brdf">
-      <UniqueIdentifier>{ff73a5e4-313a-4d6d-b9b5-23f625b4a4bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\core">
       <UniqueIdentifier>{1a94f9cd-cc28-4a35-9be6-e31664339f3a}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\core\managers">
       <UniqueIdentifier>{0b3d1364-143e-4a33-8d23-2a512f5b94d4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\rtgi">
-      <UniqueIdentifier>{459df571-8fda-4cfa-8d49-7e44d96a59f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\rtgi\dfgi">
-      <UniqueIdentifier>{ae529aab-e658-4485-b1c5-81a397a1f9bc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\rtgi\ltc">
-      <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\core\component">
       <UniqueIdentifier>{d36fb53e-8748-4414-94a3-926bb037bd28}</UniqueIdentifier>
@@ -79,12 +64,27 @@
     <Filter Include="头文件\core\common">
       <UniqueIdentifier>{0df8401b-44bc-45be-8c62-7e750840821f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\test">
+      <UniqueIdentifier>{9d25c6dd-2bec-4f77-a1d7-4382805c088b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\test\gc">
+      <UniqueIdentifier>{1e6dbb9b-b86f-4ec9-b149-325c8d4ba2f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\brdf">
+      <UniqueIdentifier>{ff73a5e4-313a-4d6d-b9b5-23f625b4a4bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\rtgi">
+      <UniqueIdentifier>{459df571-8fda-4cfa-8d49-7e44d96a59f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\rtgi\dfgi">
+      <UniqueIdentifier>{ae529aab-e658-4485-b1c5-81a397a1f9bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\core\rtgi\ltc">
+      <UniqueIdentifier>{38f4f8f9-b94e-4dac-8390-da7ec7227d52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="include\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cPostProcess.hpp">
@@ -97,19 +97,19 @@
       <Filter>头文件\core\shapes</Filter>
     </ClCompile>
     <ClCompile Include="gc.cpp">
-      <Filter>头文件\gc</Filter>
+      <Filter>头文件\test\gc</Filter>
     </ClCompile>
     <ClCompile Include="brdf_ddx.hpp">
-      <Filter>头文件\brdf</Filter>
+      <Filter>头文件\core\brdf</Filter>
     </ClCompile>
     <ClCompile Include="brdf.cpp">
-      <Filter>头文件\brdf</Filter>
+      <Filter>头文件\core\brdf</Filter>
     </ClCompile>
     <ClCompile Include="threads.cpp">
       <Filter>头文件\core\threads</Filter>
     </ClCompile>
     <ClCompile Include="DFGI.cpp">
-      <Filter>头文件\rtgi\dfgi</Filter>
+      <Filter>头文件\core\rtgi\dfgi</Filter>
     </ClCompile>
     <ClCompile Include="BVH.cpp">
       <Filter>头文件\core\raytracing\structure</Filter>
@@ -125,6 +125,15 @@
     </ClCompile>
     <ClCompile Include="texture.cpp">
       <Filter>头文件\core\common</Filter>
+    </ClCompile>
+    <ClCompile Include="include\glad.c">
+      <Filter>头文件\third</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPipeline.hpp">
+      <Filter>头文件\core\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="render.cpp">
+      <Filter>头文件\core\rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -216,10 +225,10 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc_type.hpp">
-      <Filter>头文件\gc</Filter>
+      <Filter>头文件\test\gc</Filter>
     </ClInclude>
     <ClInclude Include="gc.hpp">
-      <Filter>头文件\gc</Filter>
+      <Filter>头文件\test\gc</Filter>
     </ClInclude>
     <ClInclude Include="lightFlicker.hpp">
       <Filter>头文件\core\component\other</Filter>
@@ -228,16 +237,16 @@
       <Filter>头文件\core\postprocess</Filter>
     </ClInclude>
     <ClInclude Include="ltc.hpp">
-      <Filter>头文件\rtgi\ltc</Filter>
+      <Filter>头文件\core\rtgi\ltc</Filter>
     </ClInclude>
     <ClInclude Include="brdf.hpp">
-      <Filter>头文件\brdf</Filter>
+      <Filter>头文件\core\brdf</Filter>
     </ClInclude>
     <ClInclude Include="nelder_mead.hpp">
       <Filter>头文件\core\math</Filter>
     </ClInclude>
     <ClInclude Include="fitLTC.hpp">
-      <Filter>头文件\rtgi\ltc</Filter>
+      <Filter>头文件\core\rtgi\ltc</Filter>
     </ClInclude>
     <ClInclude Include="sphereLight.hpp">
       <Filter>头文件\core\component\light</Filter>
@@ -248,12 +257,6 @@
     <ClInclude Include="SceneManager.hpp">
       <Filter>头文件\core\managers</Filter>
     </ClInclude>
-    <ClInclude Include="input.hpp">
-      <Filter>头文件\third</Filter>
-    </ClInclude>
-    <ClInclude Include="settings.hpp">
-      <Filter>头文件\third</Filter>
-    </ClInclude>
     <ClInclude Include="RenderManager.hpp">
       <Filter>头文件\core\managers</Filter>
     </ClInclude>
@@ -261,10 +264,10 @@
       <Filter>头文件\core\managers</Filter>
     </ClInclude>
     <ClInclude Include="DFGIRayStruct.hpp">
-      <Filter>头文件\rtgi\dfgi</Filter>
+      <Filter>头文件\core\rtgi\dfgi</Filter>
     </ClInclude>
     <ClInclude Include="DFGI.hpp">
-      <Filter>头文件\rtgi\dfgi</Filter>
+      <Filter>头文件\core\rtgi\dfgi</Filter>
     </ClInclude>
     <ClInclude Include="photon.hpp">
       <Filter>头文件\core\raytracing\photonmapping</Filter>
@@ -324,6 +327,12 @@
       <Filter>头文件\core\common</Filter>
     </ClInclude>
     <ClInclude Include="texture.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.hpp">
+      <Filter>头文件\core\common</Filter>
+    </ClInclude>
+    <ClInclude Include="input.hpp">
       <Filter>头文件\core\common</Filter>
     </ClInclude>
   </ItemGroup>

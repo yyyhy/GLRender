@@ -2,7 +2,7 @@
 #extension GL_EXT_shader_atomic_float : enable
 #pragma debug(on)
 
-const int SHLevel=4;
+const int SHLevel=1;
 
 layout(local_size_x = SHLevel, local_size_y = 1) in;
 
@@ -15,23 +15,21 @@ struct DFGIRay{
     uint liveCount;
 };
 
-struct DFGISH{
-    vec4 shCi[9];
-};
-
 layout(std430, binding = 0) buffer DFGIRaysBuffer{
     DFGIRay rays[];
 };
 
-layout(std430, binding = 1) buffer DFGISHBuffer{
-    DFGISH sh[];
-};
+layout(binding=1,rgba32f) uniform image3D SH0;
+layout(binding=2,rgba32f) uniform image3D SH10;
+layout(binding=3,rgba32f) uniform image3D SH11;
+layout(binding=4,rgba32f) uniform image3D SH12;
 
 const int MAX_RAY_LIVE_COUNT=64;
 uniform int GridContainsRays;
 uniform vec3 SceneGridsResolution;
 uniform vec3 GlobalSDFBoxMin;
 uniform vec3 GlobalSDFBoxMax;
+
 
 uint LinearGridIndex(ivec3 gridIndex){
     return uint(gridIndex.z*(SceneGridsResolution.x*SceneGridsResolution.y)+gridIndex.y*SceneGridsResolution.x+gridIndex.x);
@@ -116,14 +114,28 @@ void main(){
         vec3 dir=-ray.direction;
         if(length(dir)<=0.01)
             continue;
-        float theta=acos(dir.z);
-        float phi=atan(dir.y/dir.x);
+        float theta=acos(dir.y);
+        float phi=atan(dir.z/dir.x);
         vec3 flux=ray.flux; 
         float shValue=SH(shlm.x,shlm.y,theta,phi);
         ci+=shValue*flux;
         //rays[offset+i].flux/=2.0;
     }
     
-    sh[linearGridIndex].shCi[shIndex]=vec4(ci,0);
-
+    if(shIndex==0)
+        imageStore( SH0,
+                gridIndex,
+                vec4(ci,0));
+    if(shIndex==1)
+        imageStore( SH10,
+                gridIndex,
+                vec4(ci,0));
+    if(shIndex==2)
+        imageStore( SH11,
+                gridIndex,
+                vec4(ci,0));
+    if(shIndex==3)
+        imageStore( SH12,
+                gridIndex,
+                vec4(ci,0));
 }

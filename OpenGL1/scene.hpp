@@ -106,6 +106,8 @@ public:
 		printf("Generate scene BVH...");
 		std::vector<Shape*> meshs;
 		for (auto& i : objects) {
+			if (!i->isStatic)
+				continue;
 			for (int j = 0; j < i->GetMeshLength(); j++) {
 				auto m = i->meshes[j];
 				meshs.push_back(m.get());

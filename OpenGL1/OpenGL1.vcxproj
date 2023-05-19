@@ -126,13 +126,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\C++\GLR\GLRender\OpenGL1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GL\GLRender\OpenGL1\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>D:\Projects\C++\GLR\GLRender\OpenGL1\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\GL\GLRender\OpenGL1\libs</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;assimp-vc142-mtd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\Cpp\GLR\OpenGL1\libs;D:\Projects\Cpp\GLR\OpenGL1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GL\GLRender\OpenGL1\libs;D:\GL\GLRender\OpenGL1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
@@ -153,7 +153,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Projects\Cpp\GLR\OpenGL1\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\GL\GLRender\OpenGL1\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -170,6 +170,8 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="cPostProcess.hpp" />
+    <ClCompile Include="render.cpp" />
+    <ClCompile Include="RenderPipeline.hpp" />
     <ClCompile Include="SDF.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="threads.cpp" />
